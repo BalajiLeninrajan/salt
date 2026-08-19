@@ -1,0 +1,629 @@
+/* salt report dashboard — Catppuccin Mocha + neumorphic depth.
+   Foundation tokens come from /tokens.css (served from public/). Depth roles:
+   raised = container/at-rest, inset = well/engaged. */
+
+.shell {
+  min-height: 100vh;
+  padding: 56px 24px 96px;
+  /* Ambient wash: must not read as a visible gradient. */
+  background:
+    radial-gradient(1200px 700px at 12% -10%, rgb(203 166 247 / 0.008), transparent 60%),
+    var(--base);
+}
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  gap: 28px;
+}
+
+/* ── shared primitives ─────────────────────────────────────────────────── */
+
+.panel {
+  background: var(--base);
+  border: 1px solid color-mix(in srgb, var(--surface-1) 40%, transparent);
+  border-radius: 16px;
+  box-shadow: var(--neu-raised), inset 1px 1px color-mix(in srgb, var(--surface-2) 30%, transparent);
+  padding: 26px 28px;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mauve);
+  margin: 0 0 6px;
+}
+
+.section-title {
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.section-note {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--overlay-1);
+  margin: 0 0 20px;
+}
+
+.section-gap {
+  margin-top: 18px;
+}
+
+.metric-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--overlay-1);
+}
+
+.metric-value {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* ── hero ──────────────────────────────────────────────────────────────── */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.hero-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* The wordmark: real Inter for s/l/t, a drawn arch for the `a`. The arch SVG
+   is exactly one x-height tall and sits on the baseline, so it lines up with
+   the text without any nudging. */
+.logo {
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  line-height: 1;
+  white-space: nowrap;
+}
+.logo-a {
+  height: 0.55em; /* Inter's measured x-height */
+  width: auto;
+  vertical-align: baseline;
+  margin: 0 0.06em; /* Inter's measured sidebearing on `n` */
+}
+
+.hero-logo {
+  align-self: flex-start;
+  font-size: 34px;
+  margin-bottom: 22px;
+}
+
+.score {
+  font-family: var(--sans);
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  font-weight: 820;
+  color: var(--text);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.score-caption {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  color: var(--subtext-0);
+  margin: 12px 0 0;
+  max-width: 42ch;
+  line-height: 1.55;
+}
+
+/* The report is a snapshot on a clock: when it was taken, when it stops
+   resolving. Quieter than the caption above it, but on the first screen. */
+.snapshot {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--overlay-1);
+  margin: 14px 0 0;
+}
+
+/* Signature flourish: the one rotated, hard-shadowed card on the page. */
+.hero-card {
+  transform: rotate(1.2deg);
+  box-shadow: 10px 10px 0 var(--crust);
+  display: grid;
+  gap: 14px;
+  align-content: center;
+}
+
+.stat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.stat-row .metric-value {
+  font-size: 22px;
+}
+.stat-row-sub {
+  margin-top: 8px;
+}
+.stat-row-sub .metric-value {
+  font-size: 12px;
+}
+.harness-card .stat-row-sub:first-of-type {
+  margin-top: 14px;
+}
+
+/* Four-up counter strip. Inset, because it reads as a recessed readout rather
+   than a raised card. */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  border-radius: 16px;
+  box-shadow: var(--neu-inset-soft);
+}
+.metric-grid .stat-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* ── harness cards ─────────────────────────────────────────────────────── */
+
+.harness-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.harness-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--base);
+  border: 1px solid color-mix(in srgb, var(--entity-color) 28%, var(--surface-0));
+  border-radius: 14px;
+  box-shadow: var(--neu-raised-soft);
+  padding: 18px 18px 18px 22px;
+}
+
+/* Left color spine: the identity cue for an entity. */
+.harness-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--entity-color);
+}
+
+.harness-name {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 720;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0 0 14px;
+}
+
+.harness-rate {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--entity-color);
+  line-height: 1;
+}
+
+.bar-track {
+  display: block;
+  margin-top: 14px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--mantle);
+  box-shadow: var(--neu-inset);
+  overflow: hidden;
+}
+.bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--entity-color);
+  transition: width 0.35s ease;
+}
+
+.callout {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--mauve) 7%, var(--base));
+  border: 1px solid color-mix(in srgb, var(--mauve) 30%, transparent);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--subtext-1);
+  line-height: 1.6;
+}
+.callout strong {
+  color: var(--text);
+}
+
+/* ── word rows ─────────────────────────────────────────────────────────── */
+
+.word-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 120px 56px;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  transition: box-shadow 0.16s ease, background 0.16s ease;
+}
+.word-row:hover {
+  box-shadow: var(--neu-inset-soft);
+}
+
+.word-rank {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--overlay-0);
+  font-variant-numeric: tabular-nums;
+}
+.word-text {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.word-tier {
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tier-color);
+  margin-left: 8px;
+}
+.word-bar {
+  margin-top: 0;
+}
+.word-count {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+  color: var(--subtext-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── charts ────────────────────────────────────────────────────────────── */
+
+.chart-well {
+  border-radius: 14px;
+  background: var(--mantle);
+  box-shadow: var(--neu-inset);
+  padding: 18px 16px 10px;
+}
+.chart-well svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 14px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--overlay-1);
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Wide charts scroll inside their own well, never the page. */
+.heat-scroll {
+  overflow-x: auto;
+  scrollbar-color: var(--surface-2) transparent;
+}
+
+/* ── projects table ────────────────────────────────────────────────────── */
+
+.table-wrap {
+  overflow-x: auto;
+}
+table.projects {
+  width: 100%;
+  border-collapse: collapse;
+}
+table.projects caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+table.projects th {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--overlay-1);
+  text-align: right;
+  padding: 0 12px 12px;
+  white-space: nowrap;
+}
+table.projects th:first-child {
+  text-align: left;
+}
+table.projects th button {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+table.projects th button:hover {
+  color: var(--subtext-1);
+}
+table.projects th button:focus-visible {
+  outline: 2px solid var(--mauve);
+  outline-offset: 3px;
+}
+table.projects td {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--subtext-1);
+  text-align: right;
+  padding: 10px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--surface-0) 55%, transparent);
+}
+table.projects td:first-child {
+  text-align: left;
+}
+/* Proper names revert to sans even inside a mono table. */
+table.projects td.cell-name strong {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 680;
+  color: var(--text);
+}
+table.projects tbody tr {
+  transition: box-shadow 0.16s ease;
+}
+table.projects tbody tr:hover {
+  box-shadow: var(--neu-inset-soft);
+}
+
+/* ── share ─────────────────────────────────────────────────────────────── */
+
+.share-well {
+  padding: 14px;
+}
+.share-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.share-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.share-url {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--crust) 62%, var(--mantle));
+  box-shadow: var(--neu-inset-soft);
+  border: 1px solid color-mix(in srgb, var(--surface-1) 38%, transparent);
+}
+.share-url code {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--subtext-0);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* ── buttons ───────────────────────────────────────────────────────────── */
+
+.btn {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--mauve) 45%, transparent);
+  background: var(--mauve);
+  color: var(--crust);
+  cursor: pointer;
+  /* Hard offset, deliberately unsoftened. */
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--mauve) 25%, var(--surface-0));
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+.btn:hover {
+  background: var(--pink);
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+
+/* Secondary action: same shape, no fill, so the filled button beside it stays
+   the one the eye lands on. */
+.btn-ghost {
+  background: transparent;
+  color: var(--mauve);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--mauve) 12%, var(--surface-0));
+}
+.btn-ghost:hover {
+  background: color-mix(in srgb, var(--mauve) 12%, transparent);
+  color: var(--pink);
+}
+
+.btn-small {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+
+/* ── methodology ───────────────────────────────────────────────────────── */
+
+.methodology {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 18px;
+}
+.methodology li {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.65;
+  color: var(--subtext-0);
+}
+.methodology code {
+  font-family: var(--mono);
+  color: var(--mauve);
+  background: color-mix(in srgb, var(--mauve) 8%, transparent);
+  padding: 1px 5px;
+  border-radius: 6px;
+}
+
+.privacy {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--green) 7%, var(--base));
+  border: 1px solid color-mix(in srgb, var(--green) 30%, transparent);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.65;
+  color: var(--subtext-1);
+}
+
+/* ── empty / loading states ────────────────────────────────────────────── */
+
+.state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  min-height: 70vh;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  color: var(--overlay-1);
+}
+.state strong {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.state span {
+  font-size: 11px;
+  max-width: 44ch;
+  line-height: 1.6;
+}
+.state .state-logo {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+/* ── responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 1060px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-card {
+    transform: none; /* the tilt is ornament; it goes first */
+  }
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .shell {
+    padding: 32px 14px 64px;
+  }
+  .panel {
+    padding: 20px 18px;
+  }
+  .harness-grid {
+    grid-template-columns: 1fr;
+  }
+  .word-row {
+    grid-template-columns: 20px 1fr 70px 44px;
+    gap: 10px;
+  }
+  .share-url {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .share-actions .btn {
+    flex: 1;
+  }
+}

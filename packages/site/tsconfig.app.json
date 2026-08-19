@@ -1,0 +1,19 @@
+{
+  // The dashboard SPA: browser globals and JSX, none of the Worker's runtime
+  // types. Checked separately from tsconfig.json so neither project sees the
+  // other's globals.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src"]
+}
