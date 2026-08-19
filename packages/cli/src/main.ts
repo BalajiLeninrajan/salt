@@ -20,7 +20,7 @@ async function run(): Promise<void> {
     return;
   }
   if (args.version) {
-    console.log(`saltai ${VERSION}`);
+    console.log(`ai-salt ${VERSION}`);
     return;
   }
 

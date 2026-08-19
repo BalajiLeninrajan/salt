@@ -1,11 +1,11 @@
 {
-  "name": "saltai",
+  "name": "ai-salt",
   "version": "0.1.0",
   "description": "How much do you swear at your coding agents?",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "saltai": "bin/saltai.mjs"
+    "ai-salt": "bin/ai-salt.mjs"
   },
   "files": [
     "bin"

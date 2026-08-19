@@ -6,25 +6,25 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 
 const TARGETS = [
-  "saltai-darwin-arm64",
-  "saltai-darwin-x64",
-  "saltai-linux-x64",
-  "saltai-linux-arm64",
-  "saltai-linux-x64-musl",
-  "saltai-win32-x64",
+  "ai-salt-darwin-arm64",
+  "ai-salt-darwin-x64",
+  "ai-salt-linux-x64",
+  "ai-salt-linux-arm64",
+  "ai-salt-linux-x64-musl",
+  "ai-salt-win32-x64",
 ];
 
 function targetPackage() {
   const { platform, arch } = process;
-  if (platform === "darwin" && arch === "arm64") return "saltai-darwin-arm64";
-  if (platform === "darwin" && arch === "x64") return "saltai-darwin-x64";
+  if (platform === "darwin" && arch === "arm64") return "ai-salt-darwin-arm64";
+  if (platform === "darwin" && arch === "x64") return "ai-salt-darwin-x64";
   if (platform === "linux") {
     // glibcVersionRuntime is absent on musl-based distros (Alpine).
     const musl = !process.report?.getReport?.()?.header?.glibcVersionRuntime;
-    if (arch === "x64") return musl ? "saltai-linux-x64-musl" : "saltai-linux-x64";
-    if (arch === "arm64" && !musl) return "saltai-linux-arm64";
+    if (arch === "x64") return musl ? "ai-salt-linux-x64-musl" : "ai-salt-linux-x64";
+    if (arch === "arm64" && !musl) return "ai-salt-linux-arm64";
   }
-  if (platform === "win32" && arch === "x64") return "saltai-win32-x64";
+  if (platform === "win32" && arch === "x64") return "ai-salt-win32-x64";
   return null;
 }
 
@@ -36,7 +36,7 @@ function fail(message) {
 const pkg = targetPackage();
 if (!pkg) {
   fail(
-    `saltai has no prebuilt binary for ${process.platform}-${process.arch}.\n` +
+    `ai-salt has no prebuilt binary for ${process.platform}-${process.arch}.\n` +
       `Supported targets: ${TARGETS.join(", ")}.`,
   );
 }
@@ -48,9 +48,9 @@ try {
   binary = join(root, "bin", process.platform === "win32" ? "salt.exe" : "salt");
 } catch {
   fail(
-    `saltai could not find its binary package ${pkg}.\n` +
+    `ai-salt could not find its binary package ${pkg}.\n` +
       `It ships as an optional dependency; installing with --no-optional (or with\n` +
-      `optional dependencies disabled) breaks it. Reinstall saltai without that flag.`,
+      `optional dependencies disabled) breaks it. Reinstall ai-salt without that flag.`,
   );
 }
 
