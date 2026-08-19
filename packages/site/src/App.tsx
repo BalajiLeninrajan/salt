@@ -73,8 +73,8 @@ export default function App() {
       <div className="page page-enter">
         <Hero report={report} />
         <ByHarness report={report} />
-        <OtherSide report={report} />
         <Vocabulary report={report} />
+        <OtherSide report={report} />
         <OverTime report={report} />
         <When report={report} />
         <Where report={report} />
@@ -193,6 +193,24 @@ function ByHarness({ report }: { report: Report }) {
   );
 }
 
+function Vocabulary({ report }: { report: Report }) {
+  const words = report.top_words.slice(0, 12);
+
+  return (
+    <section className="panel">
+      <p className="eyebrow">03 — Vocabulary</p>
+      <h2 className="section-title">Top words</h2>
+      <p className="section-note">ranked by count</p>
+
+      {words.length === 0 ? (
+        <p className="section-note">no swears found</p>
+      ) : (
+        <WordList words={words} />
+      )}
+    </section>
+  );
+}
+
 function OtherSide({ report }: { report: Report }) {
   const a = report.agent;
   const words = report.agent_top_words.slice(0, 6);
@@ -203,7 +221,7 @@ function OtherSide({ report }: { report: Report }) {
 
   return (
     <section className="panel">
-      <p className="eyebrow">03 — The other side</p>
+      <p className="eyebrow">04 — The other side</p>
       <h2 className="section-title">Does the agent swear back?</h2>
       <p className="section-note">visible replies only</p>
 
@@ -271,24 +289,6 @@ function OtherSide({ report }: { report: Report }) {
             {a.swears_per_100_messages.toFixed(2)} per 100.
           </p>
         )
-      )}
-    </section>
-  );
-}
-
-function Vocabulary({ report }: { report: Report }) {
-  const words = report.top_words.slice(0, 12);
-
-  return (
-    <section className="panel">
-      <p className="eyebrow">04 — Vocabulary</p>
-      <h2 className="section-title">Top words</h2>
-      <p className="section-note">ranked by count</p>
-
-      {words.length === 0 ? (
-        <p className="section-note">no swears found</p>
-      ) : (
-        <WordList words={words} />
       )}
     </section>
   );
