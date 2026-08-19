@@ -58,28 +58,53 @@
                  @salt/core; this page has no bundler, so they are transcribed
                  rather than imported. -->
             <span class="logo" role="img" aria-label="salt"
-              >s<svg class="logo-a" viewBox="0 0 91 100" aria-hidden="true" focusable="false">
-                <path d="M 13.5 100 L 13.5 45.5 A 32 32 0 0 1 77.5 45.5 L 77.5 100"
-                      fill="none" stroke="currentColor" stroke-width="27" />
+              >s<svg
+                class="logo-a"
+                viewBox="0 0 91 100"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M 13.5 100 L 13.5 45.5 A 32 32 0 0 1 77.5 45.5 L 77.5 100"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="27"
+                />
                 <circle cx="45.5" cy="44" r="8.5" fill="#b4befe" />
-                <rect x="37" y="59" width="17" height="41" rx="8.5" fill="#b4befe" />
-              </svg>lt</span
+                <rect
+                  x="37"
+                  y="59"
+                  width="17"
+                  height="41"
+                  rx="8.5"
+                  fill="#b4befe"
+                /></svg
+              >lt</span
             >
           </div>
 
-          <h1 class="headline">How much do you swear at your coding agents?</h1>
+          <h1 class="headline">
+            How much do you <em>swear</em> at your coding agents?
+          </h1>
 
           <p class="lede">
-            Your agents keep a complete, timestamped record of everything you have
-            ever typed at them. salt reads it and answers exactly one question.
+            Your agents keep a complete, timestamped record of everything you
+            have ever typed at them. <code>salt</code> reads it and tells you
+            how salty you are.
           </p>
 
           <div class="command">
             <code class="command-text"
-              ><span class="command-prompt">$</span> <span id="cmd">npx saltai</span
+              ><span class="command-prompt">$</span>
+              <span id="cmd">npx saltai</span
               ><span class="caret" aria-hidden="true"></span
             ></code>
-            <button class="btn copy" id="copy" type="button" data-command="npx saltai">
+            <button
+              class="btn copy"
+              id="copy"
+              type="button"
+              data-command="npx saltai"
+            >
               Copy
             </button>
           </div>
@@ -88,34 +113,16 @@
                local, but publishing is the default and the only way to reach
                the dashboard, so this list says what is uploaded rather than
                claiming nothing is. -->
-          <ul class="assurances">
-            <li>
-              <span class="tick" aria-hidden="true"></span>
-              Nothing is installed — npx or bunx fetches it, runs it, and is done.
-            </li>
-            <li>
-              <span class="tick" aria-hidden="true"></span>
-              No API keys, no account, no sign-in.
-            </li>
-            <li>
-              <span class="tick" aria-hidden="true"></span>
-              Prompt text never leaves your machine. The report is counts, plus
-              the names of the repositories you were working in.
-            </li>
-            <li>
-              <span class="tick" aria-hidden="true"></span>
-              That report is uploaded here so you get a link to open and share.
-              Anyone with the link can read it, and it expires after 30 days —
-              or run <code>npx saltai --json</code> to skip publishing entirely.
-            </li>
-          </ul>
         </section>
 
         <!-- TODO: real marketing sections — a dashboard screenshot, the
              per-harness comparison, the privacy explainer. -->
 
         <footer class="foot">
-          <span>Reads your local sessions. Publishes counts, never prompt text.</span>
+          <span
+            >Reads your local sessions. Publishes counts, never prompt
+            text.</span
+          >
           <nav class="foot-links">
             <!-- TODO: point at the published package once v0.1.0 ships. -->
             <a href="https://www.npmjs.com/package/saltai">npm</a>
