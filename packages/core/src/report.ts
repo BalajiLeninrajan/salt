@@ -83,11 +83,11 @@ export const HARNESS_LABEL: Record<HarnessStats["harness"], string> = {
   cursor: "Cursor",
 };
 
-/** Per-entity colors, cycled in the order the design system specifies. */
+/** Per-entity colors: Mocha peach, green, and blue. */
 export const HARNESS_COLOR: Record<HarnessStats["harness"], string> = {
-  claude: "#cba6f7",
-  codex: "#94e2d5",
-  cursor: "#f9e2af",
+  claude: "#fab387",
+  codex: "#a6e3a1",
+  cursor: "#89b4fa",
 };
 
 /**
@@ -96,7 +96,7 @@ export const HARNESS_COLOR: Record<HarnessStats["harness"], string> = {
  * read as a separate family rather than echo the harness cards above.
  */
 export const AGENT_LINE_COLOR: Record<HarnessStats["harness"], string> = {
-  claude: "var(--peach)",
-  codex: "var(--green)",
-  cursor: "var(--blue)",
+  claude: "var(--yellow)",
+  codex: "var(--teal)",
+  cursor: "var(--pink)",
 };
