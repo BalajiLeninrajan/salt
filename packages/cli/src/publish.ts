@@ -9,7 +9,7 @@
  * Where reports are published.
  *
  * Overridable so a `wrangler dev` session can be targeted without a rebuild:
- * `SALT_HOST=http://localhost:8787 ai-salt`.
+ * `SALT_HOST=http://localhost:8787 salt-ai`.
  */
 const DEFAULT_HOST = "https://salt.balajileninrajan.dev";
 

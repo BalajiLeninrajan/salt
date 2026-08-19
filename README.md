@@ -7,8 +7,8 @@ on your machine, counts the profanity and insults in the prompts **you typed**,
 and publishes the results to a private link you can open and share.
 
 ```console
-npx ai-salt
-bunx ai-salt
+npx salt-ai
+bunx salt-ai
 ```
 
 Nothing is added to your PATH or to your project — the runner caches the
@@ -86,15 +86,15 @@ blast = "mild"             # word = mild | medium | strong | acronym
 ## How it ships
 
 Everything is TypeScript. The CLI is compiled by Bun into a standalone
-executable per platform — `ai-salt` on npm is a small launcher plus one
-`@ai-salt/<platform>` package per target, and `npm`/`pnpm`/`bun` install only the
+executable per platform — `salt-ai` on npm is a small launcher plus one
+`@salt-ai/<platform>` package per target, and `npm`/`pnpm`/`bun` install only the
 one that matches your machine. All six targets cross-compile from a single
 machine:
 
 ```console
 cd packages/cli
 node scripts/release.mjs            # stage all platform packages under npm/
-node scripts/release.mjs --publish  # ...and publish them plus ai-salt itself
+node scripts/release.mjs --publish  # ...and publish them plus salt-ai itself
 ```
 
 ## Development

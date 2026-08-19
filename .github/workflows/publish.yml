@@ -1,4 +1,4 @@
-# Publishes saltai and its platform binary packages when a version tag is
+# Publishes salt-ai and its platform binary packages when a version tag is
 # pushed. The site deploys through Cloudflare Workers Builds, not from here.
 name: publish
 
