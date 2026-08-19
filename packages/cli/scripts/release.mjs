@@ -92,6 +92,7 @@ writeFileSync(
       license: manifest.license,
       type: "module",
       bin: { salt: "bin/salt.mjs" },
+      engines: manifest.engines,
       files: ["bin"],
       optionalDependencies: Object.fromEntries(TARGETS.map((t) => [t.pkg, manifest.version])),
     },

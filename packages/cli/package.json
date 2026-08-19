@@ -7,6 +7,9 @@
   "bin": {
     "salt": "bin/salt.mjs"
   },
+  "engines": {
+    "node": ">=16"
+  },
   "files": [
     "bin"
   ],
