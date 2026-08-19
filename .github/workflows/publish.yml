@@ -10,6 +10,12 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Trusted publishing: npm trades this workflow's OIDC identity for a
+    # short-lived publish credential — no token, no secret. Each package names
+    # this repo + workflow as its trusted publisher in its npm settings.
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -17,11 +23,14 @@ jobs:
         with:
           bun-version: latest
 
-      # setup-node writes the .npmrc that `npm publish` reads the token from.
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
+
+      # OIDC publishing needs npm >= 11.5.1; don't rely on whatever the
+      # runner's Node bundles.
+      - run: npm install -g npm@latest
 
       - name: Check tag matches package version
         run: |
@@ -33,5 +42,3 @@ jobs:
 
       - name: Cross-compile and publish all packages
         run: node packages/cli/scripts/release.mjs --publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
