@@ -23,13 +23,5 @@
     "@salt/core": "workspace:*",
     "@types/bun": "^1.2.0",
     "typescript": "^5.7.0"
-  },
-  "optionalDependencies": {
-    "saltai-darwin-arm64": "0.1.0",
-    "saltai-darwin-x64": "0.1.0",
-    "saltai-linux-x64": "0.1.0",
-    "saltai-linux-arm64": "0.1.0",
-    "saltai-linux-x64-musl": "0.1.0",
-    "saltai-win32-x64": "0.1.0"
   }
 }

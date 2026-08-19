@@ -1,8 +1,13 @@
 // Cross-compiles the CLI for every supported target and stages one npm
-// package per binary under npm/. Dry-run by default; `--publish` pushes each
-// platform package and then `saltai` itself.
+// package per binary under npm/, plus the `saltai` launcher package itself.
+// Dry-run by default; `--publish` pushes them all.
+//
+// The platform packages exist only here: the workspace manifest carries no
+// optionalDependencies on them (they would break every fresh install and CI
+// lockfile check until published, and pull a 60MB+ binary into dev installs),
+// so they are injected into the staged `saltai` manifest at release time.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -69,11 +74,36 @@ for (const target of TARGETS) {
   console.log(`staged npm/${target.pkg} (${mb} MB, v${manifest.version})`);
 }
 
+// Stage the launcher package last so its optionalDependencies always match
+// the platform packages built above.
+const mainDir = join(cliRoot, "npm", "saltai");
+mkdirSync(join(mainDir, "bin"), { recursive: true });
+copyFileSync(join(cliRoot, "bin", "saltai.mjs"), join(mainDir, "bin", "saltai.mjs"));
+copyFileSync(join(cliRoot, "..", "..", "README.md"), join(mainDir, "README.md"));
+writeFileSync(
+  join(mainDir, "package.json"),
+  JSON.stringify(
+    {
+      name: manifest.name,
+      version: manifest.version,
+      description: manifest.description,
+      license: manifest.license,
+      type: "module",
+      bin: { saltai: "bin/saltai.mjs" },
+      files: ["bin"],
+      optionalDependencies: Object.fromEntries(TARGETS.map((t) => [t.pkg, manifest.version])),
+    },
+    null,
+    2,
+  ) + "\n",
+);
+console.log(`staged npm/saltai (launcher, v${manifest.version})`);
+
 if (publishing) {
   for (const target of TARGETS) {
     run("npm", ["publish"], join(cliRoot, "npm", target.pkg));
   }
-  run("npm", ["publish"], cliRoot);
+  run("npm", ["publish"], mainDir);
 } else {
   console.log("dry run — pass --publish to push these to npm");
 }
