@@ -164,7 +164,7 @@ export function Timeline({
         </span>
         <span className="legend-item">
           <span className="legend-dot" style={{ background: "var(--mauve)" }} />
-          their swears / day · peak {num.format(Math.max(...userSwears, 0))}
+          your swears / day · peak {num.format(Math.max(...userSwears, 0))}
         </span>
         {agentSeries.map((s) => (
           <span key={s.harness} className="legend-item">

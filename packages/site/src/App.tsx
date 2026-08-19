@@ -16,12 +16,13 @@ declare global {
 }
 
 /**
- * This page has exactly one audience: someone who opened a link to a report
- * that another person ran and published. Everything here is written in the
- * third person for that reader, and nothing on it may promise that the numbers
- * never left a machine — the page is proof that they did.
+ * This page addresses the person who ran and published the report in the
+ * second person ("you"), even though anyone with the link can view it.
+ * Keep the copy about the numbers — data-handling details live in the
+ * methodology footer, not sprinkled through every section.
  */
-const REPORT_ID = typeof window === "undefined" ? undefined : window.__SALT_REPORT_ID__;
+const REPORT_ID =
+  typeof window === "undefined" ? undefined : window.__SALT_REPORT_ID__;
 
 /** A published report is a snapshot; links are kept for 30 days after that. */
 const LINK_TTL_DAYS = 30;
@@ -35,7 +36,10 @@ const dateFmt = new Intl.DateTimeFormat(undefined, {
 function snapshot(report: Report) {
   const generated = new Date(report.generated_at);
   const expires = new Date(generated.getTime() + LINK_TTL_DAYS * 86_400_000);
-  return { generated: dateFmt.format(generated), expires: dateFmt.format(expires) };
+  return {
+    generated: dateFmt.format(generated),
+    expires: dateFmt.format(expires),
+  };
 }
 
 export default function App() {
@@ -48,7 +52,9 @@ export default function App() {
       return;
     }
     fetch(`/api/report/${REPORT_ID}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((r) =>
+        r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)),
+      )
       .then(setReport)
       .catch(() => setFailed(true));
   }, []);
@@ -87,8 +93,8 @@ function EmptyState() {
         <Logo className="state-logo" />
         <strong>this page carries no report</strong>
         <span>
-          the link may have expired — reports live for {LINK_TTL_DAYS} days, then the
-          numbers are gone for good
+          the link may have expired — reports live for {LINK_TTL_DAYS} days,
+          then the numbers are gone for good
         </span>
       </div>
     </div>
@@ -107,9 +113,7 @@ function Hero({ report }: { report: Report }) {
         <p className="eyebrow">01 — Swears per 100 prompts</p>
         <p className="score">{t.swears_per_100_prompts.toFixed(1)}</p>
         <p className="score-caption">
-          Across every Claude Code, Codex, and Cursor session on the machine that
-          published this — {num.format(t.swears)} swears in {num.format(t.prompts)}{" "}
-          prompts they typed.
+          {num.format(t.swears)} swears in {num.format(t.prompts)} prompts.
         </p>
         <p className="snapshot">
           Snapshot taken {generated} · this link expires {expires}
@@ -162,7 +166,10 @@ function ByHarness({ report }: { report: Report }) {
             <h3 className="harness-name">{HARNESS_LABEL[h.harness]}</h3>
             <div className="harness-rate">{h.rate.toFixed(1)}</div>
             <div className="bar-track">
-              <div className="bar-fill" style={{ width: `${(h.rate / max) * 100}%` }} />
+              <div
+                className="bar-fill"
+                style={{ width: `${(h.rate / max) * 100}%` }}
+              />
             </div>
             <div className="stat-row stat-row-sub">
               <span className="metric-label">Prompts</span>
@@ -191,15 +198,14 @@ function OtherSide({ report }: { report: Report }) {
   const words = report.agent_top_words.slice(0, 6);
   const userRate = report.totals.swears_per_100_prompts;
   // How many times more often the human swears, per message, than the agent.
-  const ratio = a.swears_per_100_messages > 0 ? userRate / a.swears_per_100_messages : null;
+  const ratio =
+    a.swears_per_100_messages > 0 ? userRate / a.swears_per_100_messages : null;
 
   return (
     <section className="panel">
       <p className="eyebrow">03 — The other side</p>
       <h2 className="section-title">Does the agent swear back?</h2>
-      <p className="section-note">
-        visible replies only — never reasoning, tool calls, or compaction summaries
-      </p>
+      <p className="section-note">visible replies only</p>
 
       <div className="metric-grid">
         <div className="stat-row">
@@ -212,11 +218,15 @@ function OtherSide({ report }: { report: Report }) {
         </div>
         <div className="stat-row">
           <span className="metric-label">Per 100</span>
-          <span className="metric-value">{a.swears_per_100_messages.toFixed(2)}</span>
+          <span className="metric-value">
+            {a.swears_per_100_messages.toFixed(2)}
+          </span>
         </div>
         <div className="stat-row">
           <span className="metric-label">Replies w/ swear</span>
-          <span className="metric-value">{num.format(a.messages_with_swear)}</span>
+          <span className="metric-value">
+            {num.format(a.messages_with_swear)}
+          </span>
         </div>
       </div>
 
@@ -256,8 +266,8 @@ function OtherSide({ report }: { report: Report }) {
       ) : (
         ratio !== null && (
           <p className="callout">
-            They swear <strong>{ratio.toFixed(0)}×</strong> more often per message than
-            the agent does — {userRate.toFixed(2)} against{" "}
+            You swear <strong>{ratio.toFixed(0)}×</strong> more often per
+            message than the agent does: {userRate.toFixed(2)} against{" "}
             {a.swears_per_100_messages.toFixed(2)} per 100.
           </p>
         )
@@ -273,10 +283,10 @@ function Vocabulary({ report }: { report: Report }) {
     <section className="panel">
       <p className="eyebrow">04 — Vocabulary</p>
       <h2 className="section-title">Top words</h2>
-      <p className="section-note">the only place any prompt text appears</p>
+      <p className="section-note">ranked by count</p>
 
       {words.length === 0 ? (
-        <p className="section-note">no swears found — impressive.</p>
+        <p className="section-note">no swears found</p>
       ) : (
         <WordList words={words} />
       )}
@@ -290,7 +300,8 @@ function OverTime({ report }: { report: Report }) {
       <p className="eyebrow">05 — Over time</p>
       <h2 className="section-title">Daily</h2>
       <p className="section-note">
-        {report.daily.length} active days · their swears against the agent's, same scale
+        {report.daily.length} active days · your swears against the agent's,
+        same scale
       </p>
       <Timeline daily={report.daily} agentDaily={report.agent_daily} />
     </section>
@@ -303,11 +314,10 @@ function When({ report }: { report: Report }) {
     <section className="panel">
       <p className="eyebrow">06 — When</p>
       <h2 className="section-title">Hour of day, day of week</h2>
-      {/* The buckets were cut on the publisher's machine, in whatever time zone
-          it was set to. Calling that "local time" would read as the visitor's
-          own, and shift every bar by however many hours separate them. */}
+      {/* Buckets were cut in the publisher's time zone — "your" local time,
+          in this page's voice, even when a visitor elsewhere is reading. */}
       <p className="section-note">
-        shaded by swear rate · hours as the clock read on the machine that published this
+        shaded by swear rate · hours in your local time
         {excluded > 0 &&
           ` · ${num.format(excluded)} Cursor prompts excluded (session-level timestamps only)`}
       </p>
@@ -340,7 +350,7 @@ function Where({ report }: { report: Report }) {
     <section className="panel">
       <p className="eyebrow">07 — Where</p>
       <h2 className="section-title">Projects</h2>
-      <p className="section-note">repository names only — the report carries no file paths</p>
+      <p className="section-note">top 15 projects</p>
 
       <div className="table-wrap">
         <table className="projects">
@@ -378,7 +388,6 @@ function Where({ report }: { report: Report }) {
 function Methodology({ report }: { report: Report }) {
   const c = report.coverage;
   const gb = (c.bytes_scanned / 1e9).toFixed(1);
-  const { generated, expires } = snapshot(report);
 
   return (
     <footer className="panel">
@@ -388,37 +397,26 @@ function Methodology({ report }: { report: Report }) {
 
       <ul className="methodology">
         <li>
-          Scanned {num.format(c.files_scanned)} session files ({gb} GB) across Claude
-          Code, Codex, and Cursor
-          {c.files_failed > 0 && ` — ${num.format(c.files_failed)} unreadable and skipped`}
-          . {num.format(c.duplicates_dropped)} duplicate messages collapsed before
-          counting.
+          Scanned {num.format(c.files_scanned)} session files ({gb} GB) across
+          Claude Code, Codex, and Cursor
+          {c.files_failed > 0 &&
+            `, ${num.format(c.files_failed)} unreadable and skipped`}
+          . {num.format(c.duplicates_dropped)} duplicate messages collapsed
+          before counting.
         </li>
         <li>
-          Only prompts <em>they typed</em> count. Tool results, system reminders,
-          slash-command envelopes, sub-agent delegations, and automation heartbeats are
-          all excluded.
+          Only prompts <em>you typed</em> count. Tool results, system reminders,
+          slash-command envelopes, sub-agent delegations, and automation
+          heartbeats are all excluded.
         </li>
         <li>
-          Code is stripped before matching — fenced blocks, inline <code>backticks</code>,
-          and file paths — so <code>assert</code> and <code>class</code> never register
-          as swears.
-        </li>
-        <li>
-          Matching is word-bounded with an allowlist, and folds <code>f*ck</code> /{" "}
-          <code>sh1t</code> onto their canonical spelling.
+          Matching is word-bounded with an allowlist, and folds{" "}
+          <code>f*ck</code> / <code>sh1t</code> onto their canonical spelling.
         </li>
         {c.notes.map((n) => (
           <li key={n}>{n}</li>
         ))}
       </ul>
-
-      <p className="privacy">
-        Counted on someone else's machine on {generated}, then published here. This page
-        holds counts, matched words, and repository names — never the text of a prompt,
-        and never a file path. Project names are directory basenames only. The link
-        expires {expires}, {LINK_TTL_DAYS} days after it was published.
-      </p>
     </footer>
   );
 }
