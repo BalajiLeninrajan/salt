@@ -87,7 +87,7 @@ blast = "mild"             # word = mild | medium | strong | acronym
 
 Everything is TypeScript. The CLI is compiled by Bun into a standalone
 executable per platform — `ai-salt` on npm is a small launcher plus one
-`ai-salt-<platform>` package per target, and `npm`/`pnpm`/`bun` install only the
+`@ai-salt/<platform>` package per target, and `npm`/`pnpm`/`bun` install only the
 one that matches your machine. All six targets cross-compile from a single
 machine:
 

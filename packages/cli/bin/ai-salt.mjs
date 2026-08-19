@@ -6,25 +6,25 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 
 const TARGETS = [
-  "ai-salt-darwin-arm64",
-  "ai-salt-darwin-x64",
-  "ai-salt-linux-x64",
-  "ai-salt-linux-arm64",
-  "ai-salt-linux-x64-musl",
-  "ai-salt-win32-x64",
+  "@ai-salt/darwin-arm64",
+  "@ai-salt/darwin-x64",
+  "@ai-salt/linux-x64",
+  "@ai-salt/linux-arm64",
+  "@ai-salt/linux-x64-musl",
+  "@ai-salt/win32-x64",
 ];
 
 function targetPackage() {
   const { platform, arch } = process;
-  if (platform === "darwin" && arch === "arm64") return "ai-salt-darwin-arm64";
-  if (platform === "darwin" && arch === "x64") return "ai-salt-darwin-x64";
+  if (platform === "darwin" && arch === "arm64") return "@ai-salt/darwin-arm64";
+  if (platform === "darwin" && arch === "x64") return "@ai-salt/darwin-x64";
   if (platform === "linux") {
     // glibcVersionRuntime is absent on musl-based distros (Alpine).
     const musl = !process.report?.getReport?.()?.header?.glibcVersionRuntime;
-    if (arch === "x64") return musl ? "ai-salt-linux-x64-musl" : "ai-salt-linux-x64";
-    if (arch === "arm64" && !musl) return "ai-salt-linux-arm64";
+    if (arch === "x64") return musl ? "@ai-salt/linux-x64-musl" : "@ai-salt/linux-x64";
+    if (arch === "arm64" && !musl) return "@ai-salt/linux-arm64";
   }
-  if (platform === "win32" && arch === "x64") return "ai-salt-win32-x64";
+  if (platform === "win32" && arch === "x64") return "@ai-salt/win32-x64";
   return null;
 }
 

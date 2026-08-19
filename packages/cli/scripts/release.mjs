@@ -15,12 +15,12 @@ const cliRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(readFileSync(join(cliRoot, "package.json"), "utf8"));
 
 const TARGETS = [
-  { pkg: "ai-salt-darwin-arm64", bun: "bun-darwin-arm64", os: ["darwin"], cpu: ["arm64"] },
-  { pkg: "ai-salt-darwin-x64", bun: "bun-darwin-x64", os: ["darwin"], cpu: ["x64"] },
-  { pkg: "ai-salt-linux-x64", bun: "bun-linux-x64", os: ["linux"], cpu: ["x64"], libc: ["glibc"] },
-  { pkg: "ai-salt-linux-arm64", bun: "bun-linux-arm64", os: ["linux"], cpu: ["arm64"], libc: ["glibc"] },
-  { pkg: "ai-salt-linux-x64-musl", bun: "bun-linux-x64-musl", os: ["linux"], cpu: ["x64"], libc: ["musl"] },
-  { pkg: "ai-salt-win32-x64", bun: "bun-windows-x64", os: ["win32"], cpu: ["x64"] },
+  { pkg: "@ai-salt/darwin-arm64", bun: "bun-darwin-arm64", os: ["darwin"], cpu: ["arm64"] },
+  { pkg: "@ai-salt/darwin-x64", bun: "bun-darwin-x64", os: ["darwin"], cpu: ["x64"] },
+  { pkg: "@ai-salt/linux-x64", bun: "bun-linux-x64", os: ["linux"], cpu: ["x64"], libc: ["glibc"] },
+  { pkg: "@ai-salt/linux-arm64", bun: "bun-linux-arm64", os: ["linux"], cpu: ["arm64"], libc: ["glibc"] },
+  { pkg: "@ai-salt/linux-x64-musl", bun: "bun-linux-x64-musl", os: ["linux"], cpu: ["x64"], libc: ["musl"] },
+  { pkg: "@ai-salt/win32-x64", bun: "bun-windows-x64", os: ["win32"], cpu: ["x64"] },
 ];
 
 function run(cmd, args, cwd) {
@@ -59,6 +59,8 @@ for (const target of TARGETS) {
         cpu: target.cpu,
         ...(target.libc ? { libc: target.libc } : {}),
         files: ["bin"],
+        // Scoped packages default to private on first publish; be explicit.
+        publishConfig: { access: "public" },
       },
       null,
       2,
