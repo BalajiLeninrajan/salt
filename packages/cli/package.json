@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "salt-ai": "bin/salt-ai.mjs"
+    "salt": "bin/salt.mjs"
   },
   "files": [
     "bin"

@@ -80,7 +80,7 @@ for (const target of TARGETS) {
 // the platform packages built above.
 const mainDir = join(cliRoot, "npm", "salt-ai");
 mkdirSync(join(mainDir, "bin"), { recursive: true });
-copyFileSync(join(cliRoot, "bin", "salt-ai.mjs"), join(mainDir, "bin", "salt-ai.mjs"));
+copyFileSync(join(cliRoot, "bin", "salt.mjs"), join(mainDir, "bin", "salt.mjs"));
 copyFileSync(join(cliRoot, "..", "..", "README.md"), join(mainDir, "README.md"));
 writeFileSync(
   join(mainDir, "package.json"),
@@ -91,7 +91,7 @@ writeFileSync(
       description: manifest.description,
       license: manifest.license,
       type: "module",
-      bin: { "salt-ai": "bin/salt-ai.mjs" },
+      bin: { salt: "bin/salt.mjs" },
       files: ["bin"],
       optionalDependencies: Object.fromEntries(TARGETS.map((t) => [t.pkg, manifest.version])),
     },

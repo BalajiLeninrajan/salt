@@ -36,7 +36,7 @@ function fail(message) {
 const pkg = targetPackage();
 if (!pkg) {
   fail(
-    `salt-ai has no prebuilt binary for ${process.platform}-${process.arch}.\n` +
+    `salt has no prebuilt binary for ${process.platform}-${process.arch}.\n` +
       `Supported targets: ${TARGETS.join(", ")}.`,
   );
 }
@@ -48,7 +48,7 @@ try {
   binary = join(root, "bin", process.platform === "win32" ? "salt.exe" : "salt");
 } catch {
   fail(
-    `salt-ai could not find its binary package ${pkg}.\n` +
+    `salt could not find its binary package ${pkg}.\n` +
       `It ships as an optional dependency; installing with --no-optional (or with\n` +
       `optional dependencies disabled) breaks it. Reinstall salt-ai without that flag.`,
   );

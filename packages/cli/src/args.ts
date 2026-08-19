@@ -44,7 +44,7 @@ export function parseCliArgs(argv: string[]): Args {
 export function usage(): string {
   return `salt — how much do you swear at your coding agents?
 
-Usage: salt-ai [options]
+Usage: salt [options]
 
 Options:
   --no-open              Do not launch a browser
