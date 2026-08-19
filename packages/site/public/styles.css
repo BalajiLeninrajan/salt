@@ -113,6 +113,10 @@ body { position: relative; overflow-x: hidden; }
   text-wrap: balance;
 }
 
+.headline em {
+  color: var(--mauve);
+}
+
 .lede {
   font-family: var(--sans);
   font-size: 16px;
