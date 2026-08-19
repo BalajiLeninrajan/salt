@@ -91,12 +91,11 @@ export const HARNESS_COLOR: Record<HarnessStats["harness"], string> = {
 };
 
 /**
- * Agent series on the timeline. Deliberately distinct from HARNESS_COLOR: these
- * lines sit on the same axes as the user's mauve swear line, so they need to
- * read as a separate family rather than echo the harness cards above.
+ * Agent series on the timeline. One color per harness everywhere: these match
+ * HARNESS_COLOR, and the user's line is distinguished by being the only mauve.
  */
 export const AGENT_LINE_COLOR: Record<HarnessStats["harness"], string> = {
-  claude: "var(--yellow)",
-  codex: "var(--teal)",
-  cursor: "var(--pink)",
+  claude: "var(--peach)",
+  codex: "var(--green)",
+  cursor: "var(--blue)",
 };
