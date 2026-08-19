@@ -1,0 +1,35 @@
+{
+  "name": "saltai",
+  "version": "0.2.0",
+  "description": "How much do you swear at your coding agents?",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "saltai": "bin/saltai.mjs"
+  },
+  "files": [
+    "bin"
+  ],
+  "scripts": {
+    "build": "bun build --compile src/main.ts --outfile build/salt",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "smol-toml": "^1.3.0"
+  },
+  "devDependencies": {
+    "@salt/core": "workspace:*",
+    "@types/bun": "^1.2.0",
+    "typescript": "^5.7.0"
+  },
+  "optionalDependencies": {
+    "saltai-darwin-arm64": "0.2.0",
+    "saltai-darwin-x64": "0.2.0",
+    "saltai-linux-x64": "0.2.0",
+    "saltai-linux-arm64": "0.2.0",
+    "saltai-linux-x64-musl": "0.2.0",
+    "saltai-win32-x64": "0.2.0"
+  }
+}
