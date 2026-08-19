@@ -99,11 +99,29 @@ writeFileSync(
 );
 console.log(`staged npm/saltai (launcher, v${manifest.version})`);
 
+// A version already on the registry is done, not an error — this keeps the
+// tag-triggered CI run green after a manual first publish, and makes a
+// partially-failed run safe to rerun.
+function alreadyPublished(name) {
+  const probe = spawnSync("npm", ["view", `${name}@${manifest.version}`, "version"], {
+    encoding: "utf8",
+  });
+  return probe.status === 0 && probe.stdout.trim() === manifest.version;
+}
+
 if (publishing) {
   for (const target of TARGETS) {
+    if (alreadyPublished(target.pkg)) {
+      console.log(`skip ${target.pkg}@${manifest.version} — already on the registry`);
+      continue;
+    }
     run("npm", ["publish"], join(cliRoot, "npm", target.pkg));
   }
-  run("npm", ["publish"], mainDir);
+  if (alreadyPublished(manifest.name)) {
+    console.log(`skip ${manifest.name}@${manifest.version} — already on the registry`);
+  } else {
+    run("npm", ["publish"], mainDir);
+  }
 } else {
   console.log("dry run — pass --publish to push these to npm");
 }
