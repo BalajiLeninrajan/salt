@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Report, Tier, Totals } from "@salt/core";
+import type { Report, Tier } from "@salt/core";
 import { ARCH, SIDE_BEARING, X_HEIGHT } from "./Logo";
 
 const num = new Intl.NumberFormat("en-US");
@@ -33,15 +33,6 @@ const TIER_HEX: Record<Tier, string> = {
 
 const SANS = "Inter, sans-serif";
 const MONO = "'JetBrains Mono', monospace";
-
-function witty(t: Totals): string {
-  const r = t.swears_per_100_prompts;
-  if (t.swears === 0) return "not a single swear. suspicious.";
-  if (r < 1) return "practically a saint. practically.";
-  if (r < 5) return "measured — but the agent knows the truth.";
-  if (r < 15) return "this keyboard has heard some things.";
-  return "the agent deserves hazard pay.";
-}
 
 function roundedRect(
   ctx: CanvasRenderingContext2D,
@@ -135,16 +126,12 @@ function draw(canvas: HTMLCanvasElement, report: Report) {
   ctx.fillText("SWEARS PER 100 PROMPTS", 72, 408);
   letterSpacing(ctx, 0);
 
-  ctx.fillStyle = MOCHA.subtext1;
-  ctx.font = `600 26px ${MONO}`;
-  ctx.fillText(witty(t), 72, 462);
-
   ctx.fillStyle = MOCHA.overlay1;
   ctx.font = `600 19px ${MONO}`;
   ctx.fillText(
     `${num.format(t.swears)} swears · ${num.format(t.prompts)} prompts · ${num.format(t.sessions)} sessions`,
     72,
-    500,
+    462,
   );
 
   // Top words as tier-tinted chips along the bottom.
@@ -201,7 +188,6 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
       `700 58px ${SANS}`,
       `800 200px ${SANS}`,
       `700 22px ${MONO}`,
-      `600 26px ${MONO}`,
     ];
     document.fonts.ready
       .then(() => Promise.all(faces.map((f) => document.fonts.load(f))))
