@@ -32,6 +32,11 @@ jobs:
       # runner's Node bundles.
       - run: npm install -g npm@latest
 
+      # Reads the pnpm version from the root package.json's packageManager.
+      - uses: pnpm/action-setup@v4
+
+      - run: pnpm install --frozen-lockfile
+
       - name: Check tag matches package version
         run: |
           version=$(node -p "require('./packages/cli/package.json').version")
