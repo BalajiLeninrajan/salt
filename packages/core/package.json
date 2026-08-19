@@ -1,6 +1,6 @@
 {
   "name": "@salt/core",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "The report schema shared by the CLI, the Worker, and the dashboard.",
