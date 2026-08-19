@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#1e1e2e"/>
+  <!-- The arch (an A) with a lowercase i nested inside it. Same grid as Logo.tsx. -->
+  <g transform="translate(37 22) scale(0.54)">
+    <path d="M 10.5 100 L 10.5 53 A 42.5 42.5 0 0 1 95.5 53 L 95.5 100"
+          fill="none" stroke="#cdd6f4" stroke-width="21"/>
+    <circle cx="53" cy="38" r="8.5" fill="#b4befe"/>
+    <rect x="44.5" y="53" width="17" height="47" rx="8.5" fill="#b4befe"/>
+  </g>
+</svg>

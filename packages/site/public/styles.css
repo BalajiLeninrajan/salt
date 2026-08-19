@@ -1,0 +1,258 @@
+/* salt marketing page — same catppuccin-neu recipes as the dashboard, so the
+   page and the thing it advertises read as one product. Depth roles are
+   preserved: raised = container at rest, inset = well.
+
+   Mono is rationed: the command, the drifting swears, and the footer links.
+   Prose is sans, because a wall of monospace reads as a terminal dump, not a
+   pitch. */
+
+body { position: relative; overflow-x: hidden; }
+
+/* --- floating swears --- */
+
+.drift {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Hidden until drift.js has measured and placed everything — otherwise the
+   whole set flashes stacked in the top-left corner on first paint. */
+.drift { opacity: 0; transition: opacity 600ms ease-out; }
+.drift.ready { opacity: 1; }
+
+.drift span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--mauve);
+  /* Follows the hue rather than pinning to mauve, so a recoloured word carries
+     its own halo instead of a mauve one. Depth, not a light source. */
+  text-shadow: 0 2px 16px color-mix(in srgb, currentColor 35%, transparent);
+  /* Present enough to read as words, quiet enough to stay behind the panel. */
+  opacity: 0.13;
+  will-change: transform, opacity;
+  /* Slow, to match the splash drift.js animates on top of this — the colour
+     should still be arriving while the brightness is bleeding away. */
+  transition: color 1400ms ease-out;
+}
+
+/* No transition on the placement itself — the words are driven frame by frame,
+   and interpolating on top of that would fight the physics. */
+@media (prefers-reduced-motion: reduce) {
+  .drift span { transition: none; }
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: grid;
+  align-items: center;
+  padding: 56px 24px 72px;
+  /* Ambient wash: must not read as a visible gradient. */
+  background:
+    radial-gradient(1200px 700px at 12% -10%, rgb(203 166 247 / 0.01), transparent 60%),
+    transparent;
+}
+
+.page { width: 100%; max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+
+.panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--base);
+  border: 1px solid color-mix(in srgb, var(--surface-1) 40%, transparent);
+  border-radius: 18px;
+  box-shadow: var(--neu-raised), inset 1px 1px color-mix(in srgb, var(--surface-2) 30%, transparent);
+  padding: 44px 44px 40px;
+  animation: enter 0.42s ease both;
+}
+
+/* --- masthead --- */
+
+.mast { margin-bottom: 30px; }
+
+/* The mark takes currentColor for its letterforms; only the nested `i` is fixed
+   lavender, inside the SVG. */
+/* The wordmark: real Inter for s/l/t, a drawn arch for the `a`. The arch SVG is
+   exactly one x-height tall and sits on the baseline, so it lines up with the
+   text without nudging. Kept in step with packages/report-viewer/src/styles.css. */
+.logo {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 34px;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  color: var(--text);
+  white-space: nowrap;
+}
+.logo-a {
+  height: 0.55em; /* Inter's measured x-height */
+  width: auto;
+  vertical-align: baseline;
+  margin: 0 0.06em; /* Inter's measured sidebearing on `n` */
+}
+
+/* --- copy --- */
+
+.headline {
+  font-family: var(--sans);
+  font-size: clamp(30px, 4.6vw, 46px);
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  font-weight: 820;
+  color: var(--text);
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+
+.lede {
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--subtext-0);
+  margin: 0 0 32px;
+  max-width: 54ch;
+}
+
+/* --- the command --- */
+
+.command {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 10px 10px 22px;
+  border-radius: 13px;
+  background: var(--mantle);
+  /* A well, because the command is what you reach into and take. */
+  box-shadow: var(--neu-inset);
+}
+
+.command-text {
+  display: flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.command-prompt { color: var(--mauve); user-select: none; margin-right: 10px; }
+
+.caret {
+  display: inline-block;
+  width: 9px;
+  height: 18px;
+  margin-left: 6px;
+  background: var(--mauve);
+  opacity: 0.8;
+  animation: blink 1.15s step-end infinite;
+}
+
+.btn {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--mauve) 45%, transparent);
+  background: var(--mauve);
+  color: var(--crust);
+  cursor: pointer;
+  /* Hard offset, deliberately unsoftened. */
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--mauve) 25%, var(--surface-0));
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+.btn:hover { background: var(--pink); transform: translateY(-1px); }
+.btn:active { transform: translateY(1px); }
+
+.copy { flex: 0 0 auto; min-width: 108px; }
+.copy.done {
+  background: var(--green);
+  border-color: color-mix(in srgb, var(--green) 45%, transparent);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--green) 25%, var(--surface-0));
+}
+
+/* --- assurances --- */
+
+.assurances { list-style: none; margin: 32px 0 0; padding: 0; display: grid; gap: 13px; }
+.assurances li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--subtext-0);
+}
+
+/* The one inline command in the list. Left to the browser default it would
+   jump family and size mid-sentence, so it is pinned to the page's mono face. */
+.assurances code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  color: var(--text);
+}
+
+/* Small mauve lozenge instead of a bullet or a checkmark glyph. */
+.tick {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--mauve);
+  transform: translateY(-4px);
+}
+
+/* --- footer --- */
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--overlay-0);
+}
+
+.foot-links { display: flex; gap: 20px; }
+.foot-links a {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--overlay-1);
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.16s ease, border-color 0.16s ease;
+}
+.foot-links a:hover {
+  color: var(--mauve);
+  border-bottom-color: color-mix(in srgb, var(--mauve) 50%, transparent);
+}
+
+@media (max-width: 620px) {
+  .shell { padding: 32px 14px 48px; }
+  .panel { padding: 28px 22px 26px; }
+  .command { flex-direction: column; align-items: stretch; padding: 18px; gap: 14px; }
+  .command-text { font-size: 14px; }
+  .copy { width: 100%; }
+  .foot { flex-direction: column; align-items: flex-start; gap: 12px; }
+}

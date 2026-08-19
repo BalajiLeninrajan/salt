@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>salt — how much do you swear at your coding agents?</title>
+    <meta
+      name="description"
+      content="salt reads the session logs Claude Code, Codex, and Cursor already keep on your machine, counts the profanity in the prompts you typed, and publishes the counts to a private link you can open and share. One command, nothing installed."
+    />
+    <link rel="icon" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="salt" />
+    <meta
+      property="og:description"
+      content="How much do you swear at your coding agents? One command, nothing installed, and a link you can share."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/tokens.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <!-- Decorative: censored swears bouncing around behind the panel like the
+         DVD screensaver — constant speed, reflections off the edges, elastic
+         collisions with each other, colour change on every bounce. Position and
+         motion live in drift.js; only the size is set here, because it is what
+         determines each word's collision box. The panel is opaque, so anything
+         passing behind it simply disappears. -->
+    <div class="drift" aria-hidden="true">
+      <span style="font-size: 40px">f***</span>
+      <span style="font-size: 30px">sh*t</span>
+      <span style="font-size: 34px">damn</span>
+      <span style="font-size: 44px">wtf</span>
+      <span style="font-size: 24px">b*llocks</span>
+      <span style="font-size: 28px">c**p</span>
+      <span style="font-size: 26px">ffs</span>
+      <span style="font-size: 36px">hell</span>
+      <span style="font-size: 22px">d*mmit</span>
+      <span style="font-size: 32px">a**</span>
+      <span style="font-size: 20px">bugger</span>
+      <span style="font-size: 24px">f*ck</span>
+    </div>
+
+    <main class="shell">
+      <div class="page">
+        <section class="panel hero">
+          <div class="mast">
+            <!-- Same mark as the dashboard: "salt" in Inter, with the `a`
+                 replaced by a drawn arch holding a lowercase `i`. Only the arch
+                 is drawn; s/l/t are real text. The numbers below are ARCH from
+                 @salt/core; this page has no bundler, so they are transcribed
+                 rather than imported. -->
+            <span class="logo" role="img" aria-label="salt"
+              >s<svg class="logo-a" viewBox="0 0 91 100" aria-hidden="true" focusable="false">
+                <path d="M 13.5 100 L 13.5 45.5 A 32 32 0 0 1 77.5 45.5 L 77.5 100"
+                      fill="none" stroke="currentColor" stroke-width="27" />
+                <circle cx="45.5" cy="44" r="8.5" fill="#b4befe" />
+                <rect x="37" y="59" width="17" height="41" rx="8.5" fill="#b4befe" />
+              </svg>lt</span
+            >
+          </div>
+
+          <h1 class="headline">How much do you swear at your coding agents?</h1>
+
+          <p class="lede">
+            Your agents keep a complete, timestamped record of everything you have
+            ever typed at them. salt reads it and answers exactly one question.
+          </p>
+
+          <div class="command">
+            <code class="command-text"
+              ><span class="command-prompt">$</span> <span id="cmd">npx saltai</span
+              ><span class="caret" aria-hidden="true"></span
+            ></code>
+            <button class="btn copy" id="copy" type="button" data-command="npx saltai">
+              Copy
+            </button>
+          </div>
+
+          <!-- These have to match what the tool actually does. The scan is
+               local, but publishing is the default and the only way to reach
+               the dashboard, so this list says what is uploaded rather than
+               claiming nothing is. -->
+          <ul class="assurances">
+            <li>
+              <span class="tick" aria-hidden="true"></span>
+              Nothing is installed — npx or bunx fetches it, runs it, and is done.
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true"></span>
+              No API keys, no account, no sign-in.
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true"></span>
+              Prompt text never leaves your machine. The report is counts, plus
+              the names of the repositories you were working in.
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true"></span>
+              That report is uploaded here so you get a link to open and share.
+              Anyone with the link can read it, and it expires after 30 days —
+              or run <code>npx saltai --json</code> to skip publishing entirely.
+            </li>
+          </ul>
+        </section>
+
+        <!-- TODO: real marketing sections — a dashboard screenshot, the
+             per-harness comparison, the privacy explainer. -->
+
+        <footer class="foot">
+          <span>Reads your local sessions. Publishes counts, never prompt text.</span>
+          <nav class="foot-links">
+            <!-- TODO: point at the published package once v0.1.0 ships. -->
+            <a href="https://www.npmjs.com/package/saltai">npm</a>
+            <a href="https://github.com/BalajiLeninrajan/salt">GitHub</a>
+          </nav>
+        </footer>
+      </div>
+    </main>
+
+    <script src="/copy.js"></script>
+    <script src="/drift.js"></script>
+  </body>
+</html>
