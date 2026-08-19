@@ -55,6 +55,9 @@ for (const target of TARGETS) {
         version: manifest.version,
         description: `${manifest.description} (prebuilt binary for ${target.os[0]}-${target.cpu[0]}${target.libc ? `, ${target.libc[0]}` : ""})`,
         license: manifest.license,
+        // Provenance verification requires repository.url to match the repo
+        // the workflow ran from.
+        repository: manifest.repository,
         os: target.os,
         cpu: target.cpu,
         ...(target.libc ? { libc: target.libc } : {}),
@@ -90,6 +93,7 @@ writeFileSync(
       version: manifest.version,
       description: manifest.description,
       license: manifest.license,
+      repository: manifest.repository,
       type: "module",
       bin: { salt: "bin/salt.mjs" },
       engines: manifest.engines,

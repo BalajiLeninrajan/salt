@@ -3,6 +3,11 @@
   "version": "0.1.1",
   "description": "How much do you swear at your coding agents?",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BalajiLeninrajan/salt.git",
+    "directory": "packages/cli"
+  },
   "type": "module",
   "bin": {
     "salt": "bin/salt.mjs"
