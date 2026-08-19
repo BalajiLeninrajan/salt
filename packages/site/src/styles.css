@@ -109,6 +109,14 @@
   margin: 0 0.06em; /* Inter's measured sidebearing on `n` */
 }
 
+/* The wordmark doubles as the way back to the landing page. */
+.logo-link {
+  text-decoration: none;
+}
+.logo-link:hover {
+  opacity: 0.8;
+}
+
 .hero-logo {
   align-self: flex-start;
   font-size: 34px;

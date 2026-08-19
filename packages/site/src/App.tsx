@@ -90,7 +90,9 @@ function EmptyState() {
   return (
     <div className="shell">
       <div className="state">
-        <Logo className="state-logo" />
+        <a className="logo-link state-logo" href="/">
+          <Logo />
+        </a>
         <strong>this page carries no report</strong>
         <span>
           the link may have expired — reports live for {LINK_TTL_DAYS} days,
@@ -109,7 +111,9 @@ function Hero({ report }: { report: Report }) {
   return (
     <header className="hero">
       <section className="panel hero-main">
-        <Logo className="hero-logo" />
+        <a className="logo-link hero-logo" href="/">
+          <Logo />
+        </a>
         <p className="eyebrow">01 — Swears per 100 prompts</p>
         <p className="score">{t.swears_per_100_prompts.toFixed(1)}</p>
         <p className="score-caption">
