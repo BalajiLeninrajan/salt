@@ -1,0 +1,9 @@
+packages:
+  - "packages/*"
+
+# wrangler ships prebuilt native binaries (workerd, esbuild) that unpack in a
+# postinstall script. pnpm blocks build scripts by default, and without these
+# two `wrangler dev` has no runtime to start.
+allowBuilds:
+  esbuild: true
+  workerd: true

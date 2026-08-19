@@ -1,0 +1,13 @@
+{
+  "name": "salt",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "salt workspace root: the CLI, the site Worker, the report dashboard, and the schema they share.",
+  "packageManager": "pnpm@11.4.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
