@@ -1,6 +1,6 @@
 {
   "name": "salt-ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "How much do you swear at your coding agents?",
   "license": "MIT",
   "type": "module",
