@@ -6,4 +6,7 @@ packages:
 # two `wrangler dev` has no runtime to start.
 allowBuilds:
   esbuild: true
+  # miniflare pulls sharp in for local image transforms, which nothing here
+  # uses; sharp 0.33 ships prebuilt binaries anyway, so its script can stay off.
+  sharp: false
   workerd: true

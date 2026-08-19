@@ -1,0 +1,30 @@
+{
+  // The marketing page is still plain assets; the Worker in front of it claims
+  // only the hosted-report routes and passes everything else through to them.
+  // The Cloudflare Vite plugin owns the asset directory (Vite's build output),
+  // so no `directory` is set here.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "salt-site",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-18",
+  "assets": {
+    "binding": "ASSETS",
+    // The Worker decides what a miss means — an unknown /r/<id> has to render
+    // "this report expired", not the marketing 404.
+    "not_found_handling": "none"
+  },
+  // `wrangler dev` runs against a local miniflare store and ignores this id, so
+  // it only matters for a real deploy.
+  "kv_namespaces": [
+    {
+      "binding": "REPORTS",
+      "id": "6f2edbeaf86c4e719e741a90698f4473"
+    }
+  ],
+  // Commented until the zone is confirmed to live on this Cloudflare account:
+  // wrangler resolves a custom domain against the account at deploy time, so an
+  // entry for a zone it cannot find fails the whole deploy rather than falling
+  // back to workers.dev. Uncomment once balajileninrajan.dev is on the account.
+  // "routes": [{ "pattern": "salt.balajileninrajan.dev", "custom_domain": true }],
+  "observability": { "enabled": true }
+}

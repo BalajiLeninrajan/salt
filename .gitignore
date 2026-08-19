@@ -5,6 +5,9 @@ dist/
 # wrangler local state
 .wrangler/
 
+# assets staged for the site's Worker tests
+packages/site/test/.assets/
+
 # compiled CLI binaries and staged platform packages
 packages/cli/build/
 packages/cli/npm/

@@ -1,0 +1,18 @@
+{
+  // The deployed config leaves `assets.directory` to the Vite plugin, but the
+  // Workers vitest pool parses its wrangler config standalone and refuses an
+  // assets binding without a directory. This config exists only to give the
+  // tests one; everything else must mirror ../wrangler.jsonc. Paths are
+  // relative to this file.
+  "name": "salt-site",
+  "main": "../worker/index.ts",
+  "compatibility_date": "2026-08-18",
+  "assets": {
+    // Staged by vitest.config.ts from app.html + public/, mirroring the
+    // deployed client bundle.
+    "directory": "./.assets",
+    "binding": "ASSETS",
+    "not_found_handling": "none"
+  },
+  "kv_namespaces": [{ "binding": "REPORTS", "id": "test" }]
+}

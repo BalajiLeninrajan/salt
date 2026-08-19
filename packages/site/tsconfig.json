@@ -1,0 +1,21 @@
+{
+  // The Worker runs on workerd, not Node and not a browser: the only globals
+  // that exist are the ES library and Cloudflare's runtime types. Pulling in
+  // "dom" here would let `document` typecheck and then fail in production.
+  // The dashboard's React code under src/ is the opposite tradeoff and gets
+  // its own project: tsconfig.app.json.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["worker", "test", "vite.config.ts", "vitest.config.ts"]
+}

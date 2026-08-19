@@ -1,0 +1,33 @@
+{
+  "name": "@salt/site",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "salt's marketing page, the report dashboard, and the Worker that hosts published reports.",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "test": "vitest run",
+    "typecheck": "tsc -b --noEmit || tsc --noEmit",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.13.0",
+    "@cloudflare/vitest-pool-workers": "^0.11.1",
+    "@cloudflare/workers-types": "^5.20260811.0",
+    "@salt/core": "workspace:*",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/runner": "^3.2.0",
+    "@vitest/snapshot": "^3.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4"
+  }
+}
