@@ -37,7 +37,6 @@ interface Line {
   type: string;
   message: { content: Content } | undefined;
   origin: { kind: string } | undefined;
-  promptSource: string | undefined;
   isSidechain: boolean;
   isMeta: boolean;
   isCompactSummary: boolean;
@@ -54,7 +53,6 @@ function decodeLine(v: unknown): Line | null {
   const type = defString(o.type);
   const message = decodeBody(o.message);
   const origin = decodeOrigin(o.origin);
-  const promptSource = optString(o.promptSource);
   const isSidechain = defBool(o.isSidechain);
   const isMeta = defBool(o.isMeta);
   const isCompactSummary = defBool(o.isCompactSummary);
@@ -66,7 +64,6 @@ function decodeLine(v: unknown): Line | null {
     type === INVALID ||
     message === INVALID ||
     origin === INVALID ||
-    promptSource === INVALID ||
     isSidechain === INVALID ||
     isMeta === INVALID ||
     isCompactSummary === INVALID ||
@@ -80,7 +77,6 @@ function decodeLine(v: unknown): Line | null {
     type,
     message,
     origin,
-    promptSource,
     isSidechain,
     isMeta,
     isCompactSummary,
@@ -143,9 +139,12 @@ function parseUser(parsed: Line): Message | null {
 
   let raw: string;
   if (parsed.origin !== undefined) {
-    // Modern sessions: trust `origin` + `promptSource` outright.
+    // Modern sessions: `origin.kind` is the authorship field, and it is the
+    // whole test. `promptSource` records the transport the prompt arrived on
+    // (`typed`, `queued`, `sdk`) and says nothing about who wrote it — the
+    // desktop app stamps `sdk` on human turns and task notifications alike.
+    // Gating on it dropped every desktop session.
     if (parsed.origin.kind !== "human") return null;
-    if (parsed.promptSource !== "typed" && parsed.promptSource !== "queued") return null;
     const text = contentText(content);
     if (text === null) return null;
     raw = text;
