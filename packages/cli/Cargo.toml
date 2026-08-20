@@ -1,0 +1,40 @@
+[package]
+name = "salt"
+version = "0.1.2"
+edition = "2021"
+rust-version = "1.85"
+description = "How much do you swear at your coding agents?"
+license = "MIT"
+repository = "https://github.com/BalajiLeninrajan/salt"
+
+[lib]
+name = "salt"
+path = "src/lib.rs"
+
+[[bin]]
+name = "salt"
+path = "src/bin/salt.rs"
+
+[dependencies]
+aho-corasick = "1"
+anyhow = "1"
+chrono = "0.4"
+dirs = "6"
+flate2 = "1"
+memchr = "2"
+opener = "0.8"
+rayon = "1"
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.9"
+ureq = { version = "3.4.0", features = ["json"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
