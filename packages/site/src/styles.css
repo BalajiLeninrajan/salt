@@ -344,6 +344,12 @@
   width: 100%;
   height: auto;
 }
+/* The calendar is sized by its own cells, not by the well it sits in. */
+.chart-well svg.cal {
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+}
 
 .legend {
   display: flex;
@@ -366,6 +372,21 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+
+/* The calendar's ramp key: quieter → louder, in the cells' own shape. */
+.heat-legend {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.heat-legend .legend-item {
+  gap: 0;
+}
+.legend-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
 }
 
 /* Wide charts scroll inside their own well, never the page. */

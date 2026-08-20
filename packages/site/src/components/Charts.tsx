@@ -1,4 +1,4 @@
-import type { AgentDayStat, DayStat, HarnessStats, HeatCell } from "@salt/core";
+import type { AgentDayStat, DayStat, HarnessStats } from "@salt/core";
 import { AGENT_LINE_COLOR, HARNESS_LABEL } from "@salt/core";
 
 const num = new Intl.NumberFormat("en-US");
@@ -178,85 +178,181 @@ export function Timeline({
 }
 
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
-/** 7×24 grid, mauve ramp by swear rate. dow 0 = Monday, per the schema. */
-export function Heatmap({ cells }: { cells: HeatCell[] }) {
-  const byKey = new Map(cells.map((c) => [`${c.dow}:${c.hour}`, c]));
-  const maxRate = Math.max(
-    ...cells.filter((c) => c.prompts > 0).map((c) => c.swears / c.prompts),
-    0.0001,
-  );
+/**
+ * Seven steps of one mauve, mixed against the well behind them, topping out
+ * at the accent itself.
+ *
+ * Ramping opacity over a single fill is what made earlier versions unreadable:
+ * 0.75 and 0.92 mauve on this background are the same square to the eye, and
+ * the top of the range is exactly where the differences matter. Mixing in
+ * oklab spends the ramp on lightness instead, in steps the eye reads evenly.
+ */
+const LEVELS = [
+  "color-mix(in oklab, var(--mauve) 20%, var(--mantle))",
+  "color-mix(in oklab, var(--mauve) 33%, var(--mantle))",
+  "color-mix(in oklab, var(--mauve) 46%, var(--mantle))",
+  "color-mix(in oklab, var(--mauve) 60%, var(--mantle))",
+  "color-mix(in oklab, var(--mauve) 73%, var(--mantle))",
+  "color-mix(in oklab, var(--mauve) 86%, var(--mantle))",
+  "var(--mauve)",
+];
+/** Prompts that day, but nothing worth counting. */
+const QUIET = "color-mix(in oklab, var(--mauve) 11%, var(--mantle))";
+/** No prompts at all — before the first session, or a day off. */
+const EMPTY = "color-mix(in oklab, var(--mauve) 4%, var(--mantle))";
 
-  const CELL = 30;
-  const GAP = 3;
-  const LABEL_W = 34;
-  const W = LABEL_W + 24 * (CELL + GAP);
-  const H = 16 + 7 * (CELL + GAP);
+/** Blank weeks before the first prompt and after the last. */
+const PAD_WEEKS = 2;
+
+/** A local `YYYY-MM-DD`, parsed back into the local day it names. */
+function parseDay(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function addDays(from: Date, n: number): Date {
+  const d = new Date(from);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+function isoOf(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/** Monday-based row index, matching the schema's day-of-week convention. */
+const row = (d: Date) => (d.getDay() + 6) % 7;
+
+/**
+ * A contributions-style calendar: one column per week, one cell per day,
+ * shaded by that day's severity-weighted swear total.
+ *
+ * Weight is missing on reports published before it existed; those fall back to
+ * a flat count.
+ */
+export function Calendar({ daily }: { daily: DayStat[] }) {
+  if (daily.length === 0) return null;
+
+  const byDate = new Map(daily.map((d) => [d.date, d]));
+  const weightOf = (d: DayStat) => d.weight ?? d.swears;
+
+  // Whole weeks either side, so every column is a full seven cells, plus a
+  // couple of blank ones at each end — the grid reads as a stretch of calendar
+  // the run happens to sit in, not as a block that starts where the data does.
+  const dates = daily.map((d) => d.date).sort();
+  const first = parseDay(dates[0]!);
+  const last = parseDay(dates[dates.length - 1]!);
+  const start = addDays(first, -row(first) - PAD_WEEKS * 7);
+  const end = addDays(last, 6 - row(last) + PAD_WEEKS * 7);
+  const weeks = Math.round((end.getTime() - start.getTime()) / 604_800_000) + 1;
+
+  // The ramp spans this report's own range — quietest swearing day to loudest
+  // — rather than starting from zero, where the bottom step would go unused:
+  // the mildest word on the list already scores a 5.
+  const lit = daily.map(weightOf).filter((w) => w > 0);
+  const floor = Math.log1p(Math.min(...lit));
+  const span = Math.log1p(Math.max(...lit)) - floor;
+  const tone = (w: number) => {
+    if (span <= 0) return LEVELS[LEVELS.length - 1]!;
+    const step = Math.ceil((LEVELS.length * (Math.log1p(w) - floor)) / span);
+    return LEVELS[Math.min(LEVELS.length, Math.max(step, 1)) - 1]!;
+  };
+
+  const CELL = 22;
+  const GAP = 4;
+  const LABEL_W = 40;
+  const TOP = 22;
+  const W = LABEL_W + weeks * (CELL + GAP);
+  const H = TOP + 7 * (CELL + GAP);
 
   return (
     <div className="chart-well heat-scroll">
+      {/* Natural size, centred: a short report is a small calendar, not a
+          handful of enormous squares stretched across the well. */}
       <svg
+        className="cal"
         viewBox={`0 0 ${W} ${H}`}
         width={W}
+        height={H}
         role="img"
-        aria-label="Swear rate by day of week and hour of day"
+        aria-label="Severity-weighted swear volume per day"
       >
-        {Array.from({ length: 24 }, (_, h) =>
-          h % 3 === 0 ? (
+        {/* A month is labelled at the first column whose Monday falls in it. */}
+        {Array.from({ length: weeks }, (_, w) => {
+          const monday = addDays(start, w * 7);
+          const prev = addDays(start, (w - 1) * 7);
+          if (w > 0 && monday.getMonth() === prev.getMonth()) return null;
+          return (
             <text
-              key={h}
-              x={LABEL_W + h * (CELL + GAP) + CELL / 2}
-              y={10}
-              textAnchor="middle"
+              key={`m${w}`}
+              x={LABEL_W + w * (CELL + GAP)}
+              y={11}
               fill="var(--overlay-0)"
               fontFamily="var(--mono)"
-              fontSize="8"
+              fontSize="9"
               fontWeight="700"
               letterSpacing="0.06em"
             >
-              {String(h).padStart(2, "0")}
+              {MONTHS[monday.getMonth()]}
             </text>
-          ) : null,
-        )}
-        {DOW.map((label, d) => (
-          <g key={label}>
+          );
+        })}
+        {DOW.map((label, d) =>
+          d % 2 === 0 ? (
             <text
+              key={label}
               x={0}
-              y={16 + d * (CELL + GAP) + CELL / 2 + 3}
+              y={TOP + d * (CELL + GAP) + CELL / 2 + 3}
               fill="var(--overlay-0)"
               fontFamily="var(--mono)"
-              fontSize="8"
+              fontSize="9"
               fontWeight="700"
               letterSpacing="0.06em"
             >
               {label}
             </text>
-            {Array.from({ length: 24 }, (_, h) => {
-              const c = byKey.get(`${d}:${h}`);
-              const rate = c && c.prompts > 0 ? c.swears / c.prompts : 0;
-              // Empty hours stay near-transparent so activity reads as shape.
-              const alpha = c ? 0.07 + (rate / maxRate) * 0.88 : 0.03;
-              return (
-                <rect
-                  key={h}
-                  x={LABEL_W + h * (CELL + GAP)}
-                  y={16 + d * (CELL + GAP)}
-                  width={CELL}
-                  height={CELL}
-                  rx={7}
-                  fill="var(--mauve)"
-                  fillOpacity={alpha}
-                >
-                  <title>
-                    {`${label} ${String(h).padStart(2, "0")}:00 — ` +
-                      `${c?.swears ?? 0} swears in ${c?.prompts ?? 0} prompts`}
-                  </title>
-                </rect>
-              );
-            })}
-          </g>
-        ))}
+          ) : null,
+        )}
+        {Array.from({ length: weeks }, (_, w) =>
+          Array.from({ length: 7 }, (_, d) => {
+            const day = addDays(start, w * 7 + d);
+            const iso = isoOf(day);
+            const stat = byDate.get(iso);
+            const weight = stat ? weightOf(stat) : 0;
+            const shade = !stat ? EMPTY : weight === 0 ? QUIET : tone(weight);
+            return (
+              <rect
+                key={iso}
+                x={LABEL_W + w * (CELL + GAP)}
+                y={TOP + d * (CELL + GAP)}
+                width={CELL}
+                height={CELL}
+                rx={5}
+                fill={shade}
+              >
+                <title>
+                  {stat
+                    ? `${iso} — ${stat.swears} swears in ${stat.prompts} prompts · severity ${weight}`
+                    : `${iso} — no prompts`}
+                </title>
+              </rect>
+            );
+          }),
+        )}
       </svg>
+      <div className="legend heat-legend">
+        <span className="legend-item">quieter</span>
+        {LEVELS.map((fill) => (
+          <span key={fill} className="legend-swatch" style={{ background: fill }} />
+        ))}
+        <span className="legend-item">louder</span>
+      </div>
     </div>
   );
 }

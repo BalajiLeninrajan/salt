@@ -63,18 +63,30 @@ describe("report", () => {
     expect(r.totals.swears_per_100_prompts).toBe(300.0);
   });
 
-  test("heatmap excludes session-precision prompts", () => {
+  // Day resolution tolerates a session-level timestamp, so these count; the
+  // coverage note is what tells the reader they are dated approximately.
+  test("session-precision prompts are counted, and disclosed", () => {
     const r = buildFrom([
       prompt("fuck", "2026-08-17T10:00:00Z", "cursor", "session"),
       prompt("fuck", "2026-08-17T10:00:00Z", "claude", "exact"),
     ]);
-    const inHeatmap = r.heatmap.reduce((sum, c) => sum + c.prompts, 0);
-    // session-precision prompt must not reach the heatmap
-    expect(inHeatmap).toBe(1);
+    const counted = r.daily.reduce((sum, d) => sum + d.prompts, 0);
+    expect(counted).toBe(2);
     expect(r.coverage.session_precision_prompts).toBe(1);
-    expect(r.coverage.notes.some((n) => n.includes("heatmap"))).toBe(true);
-    // It still counts everywhere else.
-    expect(r.totals.prompts).toBe(2);
+    expect(r.coverage.notes.some((n) => n.includes("session-level"))).toBe(true);
+  });
+
+  test("days carry severity weight", () => {
+    const r = buildFrom([
+      prompt("fuck damn", "2026-08-17T10:00:00Z", "claude", "exact"),
+      prompt("shit", "2026-08-17T10:30:00Z", "claude", "exact"),
+    ]);
+    expect(r.daily).toHaveLength(1);
+    const [day] = r.daily;
+    expect(day.prompts).toBe(2);
+    expect(day.swears).toBe(3);
+    // strong 10 + mild 5 + medium 8
+    expect(day.weight).toBe(23);
   });
 
   test("top words are ranked", () => {
@@ -131,7 +143,6 @@ describe("report", () => {
     expect(r.totals.prompts).toBe(0);
     expect(r.totals.swears).toBe(0);
     expect(r.daily).toHaveLength(0);
-    expect(r.heatmap).toHaveLength(0);
     expect(r.projects).toHaveLength(0);
     expect(r.by_harness).toHaveLength(0);
     expect(r.agent.messages).toBe(1);

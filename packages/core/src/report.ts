@@ -34,14 +34,19 @@ export interface AgentHarnessStats {
 }
 
 export interface WordStat { word: string; tier: Tier; count: number; share: number }
-export interface DayStat { date: string; prompts: number; swears: number }
+export interface DayStat {
+  date: string;
+  prompts: number;
+  swears: number;
+  /** Sum of TIER_WEIGHT over that day's swears; what the calendar shades by. */
+  weight: number;
+}
 export interface AgentDayStat {
   date: string;
   harness: HarnessStats["harness"];
   messages: number;
   swears: number;
 }
-export interface HeatCell { dow: number; hour: number; prompts: number; swears: number }
 export interface ProjectStat { name: string; prompts: number; swears: number; rate: number }
 
 export interface Coverage {
@@ -60,7 +65,6 @@ export interface Report {
   by_harness: HarnessStats[];
   top_words: WordStat[];
   daily: DayStat[];
-  heatmap: HeatCell[];
   projects: ProjectStat[];
   agent: AgentTotals;
   agent_by_harness: AgentHarnessStats[];
@@ -68,6 +72,19 @@ export interface Report {
   agent_top_words: WordStat[];
   coverage: Coverage;
 }
+
+/**
+ * Severity weights. A single "fuck" should outweigh a single "damn" rather
+ * than counting the same; acronyms sit just under the strong words they stand
+ * in for. Used by the calendar so a day's intensity tracks how hard it swore,
+ * not just how often.
+ */
+export const TIER_WEIGHT: Record<Tier, number> = {
+  mild: 5,
+  medium: 8,
+  strong: 10,
+  acronym: 6,
+};
 
 /** Tier drives the accent channel on word rows and the share card. */
 export const TIER_COLOR: Record<Tier, string> = {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ProjectStat, Report } from "@salt/core";
 import { HARNESS_COLOR, HARNESS_LABEL } from "@salt/core";
-import { Heatmap, Timeline } from "./components/Charts";
+import { Calendar, Timeline } from "./components/Charts";
 import { Logo } from "./components/Logo";
 import { ShareCard } from "./components/ShareCard";
 import { WordList } from "./components/WordList";
@@ -317,15 +317,15 @@ function When({ report }: { report: Report }) {
   return (
     <section className="panel">
       <p className="eyebrow">06 — When</p>
-      <h2 className="section-title">Hour of day, day of week</h2>
-      {/* Buckets were cut in the publisher's time zone — "your" local time,
-          in this page's voice, even when a visitor elsewhere is reading. */}
+      <h2 className="section-title">Day by day</h2>
+      {/* Days were cut in the publisher's time zone — "your" days, in this
+          page's voice, even when a visitor elsewhere is reading. */}
       <p className="section-note">
-        shaded by swear rate · hours in your local time
+        shaded by swear volume, weighted by severity · your local days
         {excluded > 0 &&
-          ` · ${num.format(excluded)} Cursor prompts excluded (session-level timestamps only)`}
+          ` · ${num.format(excluded)} Cursor prompts dated by session (no per-message time)`}
       </p>
-      <Heatmap cells={report.heatmap} />
+      <Calendar daily={report.daily} />
     </section>
   );
 }

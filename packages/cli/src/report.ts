@@ -5,18 +5,18 @@
 // the cache, or stdout carries what was actually written.
 //
 // The user's side and the agent's side are aggregated separately. `totals`,
-// `daily`, `heatmap`, and `projects` are all user-scoped; the agent gets its
-// own counters rather than being folded into the headline number.
+// `daily`, and `projects` are all user-scoped; the agent gets its own counters
+// rather than being folded into the headline number.
 
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { TIER_WEIGHT } from "@salt/core";
 import type {
   AgentDayStat,
   AgentHarnessStats,
   AgentTotals,
   DayStat,
-  HeatCell,
   HarnessStats,
   ProjectStat,
   Report,
@@ -24,7 +24,7 @@ import type {
   Totals,
   WordStat,
 } from "@salt/core";
-import type { Matcher } from "./match.js";
+import type { Hit, Matcher } from "./match.js";
 import { cmpCodePoints, splitWhitespace } from "./text.js";
 import type { Message, ScanStats } from "./types.js";
 import { ALL_HARNESSES } from "./types.js";
@@ -54,6 +54,28 @@ function pairAdd(map: Map<string, [number, number]>, key: string, swears: number
   map.set(key, e);
 }
 
+/**
+ * Days carry a third counter: prompts, swears, and the severity weight of
+ * those swears, which is what the calendar shades by.
+ */
+function dayAdd(map: Map<string, [number, number, number]>, key: string, hits: Hit[]): void {
+  const e = map.get(key) ?? [0, 0, 0];
+  e[0] += 1;
+  e[1] += hits.length;
+  for (const h of hits) e[2] += TIER_WEIGHT[h.tier];
+  map.set(key, e);
+}
+
+/**
+ * The publisher's own calendar day. A prompt typed at 11pm belongs to that
+ * evening, not to the next UTC date, and this is a log of one person's days.
+ */
+function localDate(ts: number): string {
+  const d = new Date(ts);
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${d.getFullYear()}-${m}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function rate(swears: number, prompts: number): number {
   return prompts === 0 ? 0 : (100 * swears) / prompts;
 }
@@ -77,10 +99,7 @@ function rankWords(counts: Map<string, { tier: Tier; count: number }>, total: nu
   return out;
 }
 
-function countHits(
-  counts: Map<string, { tier: Tier; count: number }>,
-  hits: { word: string; tier: Tier }[],
-): void {
+function countHits(counts: Map<string, { tier: Tier; count: number }>, hits: Hit[]): void {
   for (const h of hits) {
     const e = counts.get(h.word);
     if (e) e.count += 1;
@@ -99,8 +118,7 @@ export function buildReport(messages: Message[], stats: ScanStats, matcher: Matc
   };
 
   const byHarness = new Map<string, Bucket>();
-  const byDay = new Map<string, [number, number]>();
-  const byCell = new Map<string, [number, number]>();
+  const byDay = new Map<string, [number, number, number]>();
   const byProject = new Map<string, [number, number]>();
   const wordCounts = new Map<string, { tier: Tier; count: number }>();
   const sessions = new Set<string>();
@@ -120,7 +138,7 @@ export function buildReport(messages: Message[], stats: ScanStats, matcher: Matc
   for (const p of messages) {
     const hits = matcher.find(p.text);
     const swears = hits.length;
-    const date = new Date(p.ts).toISOString().slice(0, 10);
+    const date = localDate(p.ts);
 
     if (p.role === "agent") {
       agent.messages += 1;
@@ -143,19 +161,12 @@ export function buildReport(messages: Message[], stats: ScanStats, matcher: Matc
     sessions.add(`${p.harness}\x00${p.sessionId}`);
     bucketAdd(byHarness, p.harness, swears);
 
-    // `daily` buckets by UTC date while the heatmap uses local wall-clock time
-    // — a deliberate inconsistency inherited from v1: the timeline is a shared
-    // calendar, the heatmap is about the shape of this user's day.
-    pairAdd(byDay, date, swears);
+    dayAdd(byDay, date, hits);
 
-    // Cursor stores no per-message time, so those prompts would smear the
-    // heatmap across whatever hour the chat was last touched.
-    if (p.tsPrecision === "exact") {
-      const local = new Date(p.ts);
-      pairAdd(byCell, `${(local.getDay() + 6) % 7}\x00${local.getHours()}`, swears);
-    } else {
-      sessionPrecision += 1;
-    }
+    // Cursor stores no per-message time, only when the chat was last touched.
+    // At day resolution that is close enough to keep — the calendar counts it,
+    // and coverage says so.
+    if (p.tsPrecision !== "exact") sessionPrecision += 1;
 
     if (p.cwd !== undefined) {
       const name = projectName(p.cwd);
@@ -176,12 +187,6 @@ export function buildReport(messages: Message[], stats: ScanStats, matcher: Matc
   projects.sort(
     (a, b) => b.swears - a.swears || b.prompts - a.prompts || cmpCodePoints(a.name, b.name),
   );
-
-  const heatmap: HeatCell[] = [...byCell.entries()].map(([key, [prompts, swears]]) => {
-    const [dow, hour] = key.split("\x00").map(Number);
-    return { dow, hour, prompts, swears };
-  });
-  heatmap.sort((a, b) => a.dow - b.dow || a.hour - b.hour);
 
   const harnessStats = (map: Map<string, Bucket>): HarnessStats[] =>
     ALL_HARNESSES.filter((h) => map.has(h)).map((h) => {
@@ -204,8 +209,8 @@ export function buildReport(messages: Message[], stats: ScanStats, matcher: Matc
   }));
 
   const daily: DayStat[] = [...byDay.keys()].sort().map((date) => {
-    const [prompts, swears] = byDay.get(date)!;
-    return { date, prompts, swears };
+    const [prompts, swears, weight] = byDay.get(date)!;
+    return { date, prompts, swears, weight };
   });
 
   // Days a harness was idle are absent rather than zero-filled; the chart
@@ -219,7 +224,7 @@ export function buildReport(messages: Message[], stats: ScanStats, matcher: Matc
   const notes: string[] = [];
   if (sessionPrecision > 0) {
     notes.push(
-      `${sessionPrecision} Cursor prompts have session-level timestamps only and are excluded from the heatmap.`,
+      `${sessionPrecision} Cursor prompts have session-level timestamps only; they are dated by when their chat was last touched.`,
     );
   }
   if (stats.files_failed > 0) {
@@ -239,7 +244,6 @@ export function buildReport(messages: Message[], stats: ScanStats, matcher: Matc
     by_harness: harnessStats(byHarness),
     top_words: rankWords(wordCounts, totals.swears),
     daily,
-    heatmap,
     projects,
     agent,
     agent_by_harness: agentByHarnessOut,
