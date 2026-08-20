@@ -1,10 +1,12 @@
+import { isMainThread, parentPort, workerData } from "node:worker_threads";
 import { parseCliArgs, usage } from "./args.js";
 import { additions, loadOverrides } from "./lexicon.js";
 import { Matcher } from "./match.js";
 import { openUrl } from "./open.js";
 import { host, publish } from "./publish.js";
 import { buildReport } from "./report.js";
-import { scan } from "./scan/index.js";
+import { runScanWorker } from "./scan/pool.js";
+import { scan, setWorkerEntry } from "./scan/index.js";
 import { parseSince } from "./since.js";
 import { ALL_HARNESSES, UsageError } from "./types.js";
 import { makeUi } from "./ui.js";
@@ -76,13 +78,22 @@ async function run(): Promise<void> {
   if (!args.noOpen) openUrl(published.url);
 }
 
-try {
-  await run();
-} catch (e) {
-  if (e instanceof UsageError) {
-    process.stderr.write(`${e.message}\n`);
-    process.exit(2);
+// The scan fans out across worker threads, and each one re-executes this very
+// module — `bun build --compile` embeds only the entry point, so a dedicated
+// worker file would not exist in the shipped binaries. Off the main thread the
+// only job is the assigned shard; the CLI itself never runs there.
+if (!isMainThread) {
+  await runScanWorker(workerData, (msg) => parentPort?.postMessage(msg));
+} else {
+  setWorkerEntry(import.meta.url);
+  try {
+    await run();
+  } catch (e) {
+    if (e instanceof UsageError) {
+      process.stderr.write(`${e.message}\n`);
+      process.exit(2);
+    }
+    process.stderr.write(`Error: ${e instanceof Error ? e.message : String(e)}\n`);
+    process.exit(1);
   }
-  process.stderr.write(`Error: ${e instanceof Error ? e.message : String(e)}\n`);
-  process.exit(1);
 }

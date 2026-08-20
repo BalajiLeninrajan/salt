@@ -12,15 +12,21 @@
 
 import type { Message } from "../types.js";
 import { strip } from "./strip.js";
-import { forEachLine } from "./lines.js";
+import { type LineGate, forEachLine } from "./lines.js";
 import { INVALID, defString, optString } from "./serde.js";
 
 /**
- * Cheap substring gate applied to the raw line before JSON parsing.
- * Every line we care about contains one of these; a sampled rollout held
- * 1,841 `token_count` events against 20 `user_message`.
+ * Cheap byte gate applied to the raw line before it is even decoded, let alone
+ * JSON-parsed. Every line we care about contains one of these; a sampled
+ * rollout held 1,841 `token_count` events against 20 `user_message`.
  */
-const LINE_GATE = ['"user_message"', '"agent_message"', '"session_meta"'];
+const LINE_GATE: LineGate = {
+  // Contained in all three needles, so it never hides a line they would match.
+  probe: Buffer.from("_m", "utf8"),
+  needles: ['"user_message"', '"agent_message"', '"session_meta"'].map((s) =>
+    Buffer.from(s, "utf8"),
+  ),
+};
 
 interface Line {
   type: string;
@@ -71,7 +77,6 @@ export async function parseFile(path: string): Promise<Message[]> {
   const out: Message[] = [];
 
   await forEachLine(path, (line) => {
-    if (!LINE_GATE.some((g) => line.includes(g))) return;
     let json: unknown;
     try {
       json = JSON.parse(line);
@@ -111,7 +116,7 @@ export async function parseFile(path: string): Promise<Message[]> {
       sessionId,
       text,
     });
-  });
+  }, LINE_GATE);
 
   return out;
 }

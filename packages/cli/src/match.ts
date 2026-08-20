@@ -189,44 +189,40 @@ export interface Overrides {
  * Folds case, leetspeak, and censor characters onto canonical spellings so
  * `F*ck`, `sh1t`, and `FUCK` all reach the lexicon.
  */
+const FOLD: Record<string, string> = {
+  "4": "a",
+  "@": "a",
+  "3": "e",
+  "1": "i",
+  "!": "i",
+  "0": "o",
+  "$": "s",
+  "5": "s",
+  "7": "t",
+  // Censor characters stand in for the vowel they hide.
+  // TODO: folding both to `u` means `f*ck` matches but `sh*t` becomes
+  // `shut` and does not; kept as-is to stay faithful to v1.
+  "*": "u",
+  "#": "u",
+};
+
+/** Every character the fold rewrites; anything else is passed through. */
+const FOLDABLE = /[A-Z4@31!0$57*#]/g;
+
+/**
+ * Folds case, leetspeak, and censor characters onto canonical spellings so
+ * `F*ck`, `sh1t`, and `FUCK` all reach the lexicon.
+ *
+ * This runs over every message in the corpus, so it replaces in one native
+ * pass rather than accumulating a string a character at a time — the latter
+ * measured as the single most expensive step of building the report. Only
+ * ASCII is rewritten, so matching on UTF-16 units cannot split a surrogate
+ * pair: non-ASCII characters are never in the class and pass through whole.
+ */
 export function normalise(text: string): string {
-  let out = "";
-  for (const ch of text) {
-    const c = ch >= "A" && ch <= "Z" ? String.fromCharCode(ch.charCodeAt(0) + 32) : ch;
-    switch (c) {
-      case "4":
-      case "@":
-        out += "a";
-        break;
-      case "3":
-        out += "e";
-        break;
-      case "1":
-      case "!":
-        out += "i";
-        break;
-      case "0":
-        out += "o";
-        break;
-      case "$":
-      case "5":
-        out += "s";
-        break;
-      case "7":
-        out += "t";
-        break;
-      // Censor characters stand in for the vowel they hide.
-      // TODO: folding both to `u` means `f*ck` matches but `sh*t` becomes
-      // `shut` and does not; kept as-is to stay faithful to v1.
-      case "*":
-      case "#":
-        out += "u";
-        break;
-      default:
-        out += c;
-    }
-  }
-  return out;
+  return text.replace(FOLDABLE, (c) =>
+    FOLD[c] ?? String.fromCharCode(c.charCodeAt(0) + 32),
+  );
 }
 
 function asciiLower(s: string): string {

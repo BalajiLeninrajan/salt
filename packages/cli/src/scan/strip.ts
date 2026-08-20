@@ -68,9 +68,17 @@ export function strip(input: string): string | null {
   if (REJECT_WHOLE.some((m) => input.includes(m))) return null;
 
   let text = input;
-  for (const tag of INJECTED_TAGS) text = removeTagBlocks(text, tag);
-  text = removeFencedCode(text);
-  text = removeInlineCode(text);
+  // Each of these walks the whole string, and the tag pass walks it once per
+  // tag. Most turns contain none of the characters that could trigger them —
+  // 91% of the corpus holds no `<` at all — so probing for a single character
+  // first skips upwards of twenty full passes over the common message.
+  if (text.includes("<")) {
+    for (const tag of INJECTED_TAGS) text = removeTagBlocks(text, tag);
+  }
+  if (text.includes("```") || text.includes("~~~")) text = removeFencedCode(text);
+  if (text.includes("`")) text = removeInlineCode(text);
+  // Always runs: it collapses all whitespace, which is what makes skipping the
+  // fence pass (and its line-ending normalisation) unobservable downstream.
   text = removePaths(text);
 
   for (const preamble of INJECTED_PREAMBLES) {

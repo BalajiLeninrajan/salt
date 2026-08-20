@@ -2,9 +2,10 @@ import { readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { Harness, Message, ScanStats } from "../types.js";
-import * as claude from "./claude.js";
-import * as codex from "./codex.js";
-import * as cursor from "./cursor.js";
+import { dedup } from "./dedup.js";
+import { type SizedJob, parseShard, runPool } from "./pool.js";
+
+export { dedup };
 
 export interface ScanOutput {
   messages: Message[];
@@ -65,73 +66,75 @@ export function jobsFor(harnesses: Harness[], home = homedir()): [Harness, strin
   return jobs;
 }
 
-/** Scans every requested harness, reporting progress after each file. */
+/**
+ * Where the scan sends its workers. The CLI entry module registers itself here
+ * because `bun build --compile` only embeds the entry point — see pool.ts.
+ * Left unset (tests, library use) the scan simply runs on the calling thread.
+ */
+let workerEntry: string | URL | null = null;
+
+export function setWorkerEntry(entry: string | URL): void {
+  workerEntry = entry;
+}
+
+/**
+ * Below this much data the thread spawns cost more than they save, so small
+ * corpora — which is most people's — stay on one thread and start instantly.
+ */
+const PARALLEL_MIN_BYTES = 128 << 20;
+
+/** Scans every requested harness, reporting progress as files are consumed. */
 export async function scan(
   harnesses: Harness[],
   onProgress?: (p: ScanProgress) => void,
 ): Promise<ScanOutput> {
-  const jobs = jobsFor(harnesses);
-  const out: ScanOutput = {
-    messages: [],
-    stats: { files_scanned: 0, files_failed: 0, bytes_scanned: 0, duplicates_dropped: 0 },
-  };
-
-  for (const [harness, path] of jobs) {
-    let bytes = 0;
+  const found = jobsFor(harnesses);
+  const jobs: SizedJob[] = found.map(([harness, path]) => {
+    let size = 0;
     try {
-      bytes = statSync(path).size;
+      size = statSync(path).size;
     } catch {
       // treated like Rust's metadata().len() fallback of 0
     }
-    out.stats.files_scanned += 1;
-    out.stats.bytes_scanned += bytes;
-    try {
-      const messages =
-        harness === "claude"
-          ? await claude.parseFile(path)
-          : harness === "codex"
-            ? await codex.parseFile(path)
-            : await cursor.parseDb(path);
-      out.messages.push(...messages);
-    } catch {
-      out.stats.files_failed += 1;
-    }
-    onProgress?.({
-      files: out.stats.files_scanned,
-      totalFiles: jobs.length,
-      bytes: out.stats.bytes_scanned,
-    });
+    return [harness, path, size];
+  });
+
+  const totalBytes = jobs.reduce((n, j) => n + j[2], 0);
+  const stats: ScanStats = {
+    files_scanned: jobs.length,
+    files_failed: 0,
+    bytes_scanned: totalBytes,
+    duplicates_dropped: 0,
+  };
+
+  // Progress is reported against the totals computed up front, so it stays
+  // monotonic however the work is divided.
+  let seenFiles = 0;
+  let seenBytes = 0;
+  const report = (files: number, bytes: number) => {
+    seenFiles += files;
+    seenBytes += bytes;
+    onProgress?.({ files: seenFiles, totalFiles: jobs.length, bytes: seenBytes });
+  };
+
+  const parallel = workerEntry !== null && totalBytes >= PARALLEL_MIN_BYTES && jobs.length > 1;
+  const shards = parallel
+    ? await runPool(jobs, workerEntry!, report)
+    : [await parseShard(jobs, report)];
+
+  let raw = 0;
+  const messages: Message[] = [];
+  for (const s of shards) {
+    raw += s.raw;
+    stats.files_failed += s.failed;
+    for (const m of s.messages) messages.push(m);
   }
 
-  out.stats.duplicates_dropped = dedup(out.messages);
-  return out;
-}
+  // Each shard already collapsed its own replays; this catches the ones that
+  // straddle shards. Dropped is counted against the pre-collapse total so the
+  // number means the same thing however many threads ran.
+  dedup(messages);
+  stats.duplicates_dropped = raw - messages.length;
 
-/**
- * Collapses replayed messages, keeping the earliest occurrence of each.
- *
- * Codex rewrites a session's entire history into a new rollout file on every
- * fork and resume; a single prompt was observed 405 times in the corpus this
- * was built against. Replays are stamped with fresh timestamps, so time cannot
- * distinguish them — but a given text within a given session is one message
- * however many files it lands in. Agent replies are replayed by exactly the
- * same mechanism, so they get the same treatment.
- *
- * The cost is that genuinely repeating the same text twice in one session
- * counts once. That undercounts slightly, which is the right direction to err
- * versus inflating the headline number ~1.4x.
- */
-export function dedup(messages: Message[]): number {
-  const before = messages.length;
-  messages.sort((a, b) => a.ts - b.ts);
-  const seen = new Set<string>();
-  let write = 0;
-  for (const m of messages) {
-    const key = `${m.harness}\x00${m.role}\x00${m.sessionId}\x00${m.text}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    messages[write++] = m;
-  }
-  messages.length = write;
-  return before - messages.length;
+  return { messages, stats };
 }
