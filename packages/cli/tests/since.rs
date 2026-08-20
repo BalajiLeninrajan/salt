@@ -62,15 +62,27 @@ fn bad_date_reports_the_date_error() {
     const SUFFIX: &str = " (expected YYYY-MM-DD or a span like 30d)";
     // Rollovers end in a digit, so they miss the span branch entirely and get
     // the date message even though they look like a number.
-    assert_eq!(err("2026-02-31"), format!("invalid date: 2026-02-31{SUFFIX}"));
+    assert_eq!(
+        err("2026-02-31"),
+        format!("invalid date: 2026-02-31{SUFFIX}")
+    );
     assert_eq!(err("garbage"), format!("invalid date: garbage{SUFFIX}"));
     assert_eq!(err(""), format!("invalid date: {SUFFIX}"));
     assert_eq!(err("2026-1-01"), format!("invalid date: 2026-1-01{SUFFIX}"));
-    assert_eq!(err("2026-13-01"), format!("invalid date: 2026-13-01{SUFFIX}"));
-    assert_eq!(err("2026-00-01"), format!("invalid date: 2026-00-01{SUFFIX}"));
+    assert_eq!(
+        err("2026-13-01"),
+        format!("invalid date: 2026-13-01{SUFFIX}")
+    );
+    assert_eq!(
+        err("2026-00-01"),
+        format!("invalid date: 2026-00-01{SUFFIX}")
+    );
     // Date.UTC maps a year under 100 into the 1900s, which the TS round-trip
     // check then rejects.
-    assert_eq!(err("0026-01-01"), format!("invalid date: 0026-01-01{SUFFIX}"));
+    assert_eq!(
+        err("0026-01-01"),
+        format!("invalid date: 0026-01-01{SUFFIX}")
+    );
 }
 
 #[test]

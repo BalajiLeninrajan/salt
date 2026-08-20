@@ -197,7 +197,8 @@ fn parse_file_reads_jsonl_and_survives_junk() {
     f.write_all(b"\n").unwrap();
     f.write_all(b"not json\n").unwrap();
     // Invalid UTF-8 costs its line, not the file.
-    f.write_all(b"{\"type\":\"user\",\"message\":{\"content\":\"\xff\xfe\"}}\n").unwrap();
+    f.write_all(b"{\"type\":\"user\",\"message\":{\"content\":\"\xff\xfe\"}}\n")
+        .unwrap();
     f.write_all(br#"{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"second prompt"}]},"timestamp":"2026-08-17T21:33:44.000Z"}"#).unwrap();
     f.write_all(b"\n").unwrap();
     drop(f);

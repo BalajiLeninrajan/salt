@@ -28,7 +28,9 @@ pub type Job = (Harness, PathBuf, u64);
 /// spanning three tools on a real machine will always contain something the
 /// current user cannot read.
 fn collect_files(root: &Path, pred: &dyn Fn(&Path) -> bool, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = fs::read_dir(root) else { return };
+    let Ok(entries) = fs::read_dir(root) else {
+        return;
+    };
     for entry in entries.flatten() {
         let path = entry.path();
         // `file_type` rather than `path.is_dir()` so symlinks are not followed
@@ -71,10 +73,18 @@ pub fn jobs_for(harnesses: &[Harness], home: &Path) -> Vec<Job> {
     };
 
     if harnesses.contains(&Harness::Claude) {
-        add(Harness::Claude, existing_dir(home.join(".claude").join("projects")), &is_jsonl);
+        add(
+            Harness::Claude,
+            existing_dir(home.join(".claude").join("projects")),
+            &is_jsonl,
+        );
     }
     if harnesses.contains(&Harness::Codex) {
-        add(Harness::Codex, existing_dir(home.join(".codex").join("sessions")), &is_jsonl);
+        add(
+            Harness::Codex,
+            existing_dir(home.join(".codex").join("sessions")),
+            &is_jsonl,
+        );
         add(
             Harness::Codex,
             existing_dir(home.join(".codex").join("archived_sessions")),
@@ -82,7 +92,11 @@ pub fn jobs_for(harnesses: &[Harness], home: &Path) -> Vec<Job> {
         );
     }
     if harnesses.contains(&Harness::Cursor) {
-        add(Harness::Cursor, existing_dir(home.join(".cursor").join("chats")), &is_store_db);
+        add(
+            Harness::Cursor,
+            existing_dir(home.join(".cursor").join("chats")),
+            &is_store_db,
+        );
     }
     jobs
 }
@@ -180,7 +194,7 @@ pub fn scan_with(
     // Largest first. File sizes here span six orders of magnitude — a 265 MB
     // rollout sits next to 4 KB ones — and starting with the big ones stops
     // the run ending while every core waits on one straggler.
-    jobs.sort_by(|a, b| b.2.cmp(&a.2));
+    jobs.sort_by_key(|job| std::cmp::Reverse(job.2));
 
     let total = jobs.len() as u64;
     let done = AtomicU64::new(0);
@@ -212,6 +226,10 @@ pub fn scan_with(
     let duplicates_dropped = dedup(&mut messages);
     ScanOutput {
         messages,
-        stats: ScanStats { files_failed, duplicates_dropped, ..stats },
+        stats: ScanStats {
+            files_failed,
+            duplicates_dropped,
+            ..stats
+        },
     }
 }

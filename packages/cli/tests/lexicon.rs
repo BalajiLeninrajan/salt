@@ -76,7 +76,9 @@ fn unknown_top_level_keys_are_ignored() {
 
 #[test]
 fn one_non_string_tier_rejects_the_whole_file() {
-    let err = load("[add]\nblast = \"mild\"\nboom = 3").unwrap_err().to_string();
+    let err = load("[add]\nblast = \"mild\"\nboom = 3")
+        .unwrap_err()
+        .to_string();
     assert!(err.starts_with("could not parse lexicon at"), "{err}");
 }
 
@@ -90,7 +92,10 @@ fn wrong_typed_sections_are_rejected() {
         "allow = [\"ok\", false]",
     ] {
         let err = load(body).unwrap_err().to_string();
-        assert!(err.starts_with("could not parse lexicon at"), "{body}: {err}");
+        assert!(
+            err.starts_with("could not parse lexicon at"),
+            "{body}: {err}"
+        );
     }
 }
 

@@ -50,14 +50,19 @@ fn run() -> anyhow::Result<()> {
     }
 
     let harnesses = args::resolve_harnesses(&args.harness_tokens)?;
-    let harnesses = if harnesses.is_empty() { ALL_HARNESSES.to_vec() } else { harnesses };
+    let harnesses = if harnesses.is_empty() {
+        ALL_HARNESSES.to_vec()
+    } else {
+        harnesses
+    };
 
     // Argument problems must surface before a multi-second scan starts.
     let since = args.since.as_deref().map(since::parse_since).transpose()?;
     let overrides = lexicon::load_overrides(args.lexicon.as_deref())?;
     let matcher = Matcher::new(&overrides);
 
-    let home = dirs::home_dir().ok_or_else(|| anyhow::anyhow!("could not find your home directory"))?;
+    let home =
+        dirs::home_dir().ok_or_else(|| anyhow::anyhow!("could not find your home directory"))?;
 
     if args.json {
         let mut out = scan::scan(&harnesses, &home);

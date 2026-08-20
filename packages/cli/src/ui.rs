@@ -16,7 +16,9 @@ pub struct Ui {
 }
 
 pub fn new() -> Ui {
-    Ui { tty: std::io::stderr().is_terminal() }
+    Ui {
+        tty: std::io::stderr().is_terminal(),
+    }
 }
 
 impl Ui {

@@ -9,10 +9,8 @@ use tempfile::TempDir;
 
 const META: &str = r#"{"createdAtMs":1784571101149,"updatedAtMs":1784571882088,"cwd":"/tmp/proj"}"#;
 
-const USER_QUERY: &str =
-    r#"{"role":"user","content":[{"type":"text","text":"<user_query>\nthis is broken\n</user_query>"}]}"#;
-const USER_INFO: &str =
-    r#"{"role":"user","content":"<user_info>\nOS Version: darwin\n\nWorkspace Path: /tmp/from-info\n</user_info>"}"#;
+const USER_QUERY: &str = r#"{"role":"user","content":[{"type":"text","text":"<user_query>\nthis is broken\n</user_query>"}]}"#;
+const USER_INFO: &str = r#"{"role":"user","content":"<user_info>\nOS Version: darwin\n\nWorkspace Path: /tmp/from-info\n</user_info>"}"#;
 const ASSISTANT: &str = r#"{"role":"assistant","content":[{"type":"text","text":"damn ok"}]}"#;
 const PROTOBUF: &[u8] = &[0x0a, 0xca, 0x01, 0x72, 0x69, 0x67, 0x68, 0x74];
 
@@ -50,7 +48,12 @@ fn extracts_only_the_wrapped_query() {
     // The ambient `<user_info>` blob and the protobuf blob both drop out; the
     // assistant blob survives as the agent's side.
     let dir = db_with(
-        &[USER_QUERY.as_bytes(), USER_INFO.as_bytes(), ASSISTANT.as_bytes(), PROTOBUF],
+        &[
+            USER_QUERY.as_bytes(),
+            USER_INFO.as_bytes(),
+            ASSISTANT.as_bytes(),
+            PROTOBUF,
+        ],
         META,
     );
     let got = parse(&dir);
@@ -103,7 +106,14 @@ fn user_info_supplies_cwd_when_meta_has_none() {
 
 #[test]
 fn messages_before_the_cwd_is_known_carry_none() {
-    let dir = db_with(&[USER_QUERY.as_bytes(), USER_INFO.as_bytes(), ASSISTANT.as_bytes()], "{}");
+    let dir = db_with(
+        &[
+            USER_QUERY.as_bytes(),
+            USER_INFO.as_bytes(),
+            ASSISTANT.as_bytes(),
+        ],
+        "{}",
+    );
     let got = parse(&dir);
     assert_eq!(got.len(), 2);
     assert_eq!(got[0].cwd, None);
@@ -121,7 +131,11 @@ fn one_bad_element_rejects_the_whole_content_array() {
 #[test]
 fn one_mistyped_field_rejects_the_whole_blob() {
     let blob = r#"{"role":"assistant","content":[{"type":"text","text":"damn ok"}],"extra":1}"#;
-    assert_eq!(parse(&db_with(&[blob.as_bytes()], META)).len(), 1, "unknown fields are ignored");
+    assert_eq!(
+        parse(&db_with(&[blob.as_bytes()], META)).len(),
+        1,
+        "unknown fields are ignored"
+    );
     let bad = r#"{"role":7,"content":"damn ok"}"#;
     assert!(parse(&db_with(&[bad.as_bytes()], META)).is_empty());
 }
@@ -141,7 +155,10 @@ fn invalid_utf8_rejects_the_blob() {
 fn one_bad_meta_field_discards_the_whole_meta() {
     // All-or-nothing like serde: the valid cwd goes down with the bad
     // timestamp, and the time falls back to the file mtime.
-    for meta in [r#"{"updatedAtMs":"abc","cwd":"/kept"}"#, r#"{"updatedAtMs":1.5,"cwd":"/kept"}"#] {
+    for meta in [
+        r#"{"updatedAtMs":"abc","cwd":"/kept"}"#,
+        r#"{"updatedAtMs":1.5,"cwd":"/kept"}"#,
+    ] {
         let dir = db_with(&[USER_QUERY.as_bytes()], meta);
         let got = parse(&dir);
         assert_eq!(got.len(), 1);
@@ -152,7 +169,10 @@ fn one_bad_meta_field_discards_the_whole_meta() {
 #[test]
 fn out_of_range_meta_time_falls_back_to_mtime_cwd_survives() {
     // 1e18 ms is a valid i64 but beyond chrono's DateTime range.
-    let dir = db_with(&[USER_QUERY.as_bytes()], r#"{"updatedAtMs":1000000000000000000,"cwd":"/kept"}"#);
+    let dir = db_with(
+        &[USER_QUERY.as_bytes()],
+        r#"{"updatedAtMs":1000000000000000000,"cwd":"/kept"}"#,
+    );
     let got = parse(&dir);
     assert_eq!(got[0].cwd.as_deref(), Some("/kept"));
     assert!(got[0].ts < 1_000_000_000_000_000_000);
@@ -163,9 +183,13 @@ fn missing_meta_still_parses() {
     let dir = TempDir::new().expect("temp dir");
     let chat = chat_dir(dir.path());
     let conn = Connection::open(chat.join("store.db")).expect("open db");
-    conn.execute_batch("CREATE TABLE blobs (id TEXT PRIMARY KEY, data BLOB)").expect("create");
-    conn.execute("INSERT INTO blobs (id, data) VALUES ('1', ?1)", [USER_QUERY.as_bytes()])
-        .expect("insert");
+    conn.execute_batch("CREATE TABLE blobs (id TEXT PRIMARY KEY, data BLOB)")
+        .expect("create");
+    conn.execute(
+        "INSERT INTO blobs (id, data) VALUES ('1', ?1)",
+        [USER_QUERY.as_bytes()],
+    )
+    .expect("insert");
     conn.close().expect("close");
     let got = parse(&dir);
     assert_eq!(got.len(), 1);
@@ -177,7 +201,8 @@ fn a_db_without_a_blobs_table_fails() {
     let dir = TempDir::new().expect("temp dir");
     let chat = chat_dir(dir.path());
     let conn = Connection::open(chat.join("store.db")).expect("open db");
-    conn.execute_batch("CREATE TABLE other (id TEXT)").expect("create");
+    conn.execute_batch("CREATE TABLE other (id TEXT)")
+        .expect("create");
     conn.close().expect("close");
     assert!(parse_db(&chat.join("store.db")).is_err());
     assert!(parse_db(&chat.join("missing.db")).is_err());
@@ -193,12 +218,20 @@ fn uncheckpointed_wal_frames_are_invisible() {
 
     let conn = Connection::open(chat.join("store.db")).expect("open db");
     conn.execute_batch("PRAGMA journal_mode=WAL;").expect("wal");
-    conn.execute_batch("CREATE TABLE blobs (id TEXT PRIMARY KEY, data BLOB)").expect("create");
-    conn.execute("INSERT INTO blobs (id, data) VALUES ('1', ?1)", [USER_QUERY.as_bytes()])
-        .expect("insert");
-    conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);").expect("checkpoint");
-    conn.execute("INSERT INTO blobs (id, data) VALUES ('2', ?1)", [ASSISTANT.as_bytes()])
-        .expect("insert");
+    conn.execute_batch("CREATE TABLE blobs (id TEXT PRIMARY KEY, data BLOB)")
+        .expect("create");
+    conn.execute(
+        "INSERT INTO blobs (id, data) VALUES ('1', ?1)",
+        [USER_QUERY.as_bytes()],
+    )
+    .expect("insert");
+    conn.execute_batch("PRAGMA wal_checkpoint(TRUNCATE);")
+        .expect("checkpoint");
+    conn.execute(
+        "INSERT INTO blobs (id, data) VALUES ('2', ?1)",
+        [ASSISTANT.as_bytes()],
+    )
+    .expect("insert");
 
     let got = parse(&dir);
     conn.close().expect("close db");
@@ -228,9 +261,12 @@ fn other_roles_and_text_rows_are_handled() {
     let chat = chat_dir(dir.path());
     fs::write(chat.join("meta.json"), META).expect("write meta");
     let conn = Connection::open(chat.join("store.db")).expect("open db");
-    conn.execute_batch("CREATE TABLE blobs (id TEXT PRIMARY KEY, data BLOB)").expect("create");
-    conn.execute("INSERT INTO blobs (id, data) VALUES ('1', ?1)", [system]).expect("insert");
-    conn.execute("INSERT INTO blobs (id, data) VALUES ('2', ?1)", [ASSISTANT]).expect("insert");
+    conn.execute_batch("CREATE TABLE blobs (id TEXT PRIMARY KEY, data BLOB)")
+        .expect("create");
+    conn.execute("INSERT INTO blobs (id, data) VALUES ('1', ?1)", [system])
+        .expect("insert");
+    conn.execute("INSERT INTO blobs (id, data) VALUES ('2', ?1)", [ASSISTANT])
+        .expect("insert");
     conn.execute_batch("INSERT INTO blobs (id, data) VALUES ('3', NULL), ('4', 42)")
         .expect("insert");
     conn.close().expect("close");

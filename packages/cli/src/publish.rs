@@ -84,11 +84,16 @@ pub fn publish(report_json: &str) -> Result<Published> {
 
     // The server also returns an `id`; the CLI has no use for it.
     let url = parsed.get("url").and_then(|v| v.as_str());
-    let days = parsed.get("expires_in_days").and_then(serde_json::Value::as_f64);
+    let days = parsed
+        .get("expires_in_days")
+        .and_then(serde_json::Value::as_f64);
     match (url, days) {
-        (Some(url), Some(expires_in_days)) => {
-            Ok(Published { url: url.to_string(), expires_in_days })
-        }
-        _ => Err(anyhow!("the publishing endpoint returned something that is not a link")),
+        (Some(url), Some(expires_in_days)) => Ok(Published {
+            url: url.to_string(),
+            expires_in_days,
+        }),
+        _ => Err(anyhow!(
+            "the publishing endpoint returned something that is not a link"
+        )),
     }
 }

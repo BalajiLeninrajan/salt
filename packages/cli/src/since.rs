@@ -32,7 +32,8 @@ pub fn parse_since(raw: &str) -> Result<i64> {
         // JS numbers absorb any span the `^-?\d+$` check lets through; i64
         // would panic or wrap, so the arithmetic saturates instead. Only
         // absurd inputs reach the clamp, and they were already meaningless.
-        let ms = (Utc::now().timestamp_millis() as i128).saturating_sub(days.saturating_mul(DAY_MS));
+        let ms =
+            (Utc::now().timestamp_millis() as i128).saturating_sub(days.saturating_mul(DAY_MS));
         return Ok(ms.clamp(i64::MIN as i128, i64::MAX as i128) as i64);
     }
 

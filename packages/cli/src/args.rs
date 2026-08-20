@@ -63,7 +63,9 @@ pub fn parse(argv: &[String]) -> Result<Args, UsageError> {
         match name {
             "--json" | "--no-open" | "--help" | "--version" => {
                 if inline.is_some() {
-                    return Err(UsageError(format!("Option '{name}' does not take an argument")));
+                    return Err(UsageError(format!(
+                        "Option '{name}' does not take an argument"
+                    )));
                 }
                 match name {
                     "--json" => args.json = true,
@@ -84,9 +86,9 @@ pub fn parse(argv: &[String]) -> Result<Args, UsageError> {
                 };
                 match name {
                     // Repeatable and comma-separated both work.
-                    "--harness" => {
-                        args.harness_tokens.extend(value.split(',').map(str::to_string))
-                    }
+                    "--harness" => args
+                        .harness_tokens
+                        .extend(value.split(',').map(str::to_string)),
                     "--since" => args.since = Some(value),
                     _ => args.lexicon = Some(value),
                 }

@@ -4,7 +4,10 @@ use salt::strip::strip;
 
 #[test]
 fn keeps_plain_prose() {
-    assert_eq!(strip("this is a damn mess").as_deref(), Some("this is a damn mess"));
+    assert_eq!(
+        strip("this is a damn mess").as_deref(),
+        Some("this is a damn mess")
+    );
 }
 
 #[test]

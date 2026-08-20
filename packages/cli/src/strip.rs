@@ -94,7 +94,10 @@ fn remove_fenced_code(input: &str) -> String {
     for line in input.split('\n') {
         let trimmed = line.trim_start();
         if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
-            let c = trimmed.chars().next().expect("checked non-empty by starts_with");
+            let c = trimmed
+                .chars()
+                .next()
+                .expect("checked non-empty by starts_with");
             if !in_fence {
                 in_fence = true;
                 fence_char = c;
@@ -142,7 +145,9 @@ fn remove_paths(input: &str) -> String {
 }
 
 fn is_path_like(tok: &str) -> bool {
-    let t = tok.trim_start_matches([',', '.', ')', '(']).trim_end_matches([',', '.', ')', '(']);
+    let t = tok
+        .trim_start_matches([',', '.', ')', '('])
+        .trim_end_matches([',', '.', ')', '(']);
     // Measured in UTF-8 bytes, as the original did.
     if t.len() < 3 {
         return false;

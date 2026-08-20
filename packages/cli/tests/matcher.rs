@@ -53,10 +53,38 @@ fn assigns_tiers() {
 #[test]
 fn does_not_match_innocent_technical_words() {
     for w in [
-        "assert", "assert_eq", "assertion", "assign", "assignment", "asset", "assets", "class",
-        "classes", "pass", "passed", "password", "bypass", "bass", "massive", "hello", "shell",
-        "analysis", "cassandra", "canvas", "assume", "access", "assistant", "async", "harassment",
-        "scunthorpe", "dickinson", "sussex", "oxymoron", "dumbbell", "dumbbells", "dumbo",
+        "assert",
+        "assert_eq",
+        "assertion",
+        "assign",
+        "assignment",
+        "asset",
+        "assets",
+        "class",
+        "classes",
+        "pass",
+        "passed",
+        "password",
+        "bypass",
+        "bass",
+        "massive",
+        "hello",
+        "shell",
+        "analysis",
+        "cassandra",
+        "canvas",
+        "assume",
+        "access",
+        "assistant",
+        "async",
+        "harassment",
+        "scunthorpe",
+        "dickinson",
+        "sussex",
+        "oxymoron",
+        "dumbbell",
+        "dumbbells",
+        "dumbo",
     ] {
         assert_eq!(words(w), Vec::<String>::new(), "{w} should not match");
     }
@@ -126,13 +154,19 @@ fn multi_character_masking_is_out_of_scope() {
 
 #[test]
 fn remove_drops_a_word() {
-    let m = Matcher::new(&Overrides { remove: vec!["damn".into()], ..Default::default() });
+    let m = Matcher::new(&Overrides {
+        remove: vec!["damn".into()],
+        ..Default::default()
+    });
     assert!(m.find("damn").is_empty());
 }
 
 #[test]
 fn allow_suppresses_a_whole_word() {
-    let m = Matcher::new(&Overrides { allow: vec!["damn".into()], ..Default::default() });
+    let m = Matcher::new(&Overrides {
+        allow: vec!["damn".into()],
+        ..Default::default()
+    });
     assert!(m.find("damn").is_empty());
 }
 

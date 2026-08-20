@@ -20,7 +20,11 @@ use crate::types::{Harness, Message, Role, TsPrecision};
 /// The gate that decides a line is worth decoding. Every line we care about
 /// contains one of these; a sampled rollout held 1,841 `token_count` events
 /// against 20 `user_message`.
-const NEEDLES: [&[u8]; 3] = [b"\"user_message\"", b"\"agent_message\"", b"\"session_meta\""];
+const NEEDLES: [&[u8]; 3] = [
+    b"\"user_message\"",
+    b"\"agent_message\"",
+    b"\"session_meta\"",
+];
 
 /// A short string contained in all three needles, used to find candidate lines
 /// without walking the file line by line.
@@ -73,7 +77,9 @@ pub fn parse_file(path: &Path) -> anyhow::Result<Vec<Message>> {
     let finder = memchr::memmem::Finder::new(PROBE);
     let mut pos = 0usize;
     while pos < bytes.len() {
-        let Some(offset) = finder.find(&bytes[pos..]) else { break };
+        let Some(offset) = finder.find(&bytes[pos..]) else {
+            break;
+        };
         let hit = pos + offset;
 
         // Reconstruct just this line. `memrchr` stops at the preceding newline
@@ -89,7 +95,10 @@ pub fn parse_file(path: &Path) -> anyhow::Result<Vec<Message>> {
             line = &line[..line.len() - 1];
         }
         // The probe is a superset filter; the needles are the real test.
-        if !NEEDLES.iter().any(|n| memchr::memmem::find(line, n).is_some()) {
+        if !NEEDLES
+            .iter()
+            .any(|n| memchr::memmem::find(line, n).is_some())
+        {
             continue;
         }
         // Invalid UTF-8 skips the line, not the file.

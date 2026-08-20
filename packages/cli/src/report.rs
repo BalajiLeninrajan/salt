@@ -17,8 +17,9 @@ use chrono::{DateTime, Local, Utc};
 
 use crate::matcher::{Hit, Matcher};
 use crate::types::{
-    AgentDayStat, AgentHarnessStats, AgentTotals, Coverage, DayStat, Harness, HarnessStats, Message,
-    ProjectStat, Report, Role, ScanStats, Tier, Totals, TsPrecision, WordStat, ALL_HARNESSES,
+    AgentDayStat, AgentHarnessStats, AgentTotals, Coverage, DayStat, Harness, HarnessStats,
+    Message, ProjectStat, Report, Role, ScanStats, Tier, Totals, TsPrecision, WordStat,
+    ALL_HARNESSES,
 };
 
 #[derive(Default, Clone, Copy)]
@@ -78,7 +79,11 @@ fn rank_words(counts: HashMap<String, (Tier, u64)>, total: u64) -> Vec<WordStat>
             word,
             tier,
             count,
-            share: if total == 0 { 0.0 } else { count as f64 / total as f64 },
+            share: if total == 0 {
+                0.0
+            } else {
+                count as f64 / total as f64
+            },
         })
         .collect();
     out.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.word.cmp(&b.word)));
@@ -134,7 +139,10 @@ pub fn build(messages: Vec<Message>, stats: ScanStats, matcher: &Matcher, versio
                 agent.messages_with_swear += 1;
             }
             Matcher::tally(&hits, &mut agent_word_counts);
-            agent_by_harness_map.entry(p.harness).or_default().add(swears);
+            agent_by_harness_map
+                .entry(p.harness)
+                .or_default()
+                .add(swears);
             let e = agent_by_day.entry((date, p.harness)).or_default();
             e.0 += 1;
             e.1 += swears;
@@ -217,7 +225,12 @@ pub fn build(messages: Vec<Message>, stats: ScanStats, matcher: &Matcher, versio
 
     let daily: Vec<DayStat> = by_day
         .into_iter()
-        .map(|(date, d)| DayStat { date, prompts: d.prompts, swears: d.swears, weight: d.weight })
+        .map(|(date, d)| DayStat {
+            date,
+            prompts: d.prompts,
+            swears: d.swears,
+            weight: d.weight,
+        })
         .collect();
 
     // Days a harness was idle are absent rather than zero-filled; the chart

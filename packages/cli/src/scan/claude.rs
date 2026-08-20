@@ -159,7 +159,9 @@ fn finish(raw: &str, role: Role, parsed: &Line) -> Option<Message> {
 /// Claude stamps every line with an RFC-3339 instant in UTC; anything else is
 /// treated as unparseable and drops the line, as an unparseable date did.
 fn parse_ts(s: &str) -> Option<i64> {
-    chrono::DateTime::parse_from_rfc3339(s).ok().map(|d| d.timestamp_millis())
+    chrono::DateTime::parse_from_rfc3339(s)
+        .ok()
+        .map(|d| d.timestamp_millis())
 }
 
 /// Human turns can carry attachments, so content may be an array even when

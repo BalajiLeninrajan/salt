@@ -67,8 +67,8 @@ pub fn load_overrides(path: Option<&str>) -> Result<Overrides> {
         Err(_) => return Err(anyhow!("could not read lexicon at {}", p.display())),
     };
 
-    let file: File = toml::from_str(&body)
-        .map_err(|_| anyhow!("could not parse lexicon at {}", p.display()))?;
+    let file: File =
+        toml::from_str(&body).map_err(|_| anyhow!("could not parse lexicon at {}", p.display()))?;
 
     Ok(Overrides {
         // An unknown tier drops just that entry — a typo in one line should not

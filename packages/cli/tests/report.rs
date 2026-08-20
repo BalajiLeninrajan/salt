@@ -19,7 +19,10 @@ fn at(year: i32, month: u32, day: u32, hour: u32) -> i64 {
 }
 
 fn day_of(ts: i64) -> String {
-    format!("{}", Local.timestamp_millis_opt(ts).unwrap().format("%Y-%m-%d"))
+    format!(
+        "{}",
+        Local.timestamp_millis_opt(ts).unwrap().format("%Y-%m-%d")
+    )
 }
 
 fn message(text: &str, ts: i64, harness: Harness, precision: TsPrecision, role: Role) -> Message {
@@ -43,14 +46,29 @@ fn reply(text: &str, ts: i64, harness: Harness) -> Message {
 }
 
 fn build_from(messages: Vec<Message>) -> Report {
-    build(messages, ScanStats::default(), &Matcher::new(&Overrides::default()), "0.1.2")
+    build(
+        messages,
+        ScanStats::default(),
+        &Matcher::new(&Overrides::default()),
+        "0.1.2",
+    )
 }
 
 #[test]
 fn counts_totals_and_rates() {
     let r = build_from(vec![
-        prompt("this is fucking broken", at(2026, 8, 17, 10), Harness::Claude, TsPrecision::Exact),
-        prompt("looks fine", at(2026, 8, 17, 11), Harness::Claude, TsPrecision::Exact),
+        prompt(
+            "this is fucking broken",
+            at(2026, 8, 17, 10),
+            Harness::Claude,
+            TsPrecision::Exact,
+        ),
+        prompt(
+            "looks fine",
+            at(2026, 8, 17, 11),
+            Harness::Claude,
+            TsPrecision::Exact,
+        ),
     ]);
     assert_eq!(r.totals.prompts, 2);
     assert_eq!(r.totals.swears, 1);
@@ -77,8 +95,18 @@ fn rate_counts_every_swear_not_every_prompt() {
 #[test]
 fn session_precision_prompts_are_counted_and_disclosed() {
     let r = build_from(vec![
-        prompt("fuck", at(2026, 8, 17, 10), Harness::Cursor, TsPrecision::Session),
-        prompt("fuck", at(2026, 8, 17, 10), Harness::Claude, TsPrecision::Exact),
+        prompt(
+            "fuck",
+            at(2026, 8, 17, 10),
+            Harness::Cursor,
+            TsPrecision::Session,
+        ),
+        prompt(
+            "fuck",
+            at(2026, 8, 17, 10),
+            Harness::Claude,
+            TsPrecision::Exact,
+        ),
     ]);
     let counted: u64 = r.daily.iter().map(|d| d.prompts).sum();
     assert_eq!(counted, 2);
@@ -89,8 +117,18 @@ fn session_precision_prompts_are_counted_and_disclosed() {
 #[test]
 fn days_carry_severity_weight() {
     let r = build_from(vec![
-        prompt("fuck damn", at(2026, 8, 17, 10), Harness::Claude, TsPrecision::Exact),
-        prompt("shit", at(2026, 8, 17, 11), Harness::Claude, TsPrecision::Exact),
+        prompt(
+            "fuck damn",
+            at(2026, 8, 17, 10),
+            Harness::Claude,
+            TsPrecision::Exact,
+        ),
+        prompt(
+            "shit",
+            at(2026, 8, 17, 11),
+            Harness::Claude,
+            TsPrecision::Exact,
+        ),
     ]);
     assert_eq!(r.daily.len(), 1);
     assert_eq!(r.daily[0].prompts, 2);
@@ -131,7 +169,12 @@ fn report_never_contains_prompt_text() {
 
 #[test]
 fn home_directory_is_not_a_project() {
-    let mut p = prompt("hi", at(2026, 8, 17, 10), Harness::Claude, TsPrecision::Exact);
+    let mut p = prompt(
+        "hi",
+        at(2026, 8, 17, 10),
+        Harness::Claude,
+        TsPrecision::Exact,
+    );
     p.cwd = Some(dirs::home_dir().unwrap().to_str().unwrap().to_string());
     let r = build_from(vec![p]);
     // home dir must not leak as a project
@@ -141,7 +184,12 @@ fn home_directory_is_not_a_project() {
 #[test]
 fn agent_messages_are_counted_separately() {
     let r = build_from(vec![
-        prompt("fix this fucking bug", at(2026, 8, 17, 10), Harness::Claude, TsPrecision::Exact),
+        prompt(
+            "fix this fucking bug",
+            at(2026, 8, 17, 10),
+            Harness::Claude,
+            TsPrecision::Exact,
+        ),
         reply("damn, good catch", at(2026, 8, 17, 11), Harness::Claude),
         reply("all done", at(2026, 8, 17, 12), Harness::Claude),
     ]);
@@ -175,8 +223,12 @@ fn agent_messages_do_not_reach_user_scoped_sections() {
 
 #[test]
 fn agent_daily_is_split_by_harness() {
-    let (t1, t2, t3, t4) =
-        (at(2026, 8, 17, 10), at(2026, 8, 17, 11), at(2026, 8, 17, 12), at(2026, 8, 18, 9));
+    let (t1, t2, t3, t4) = (
+        at(2026, 8, 17, 10),
+        at(2026, 8, 17, 11),
+        at(2026, 8, 17, 12),
+        at(2026, 8, 18, 9),
+    );
     let r = build_from(vec![
         reply("damn", t1, Harness::Claude),
         reply("all fine", t2, Harness::Claude),
@@ -231,8 +283,18 @@ fn report_never_contains_agent_text() {
 fn word_count_splits_on_unicode_whitespace() {
     let r = build_from(vec![
         // NEL splits (2 words), ZWNBSP does not (1 word).
-        prompt("a\u{85}b", at(2026, 8, 17, 10), Harness::Claude, TsPrecision::Exact),
-        prompt("c\u{feff}d", at(2026, 8, 17, 11), Harness::Claude, TsPrecision::Exact),
+        prompt(
+            "a\u{85}b",
+            at(2026, 8, 17, 10),
+            Harness::Claude,
+            TsPrecision::Exact,
+        ),
+        prompt(
+            "c\u{feff}d",
+            at(2026, 8, 17, 11),
+            Harness::Claude,
+            TsPrecision::Exact,
+        ),
     ]);
     assert_eq!(r.totals.words, 3);
 }
@@ -241,9 +303,19 @@ fn word_count_splits_on_unicode_whitespace() {
 fn tied_projects_order_by_code_point() {
     // U+FF5E sorts before U+1F4A9 byte-wise; JS `<` on UTF-16 units says the opposite.
     let dir = std::env::temp_dir().join("salt-tie");
-    let mut a = prompt("hi", at(2026, 8, 17, 10), Harness::Claude, TsPrecision::Exact);
+    let mut a = prompt(
+        "hi",
+        at(2026, 8, 17, 10),
+        Harness::Claude,
+        TsPrecision::Exact,
+    );
     a.cwd = Some(dir.join("～tools").to_str().unwrap().to_string());
-    let mut b = prompt("hi", at(2026, 8, 17, 11), Harness::Claude, TsPrecision::Exact);
+    let mut b = prompt(
+        "hi",
+        at(2026, 8, 17, 11),
+        Harness::Claude,
+        TsPrecision::Exact,
+    );
     b.cwd = Some(dir.join("\u{1F4A9}app").to_str().unwrap().to_string());
     let r = build_from(vec![a, b]);
     let names: Vec<&str> = r.projects.iter().map(|p| p.name.as_str()).collect();
@@ -252,7 +324,12 @@ fn tied_projects_order_by_code_point() {
 
 #[test]
 fn non_canonical_home_spellings_are_not_projects() {
-    let home = dirs::home_dir().unwrap().to_str().unwrap().trim_end_matches('/').to_string();
+    let home = dirs::home_dir()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .trim_end_matches('/')
+        .to_string();
     let segs: Vec<&str> = home.split('/').filter(|s| !s.is_empty()).collect();
     assert_eq!(project_name(&format!("{home}/.")), None);
     assert_eq!(project_name(&format!("{home}//")), None);
@@ -272,7 +349,10 @@ fn project_name_comes_from_normalized_components() {
         Some("repo")
     );
     // With no .git in reach the leaf directory wins, `.` normalized away.
-    assert_eq!(project_name("/nonexistent-salt/leaf/.").as_deref(), Some("leaf"));
+    assert_eq!(
+        project_name("/nonexistent-salt/leaf/.").as_deref(),
+        Some("leaf")
+    );
 }
 
 /// A `.git` file — a worktree or submodule checkout — marks a repo too.
@@ -307,7 +387,12 @@ fn project_name_is_basename_only() {
 #[test]
 fn repeated_cwds_aggregate_into_one_project() {
     let mk = |cwd: &str, text: &str| {
-        let mut p = prompt(text, at(2026, 8, 17, 10), Harness::Claude, TsPrecision::Exact);
+        let mut p = prompt(
+            text,
+            at(2026, 8, 17, 10),
+            Harness::Claude,
+            TsPrecision::Exact,
+        );
         p.cwd = Some(cwd.to_string());
         p
     };

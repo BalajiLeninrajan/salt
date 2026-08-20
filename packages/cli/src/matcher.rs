@@ -163,7 +163,9 @@ impl Matcher {
 
     /// Returns every confirmed swear in `text`.
     pub fn find(&self, text: &str) -> Vec<Hit> {
-        let Some(ac) = &self.ac else { return Vec::new() };
+        let Some(ac) = &self.ac else {
+            return Vec::new();
+        };
         let normalised = normalise(text);
         let mut hits = Vec::new();
 
@@ -178,7 +180,10 @@ impl Matcher {
                 continue;
             }
             let (word, tier) = &self.meta[m.pattern().as_usize()];
-            hits.push(Hit { word: word.clone(), tier: *tier });
+            hits.push(Hit {
+                word: word.clone(),
+                tier: *tier,
+            });
         }
         hits
     }
