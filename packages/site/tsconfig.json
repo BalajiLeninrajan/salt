@@ -17,5 +17,9 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["worker", "test", "vite.config.ts", "vitest.config.ts"]
+  // vite.config.ts and vitest.config.ts are deliberately absent: they are Node
+  // scripts that vite and vitest transpile themselves, and checking them here
+  // under workerd's types made `node:url` and `import.meta.url` errors — which
+  // is why this script had never passed.
+  "include": ["worker", "test"]
 }
