@@ -8,6 +8,7 @@
  * static assets, which is still the bulk of what lives here.
  */
 import type { Report } from "@salt/core";
+import { MAX_REPORT_BYTES, REPORT_TTL_SECONDS } from "@salt/core";
 
 interface Env {
   REPORTS: KVNamespace;
@@ -15,10 +16,9 @@ interface Env {
 }
 
 /** Reports expire on their own; there is no delete path and nothing to sweep. */
-const TTL_SECONDS = 30 * 24 * 60 * 60;
+const TTL_SECONDS = REPORT_TTL_SECONDS;
 
-/** Generous for a report, small enough that nobody stores a filesystem in KV. */
-const MAX_BODY_BYTES = 512 * 1024;
+const MAX_BODY_BYTES = MAX_REPORT_BYTES;
 
 const ID_LENGTH = 10;
 /**
@@ -85,7 +85,25 @@ async function publish(request: Request, env: Env, url: URL): Promise<Response> 
   if (raw.byteLength > MAX_BODY_BYTES) {
     return problem(413, `report exceeds ${MAX_BODY_BYTES} bytes`);
   }
-  const body = new TextDecoder().decode(raw);
+
+  // The CLI gzips; versions already published do not, and both have to work.
+  // The decision is made on the gzip magic bytes rather than on
+  // `content-encoding`, because whether a request body arrives still
+  // compressed depends on the edge, not on the sender — sniffing is right in
+  // every combination of the two.
+  let body: string;
+  if (isGzip(raw)) {
+    const inflated = await gunzip(raw, MAX_BODY_BYTES);
+    if (inflated === TOO_LARGE) {
+      return problem(413, `report exceeds ${MAX_BODY_BYTES} bytes`);
+    }
+    if (inflated === null) {
+      return problem(400, "body is not valid gzip");
+    }
+    body = inflated;
+  } else {
+    body = new TextDecoder().decode(raw);
+  }
 
   let report: Report;
   try {
@@ -105,6 +123,49 @@ async function publish(request: Request, env: Env, url: URL): Promise<Response> 
     url: `${url.origin}/r/${id}`,
     expires_in_days: TTL_SECONDS / 86400,
   });
+}
+
+const GZIP_MAGIC = [0x1f, 0x8b];
+
+function isGzip(raw: ArrayBuffer): boolean {
+  const head = new Uint8Array(raw, 0, Math.min(2, raw.byteLength));
+  return head.length === 2 && head[0] === GZIP_MAGIC[0] && head[1] === GZIP_MAGIC[1];
+}
+
+/** Distinguishes "expanded past the cap" from "not valid gzip". */
+const TOO_LARGE = Symbol("too large");
+
+/**
+ * Inflates `raw`, refusing to buffer more than `limit` bytes.
+ *
+ * The cap is enforced as the stream is consumed, not after. A few kilobytes of
+ * gzip can expand to gigabytes, so checking the compressed size alone would
+ * make this endpoint trivially easy to exhaust.
+ */
+async function gunzip(
+  raw: ArrayBuffer,
+  limit: number,
+): Promise<string | null | typeof TOO_LARGE> {
+  const stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream("gzip"));
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let out = "";
+  let bytes = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > limit) {
+        await reader.cancel();
+        return TOO_LARGE;
+      }
+      out += decoder.decode(value, { stream: true });
+    }
+  } catch {
+    return null; // truncated or not actually gzip
+  }
+  return out + decoder.decode();
 }
 
 /**

@@ -1,20 +1,23 @@
 //! Sends the report to the dashboard.
 //!
 //! Publishing is the only path to a link, so this is the one place anything
-//! leaves the machine. It is a single POST; the payload is ~30 KB.
+//! leaves the machine. It is a single POST of ~30 KB, gzipped to ~5 KB.
 //!
-//! No gzip yet, deliberately. The receiving Worker does not decompress today
-//! (`packages/site/worker/index.ts` reads the body straight into `JSON.parse`),
-//! so a CLI that compressed first would break every publish until the Worker
-//! shipped. The two have to land in that order — Worker first, then this.
+//! The Worker decides whether to inflate by sniffing the gzip magic bytes
+//! rather than trusting `content-encoding`, so it keeps accepting the
+//! uncompressed bodies that already-published versions of this CLI send.
+
+use std::io::Write;
 
 use anyhow::{anyhow, bail, Result};
+use flate2::write::GzEncoder;
+use flate2::Compression;
 
 const DEFAULT_HOST: &str = "https://salt.balajileninrajan.dev";
 
-/// Matches the cap the Worker enforces. Duplicated there and here on purpose
-/// for now — the shared-constant cleanup is a separate change that touches the
-/// site package too.
+/// Mirrors `MAX_REPORT_BYTES` in `packages/core/src/report.ts`, which the
+/// Worker enforces on the *inflated* body. Rust cannot import that package, so
+/// this is the one copy that has to be kept in step by hand.
 const MAX_BODY_BYTES: usize = 512 * 1024;
 
 #[derive(Debug)]
@@ -52,10 +55,16 @@ pub fn publish(report_json: &str) -> Result<Published> {
         .build()
         .into();
 
+    // ~30 KB of report becomes ~5 KB on the wire. That is not worth anything
+    // against a multi-second scan, but it is most of a slow connection's
+    // upload.
+    let compressed = gzip(report_json)?;
+
     let mut response = agent
         .post(&endpoint)
         .header("content-type", "application/json")
-        .send(report_json)
+        .header("content-encoding", "gzip")
+        .send(&compressed[..])
         .map_err(|_| {
             anyhow!("could not reach {endpoint} — check your connection, or use --json")
         })?;
@@ -96,4 +105,10 @@ pub fn publish(report_json: &str) -> Result<Published> {
             "the publishing endpoint returned something that is not a link"
         )),
     }
+}
+
+fn gzip(body: &str) -> Result<Vec<u8>> {
+    let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+    encoder.write_all(body.as_bytes())?;
+    Ok(encoder.finish()?)
 }

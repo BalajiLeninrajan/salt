@@ -116,3 +116,20 @@ export const AGENT_LINE_COLOR: Record<HarnessStats["harness"], string> = {
   codex: "var(--green)",
   cursor: "var(--blue)",
 };
+
+/**
+ * The publishing limits, shared so the CLI, the Worker, and the dashboard
+ * cannot disagree about them.
+ *
+ * These were previously literals in three places — the Worker, the CLI, and
+ * App.tsx — each with a comment pointing at the others. That is exactly the
+ * arrangement that drifts.
+ */
+
+/** Generous for a report, small enough that nobody stores a filesystem in KV. */
+export const MAX_REPORT_BYTES = 512 * 1024;
+
+/** A published report is a snapshot; links are kept this long after it. */
+export const REPORT_TTL_DAYS = 30;
+
+export const REPORT_TTL_SECONDS = REPORT_TTL_DAYS * 24 * 60 * 60;
