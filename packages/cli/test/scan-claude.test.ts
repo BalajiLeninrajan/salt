@@ -27,9 +27,19 @@ describe("scan/claude", () => {
     expect(parseLine(line)).toBeNull();
   });
 
-  test("drops sdk origin", () => {
+  test("keeps sdk transport: the desktop app stamps it on typed prompts", () => {
     const line = `{"type":"user","origin":{"kind":"human"},"promptSource":"sdk","message":{"role":"user","content":"hi"},"timestamp":"2026-08-17T21:33:43.823Z"}`;
+    expect(parseLine(line)?.text).toBe("hi");
+  });
+
+  test("drops non-human origin even on the sdk transport", () => {
+    const line = `{"type":"user","origin":{"kind":"task-notification"},"promptSource":"sdk","message":{"role":"user","content":"done"},"timestamp":"2026-08-17T21:33:43.823Z"}`;
     expect(parseLine(line)).toBeNull();
+  });
+
+  test("keeps an unknown transport when the origin is human", () => {
+    const line = `{"type":"user","origin":{"kind":"human"},"promptSource":"future-transport","message":{"role":"user","content":"hi"},"timestamp":"2026-08-17T21:33:43.823Z"}`;
+    expect(parseLine(line)?.text).toBe("hi");
   });
 
   test("drops sidechain", () => {
