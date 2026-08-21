@@ -36,20 +36,21 @@ pub struct Args {
 }
 
 /// `--flag` / `--flag=value` / `--flag value`, no short aliases, no positionals.
+///
+/// One arm per option. An earlier shape matched the flag name twice — once to
+/// decide whether it took a value, then again to pick the field — with a
+/// fallthrough on the inner match, so adding an option and forgetting the
+/// second half would silently set a different field.
 pub fn parse(argv: &[String]) -> Result<Args, UsageError> {
     let mut args = Args::default();
-    let mut i = 0;
+    let mut rest = argv.iter().map(String::as_str);
 
-    while i < argv.len() {
-        let arg = argv[i].as_str();
-
-        // A bare `--` is accepted and ends nothing, since there are no
-        // positionals to separate.
+    while let Some(arg) = rest.next() {
+        // Accepted and separates nothing, since there are no positionals.
         if arg == "--" {
-            i += 1;
             continue;
         }
-        if !arg.starts_with("--") {
+        if !arg.starts_with('-') {
             return Err(UsageError(format!(
                 "Unexpected argument '{arg}'. This command does not take positional arguments"
             )));
@@ -61,44 +62,44 @@ pub fn parse(argv: &[String]) -> Result<Args, UsageError> {
         };
 
         match name {
-            "--json" | "--no-open" | "--help" | "--version" => {
-                if inline.is_some() {
-                    return Err(UsageError(format!(
-                        "Option '{name}' does not take an argument"
-                    )));
-                }
-                match name {
-                    "--json" => args.json = true,
-                    "--no-open" => args.no_open = true,
-                    "--help" => args.help = true,
-                    _ => args.version = true,
-                }
-            }
-            "--harness" | "--since" | "--lexicon" => {
-                let value = match inline {
-                    Some(v) => v.to_string(),
-                    None => {
-                        i += 1;
-                        argv.get(i).cloned().ok_or_else(|| {
-                            UsageError(format!("Option '{name} <value>' argument missing"))
-                        })?
-                    }
-                };
-                match name {
-                    // Repeatable and comma-separated both work.
-                    "--harness" => args
-                        .harness_tokens
-                        .extend(value.split(',').map(str::to_string)),
-                    "--since" => args.since = Some(value),
-                    _ => args.lexicon = Some(value),
-                }
-            }
+            "--json" => args.json = bare(name, inline)?,
+            "--no-open" => args.no_open = bare(name, inline)?,
+            "--help" => args.help = bare(name, inline)?,
+            "--version" => args.version = bare(name, inline)?,
+            // Repeatable and comma-separated both work.
+            "--harness" => args.harness_tokens.extend(
+                value(name, inline, &mut rest)?
+                    .split(',')
+                    .map(str::to_owned),
+            ),
+            "--since" => args.since = Some(value(name, inline, &mut rest)?.to_owned()),
+            "--lexicon" => args.lexicon = Some(value(name, inline, &mut rest)?.to_owned()),
             _ => return Err(UsageError(format!("Unknown option '{name}'"))),
         }
-        i += 1;
     }
 
     Ok(args)
+}
+
+/// A flag that takes no value.
+fn bare(name: &str, inline: Option<&str>) -> Result<bool, UsageError> {
+    match inline {
+        None => Ok(true),
+        Some(_) => Err(UsageError(format!(
+            "Option '{name}' does not take an argument"
+        ))),
+    }
+}
+
+/// A flag's value, from `=value` or the next argument.
+fn value<'a>(
+    name: &str,
+    inline: Option<&'a str>,
+    rest: &mut impl Iterator<Item = &'a str>,
+) -> Result<&'a str, UsageError> {
+    inline
+        .or_else(|| rest.next())
+        .ok_or_else(|| UsageError(format!("Option '{name} <value>' argument missing")))
 }
 
 /// Resolves `--harness` tokens, after `--help` and `--version` have had their say.

@@ -4,10 +4,9 @@ pub mod claude;
 pub mod codex;
 pub mod cursor;
 
-use std::cmp::Ordering;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use rayon::prelude::*;
 
@@ -20,7 +19,16 @@ pub struct ScanOutput {
 }
 
 /// A file to parse, with the size the scan will bill it at.
-pub type Job = (Harness, PathBuf, u64);
+///
+/// Named rather than a tuple because the size field is what orders the work:
+/// the scan sorts largest-first so no core is left waiting on one straggler,
+/// and `job.2` is a quiet way to get that wrong.
+#[derive(Debug, Clone)]
+pub struct Job {
+    pub harness: Harness,
+    pub path: PathBuf,
+    pub bytes: u64,
+}
 
 /// Recursively collects files under `root` whose path matches `pred`.
 ///
@@ -67,8 +75,12 @@ pub fn jobs_for(harnesses: &[Harness], home: &Path) -> Vec<Job> {
         for f in files {
             // Size is read here, once, so `bytes_scanned` counts a file even
             // when parsing it later fails.
-            let size = fs::metadata(&f).map(|m| m.len()).unwrap_or(0);
-            jobs.push((harness, f, size));
+            let bytes = fs::metadata(&f).map(|m| m.len()).unwrap_or(0);
+            jobs.push(Job {
+                harness,
+                path: f,
+                bytes,
+            });
         }
     };
 
@@ -130,6 +142,13 @@ fn dedup_key(m: &Message) -> (Harness, crate::types::Role, &str, &str) {
 /// counts once. That undercounts slightly, which is the right direction to err
 /// versus inflating the headline number ~1.4x.
 ///
+/// The sort is unstable and parallel: the comparator is a total order over
+/// every field that is observable — `ts_precision` is the only one it omits,
+/// and that is a function of `harness` — so two elements that compare equal are
+/// indistinguishable and `dedup_by` would discard one of them either way.
+/// Stability buys nothing, and the scratch allocation a stable sort needs comes
+/// due right after the scan has peaked memory.
+///
 /// The survivor is the one with the smallest timestamp, ties broken by the
 /// smallest `cwd`. Both the TypeScript implementation and the original Rust
 /// relied on a stable sort of whatever order the threads happened to produce,
@@ -140,26 +159,28 @@ fn dedup_key(m: &Message) -> (Harness, crate::types::Role, &str, &str) {
 pub fn dedup(messages: &mut Vec<Message>) -> u64 {
     let before = messages.len();
 
-    messages.sort_by(|a, b| {
+    messages.par_sort_unstable_by(|a, b| {
         dedup_key(a)
             .cmp(&dedup_key(b))
             .then_with(|| a.ts.cmp(&b.ts))
-            .then_with(|| match (&a.cwd, &b.cwd) {
-                // `None` sorts before `Some` so a message with no project is
-                // only chosen when nothing better shares its key.
-                (None, None) => Ordering::Equal,
-                (None, Some(_)) => Ordering::Less,
-                (Some(_), None) => Ordering::Greater,
-                (Some(x), Some(y)) => x.cmp(y),
-            })
+            // `Option`'s own ordering is the one wanted here: `None` sorts
+            // before `Some`, so a message with no project only wins when
+            // nothing better shares its key.
+            .then_with(|| a.cwd.cmp(&b.cwd))
     });
     // The sort put the winner of each key first, so keeping the first of every
     // run of equal keys is exactly "earliest, then smallest cwd".
     messages.dedup_by(|a, b| dedup_key(a) == dedup_key(b));
 
-    // Chronological is the order a reader would expect if this ever surfaces,
-    // and it costs nothing here.
-    messages.sort_by_key(|m| m.ts);
+    // Chronological is the order a reader would expect if this ever surfaces.
+    // The dedup key breaks ties so the result is a total order: an unstable
+    // parallel sort would otherwise leave same-millisecond messages in
+    // whatever order the threads produced, and nothing downstream should ever
+    // be able to depend on that.
+    messages.par_sort_unstable_by(|a, b| {
+        a.ts.cmp(&b.ts)
+            .then_with(|| dedup_key(a).cmp(&dedup_key(b)))
+    });
 
     (before - messages.len()) as u64
 }
@@ -187,14 +208,14 @@ pub fn scan_with(
     let stats = ScanStats {
         files_scanned: jobs.len() as u64,
         files_failed: 0,
-        bytes_scanned: jobs.iter().map(|(_, _, size)| size).sum(),
+        bytes_scanned: jobs.iter().map(|job| job.bytes).sum(),
         duplicates_dropped: 0,
     };
 
     // Largest first. File sizes here span six orders of magnitude — a 265 MB
     // rollout sits next to 4 KB ones — and starting with the big ones stops
     // the run ending while every core waits on one straggler.
-    jobs.sort_by_key(|job| std::cmp::Reverse(job.2));
+    jobs.sort_by_key(|job| std::cmp::Reverse(job.bytes));
 
     let total = jobs.len() as u64;
     let done = AtomicU64::new(0);
@@ -204,13 +225,13 @@ pub fn scan_with(
         .par_iter()
         .fold(
             || (Vec::new(), 0u64),
-            |(mut msgs, mut failed), (harness, path, size)| {
-                match parse_job(*harness, path) {
+            |(mut msgs, mut failed), job| {
+                match parse_job(job.harness, &job.path) {
                     Ok(parsed) => msgs.extend(parsed),
                     Err(_) => failed += 1,
                 }
-                let d = done.fetch_add(1, AtomicOrdering::Relaxed) + 1;
-                let b = bytes.fetch_add(*size, AtomicOrdering::Relaxed) + size;
+                let d = done.fetch_add(1, Ordering::Relaxed) + 1;
+                let b = bytes.fetch_add(job.bytes, Ordering::Relaxed) + job.bytes;
                 on_progress(d, total, b);
                 (msgs, failed)
             },

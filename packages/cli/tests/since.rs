@@ -1,5 +1,5 @@
-//! Port of test/since.test.ts. The dedup-ordering case there belongs to the
-//! scan module and lives with those tests.
+//! Port of test/since.test.ts. The dedup-ordering case from that file lives in
+//! tests/scan.rs, next to the function it constrains.
 
 use chrono::Utc;
 use salt::since::parse_since;
