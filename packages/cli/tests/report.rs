@@ -45,12 +45,17 @@ fn reply(text: &str, ts: i64, harness: Harness) -> Message {
     message(text, ts, harness, TsPrecision::Exact, Role::Agent)
 }
 
+const TEST_VERSION: &str = "9.9.9-test";
+
 fn build_from(messages: Vec<Message>) -> Report {
     build(
         messages,
         ScanStats::default(),
         &Matcher::new(&Overrides::default()),
-        "0.1.2",
+        // Deliberately not the real version: `build` only echoes this back, so
+        // a literal that matched the crate turned a pass-through check into a
+        // test that had to be edited for every release.
+        TEST_VERSION,
     )
 }
 
@@ -417,5 +422,5 @@ fn generated_at_is_iso_with_millis() {
     assert!(r.generated_at.ends_with('Z'));
     assert_eq!(&r.generated_at[10..11], "T");
     assert_eq!(&r.generated_at[19..20], ".");
-    assert_eq!(r.version, "0.1.2");
+    assert_eq!(r.version, TEST_VERSION);
 }
