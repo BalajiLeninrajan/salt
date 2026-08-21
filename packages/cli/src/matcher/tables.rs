@@ -1,6 +1,10 @@
+//! The lexicon and its supporting tables.
+
+use crate::types::Tier;
+
 /// The canonical lexicon. Inflections are handled by suffix matching in
 /// `is_word_boundary`, not by listing every form.
-const LEXICON: &[(&str, Tier)] = &[
+pub(super) const LEXICON: &[(&str, Tier)] = &[
     ("damn", Tier::Mild),
     ("damnit", Tier::Mild),
     ("dammit", Tier::Mild),
@@ -66,7 +70,7 @@ const LEXICON: &[(&str, Tier)] = &[
 ///
 /// Matching is word-bounded, so this only needs to cover whole words that *are*
 /// a swear plus affixes — the Scunthorpe class.
-const ALLOWLIST: &[&str] = &[
+pub(super) const ALLOWLIST: &[&str] = &[
     "assert",
     "asserts",
     "asserted",
@@ -143,23 +147,7 @@ const ALLOWLIST: &[&str] = &[
 ];
 
 /// Grammatical endings a match may be glued to: fucking, shitty, asses, damned.
-const SUFFIXES: &[&str] = &[
-    "s",
-    "es",
-    "ed",
-    "ing",
-    "y",
-    "er",
-    "ers",
-    "in",
-    "in'",
-    "ty",
-    "tier",
-    "head",
-    "hole",
-    "holes",
-    "face",
-    "wit",
-    "ly",
-    "ness",
+pub(super) const SUFFIXES: &[&str] = &[
+    "s", "es", "ed", "ing", "y", "er", "ers", "in", "in'", "ty", "tier", "head", "hole", "holes",
+    "face", "wit", "ly", "ness",
 ];

@@ -9,7 +9,9 @@
 //! source, and identifiers like `assert`, `class`, and `bass` are where
 //! false-positive swear matches come from.
 
-include!("strip_tables.rs");
+mod tables;
+
+use tables::{INJECTED_PREAMBLES, INJECTED_TAGS, REJECT_WHOLE};
 
 /// Strips injected blocks and code, returning the human prose that remains, or
 /// `None` when nothing survives — that means the turn was entirely
@@ -25,8 +27,8 @@ pub fn strip(input: &str) -> Option<String> {
     // them, so probing for a single character first skips upwards of twenty
     // full passes over the common message.
     if text.contains('<') {
-        for tag in INJECTED_TAGS {
-            text = remove_tag_blocks(&text, tag);
+        for (open_prefix, close) in INJECTED_TAGS {
+            text = remove_tag_blocks(&text, open_prefix, close);
         }
     }
     if text.contains("```") || text.contains("~~~") {
@@ -56,14 +58,12 @@ pub fn strip(input: &str) -> Option<String> {
 /// Removes `<tag ...>...</tag>` spans, and self-closing / unclosed `<tag ...>`
 /// openers. An unclosed opener swallows the rest of the input, which is the
 /// correct reading: truncated injected blocks are still injected.
-fn remove_tag_blocks(input: &str, tag: &str) -> String {
-    let open_prefix = format!("<{tag}");
-    let close = format!("</{tag}>");
+fn remove_tag_blocks(input: &str, open_prefix: &str, close: &str) -> String {
     let mut out = String::new();
     let mut rest = input;
 
     loop {
-        let Some(start) = rest.find(&open_prefix) else {
+        let Some(start) = rest.find(open_prefix) else {
             out.push_str(rest);
             return out;
         };
@@ -78,7 +78,7 @@ fn remove_tag_blocks(input: &str, tag: &str) -> String {
 
         out.push_str(&rest[..start]);
         let tail = &rest[start..];
-        let Some(end) = tail.find(&close) else {
+        let Some(end) = tail.find(close) else {
             return out; // opener with no close: drop through end of input
         };
         rest = &tail[end + close.len()..];

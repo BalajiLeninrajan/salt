@@ -17,7 +17,9 @@ use aho_corasick::{AhoCorasick, MatchKind};
 use crate::text::{is_word_byte, whole_word, word_byte_at, word_byte_before};
 use crate::types::Tier;
 
-include!("matcher_tables.rs");
+mod tables;
+
+use tables::{ALLOWLIST, LEXICON, SUFFIXES};
 
 /// Stands in for a censor character (`*` or `#`).
 ///
@@ -78,18 +80,21 @@ pub fn normalise(text: &str) -> String {
 /// are out of scope; vowels rather than any position because false positives
 /// are the failure mode that matters most here.
 fn masked_variants(word: &str) -> Vec<String> {
-    let bytes = word.as_bytes();
-    let mut out = Vec::new();
-    for (i, b) in bytes.iter().enumerate() {
-        if VOWELS.contains(b) {
-            let mut v = word.to_string();
-            // Safe: the lexicon is ASCII and MASK is one byte, so this is a
-            // straight byte swap that cannot split a character.
-            unsafe { v.as_bytes_mut()[i] = MASK as u8 };
-            out.push(v);
-        }
-    }
-    out
+    // A vowel byte is always a whole character: every byte of a multi-byte
+    // UTF-8 sequence is >= 0x80, so an index that matches an ASCII vowel can
+    // never land inside one. That holds even for a non-ASCII word from the
+    // user's lexicon, which is why this can slice around the index directly.
+    word.bytes()
+        .enumerate()
+        .filter(|(_, b)| VOWELS.contains(b))
+        .map(|(i, _)| {
+            let mut masked = String::with_capacity(word.len());
+            masked.push_str(&word[..i]);
+            masked.push(MASK);
+            masked.push_str(&word[i + 1..]);
+            masked
+        })
+        .collect()
 }
 
 /// Every canonical word in the built-in lexicon.

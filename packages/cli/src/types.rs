@@ -7,7 +7,11 @@
 
 use serde::Serialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize)]
+/// Deliberately not `Ord`: the declaration order below is not severity order.
+/// `weight()` puts `Acronym` at 6, between `Mild`'s 5 and `Medium`'s 8, so a
+/// derived comparison would read as "more severe" and be wrong. Compare
+/// `weight()` if that is what you mean.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Tier {
     Mild,
@@ -88,7 +92,7 @@ pub enum TsPrecision {
 ///
 /// `text` is transient: it reaches the profanity matcher and is dropped. It is
 /// never serialised, cached, or sent to the browser.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Message {
     pub harness: Harness,
     pub role: Role,
@@ -98,6 +102,27 @@ pub struct Message {
     pub cwd: Option<String>,
     pub session_id: String,
     pub text: String,
+}
+
+/// Prints the shape of a message but never its contents.
+///
+/// `Debug` is derived on almost everything else here, but not on this: the
+/// whole tool rests on prompt text staying local, and a derived `Debug` puts
+/// every prompt one stray `dbg!` or `{:?}` on an error path away from stdout.
+/// Deriving it would make that a matter of reviewer vigilance; writing it means
+/// the text cannot leak this way at all.
+impl std::fmt::Debug for Message {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Message")
+            .field("harness", &self.harness)
+            .field("role", &self.role)
+            .field("ts", &self.ts)
+            .field("ts_precision", &self.ts_precision)
+            .field("cwd", &self.cwd.as_deref().map(|_| "<redacted>"))
+            .field("session_id", &self.session_id)
+            .field("text", &format_args!("<{} bytes>", self.text.len()))
+            .finish()
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy)]
