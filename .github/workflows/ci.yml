@@ -1,0 +1,57 @@
+# Checks on every push and pull request. The release workflow does not run
+# these, so anything that must hold before publishing has to hold here.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cli:
+    name: cli (rust)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: packages/cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      # Keyed on the CLI's lockfile: the site and core packages cannot affect
+      # the Rust build, so their churn should not cost a cache miss.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/cli
+
+      - run: cargo fmt --all --check
+
+      # Warnings are failures here. The lexicon and the report schema are full
+      # of near-duplicate literals, and a warning that is merely printed is a
+      # warning nobody reads.
+      - run: cargo clippy --all-targets -- -D warnings
+
+      - run: cargo test
+
+  site:
+    name: site
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @salt/site test
+      - run: pnpm --filter @salt/site typecheck

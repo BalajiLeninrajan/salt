@@ -1,5 +1,10 @@
 # Publishes salt-ai and its platform binary packages when a version tag is
 # pushed. The site deploys through Cloudflare Workers Builds, not from here.
+#
+# Two jobs, because the CLI is Rust now. `bun build --compile` could produce all
+# six targets from one Linux runner; cargo cannot, since the SQLite that
+# rusqlite bundles is C and each target wants its own C toolchain. So `build` is
+# a matrix of native runners and `publish` collects what they produce.
 name: publish
 
 on:
@@ -8,8 +13,77 @@ on:
       - "v*"
 
 jobs:
+  build:
+    name: build ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    # One missing binary would leave the launcher pointing at a platform that
+    # does not exist, so a single failed leg has to stop the release.
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          # Both macOS targets build on one runner: clang cross-compiles the
+          # bundled SQLite between the two architectures without extra setup.
+          - target: aarch64-apple-darwin
+            runner: macos-14
+          - target: x86_64-apple-darwin
+            runner: macos-14
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-24.04-arm
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-latest
+          - target: x86_64-pc-windows-msvc
+            runner: windows-latest
+    defaults:
+      run:
+        working-directory: packages/cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # musl needs a C cross-compiler for the bundled SQLite; the gnu and
+      # macOS legs already have one.
+      - name: Install musl toolchain
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+        working-directory: .
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/cli
+          key: ${{ matrix.target }}
+
+      - run: cargo build --release --target ${{ matrix.target }}
+
+      # Flattened into <triple>/ so release.mjs can find every binary by triple
+      # after the artifacts are downloaded together.
+      - name: Stage binary
+        shell: bash
+        run: |
+          mkdir -p "staged/${{ matrix.target }}"
+          if [ "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
+            cp "target/${{ matrix.target }}/release/salt.exe" "staged/${{ matrix.target }}/"
+          else
+            cp "target/${{ matrix.target }}/release/salt" "staged/${{ matrix.target }}/"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: salt-${{ matrix.target }}
+          path: packages/cli/staged/${{ matrix.target }}
+          retention-days: 1
+          if-no-files-found: error
+
   publish:
+    needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # Trusted publishing: npm trades this workflow's OIDC identity for a
     # short-lived publish credential — no token, no secret. Each package names
     # this repo + workflow as its trusted publisher in its npm settings.
@@ -18,10 +92,6 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
 
       - uses: actions/setup-node@v4
         with:
@@ -32,18 +102,30 @@ jobs:
       # runner's Node bundles.
       - run: npm install -g npm@latest
 
-      # Reads the pnpm version from the root package.json's packageManager.
-      - uses: pnpm/action-setup@v4
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Check tag matches package version
+      # No pnpm install: release.mjs uses only Node builtins, and the CLI has
+      # no JavaScript dependencies left to fetch.
+      - name: Check tag matches crate version
         run: |
-          version=$(node -p "require('./packages/cli/package.json').version")
+          version=$(grep -m1 '^version' packages/cli/Cargo.toml | cut -d'"' -f2)
           if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
-            echo "tag ${GITHUB_REF_NAME} does not match package version v$version" >&2
+            echo "tag ${GITHUB_REF_NAME} does not match crate version v$version" >&2
             exit 1
           fi
 
-      - name: Cross-compile and publish all packages
-        run: node packages/cli/scripts/release.mjs --publish
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: salt-*
+          path: binaries
+
+      # download-artifact nests each artifact under its own name; strip that
+      # prefix so the layout is the <triple>/ one release.mjs expects.
+      - name: Flatten artifacts
+        run: |
+          mkdir -p flat
+          for dir in binaries/salt-*; do
+            mv "$dir" "flat/$(basename "$dir" | sed 's/^salt-//')"
+          done
+          ls -R flat
+
+      - name: Stage and publish all packages
+        run: node packages/cli/scripts/release.mjs --binaries flat --publish

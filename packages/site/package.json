@@ -8,7 +8,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "test": "vitest run",
-    "typecheck": "tsc -b --noEmit || tsc --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.app.json --noEmit",
     "deploy": "wrangler deploy"
   },
   "dependencies": {

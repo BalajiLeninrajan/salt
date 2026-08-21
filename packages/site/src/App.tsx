@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ProjectStat, Report } from "@salt/core";
-import { HARNESS_COLOR, HARNESS_LABEL } from "@salt/core";
+import { HARNESS_COLOR, HARNESS_LABEL, REPORT_TTL_DAYS } from "@salt/core";
 import { Calendar, Timeline } from "./components/Charts";
 import { Logo } from "./components/Logo";
 import { ShareCard } from "./components/ShareCard";
@@ -24,8 +24,7 @@ declare global {
 const REPORT_ID =
   typeof window === "undefined" ? undefined : window.__SALT_REPORT_ID__;
 
-/** A published report is a snapshot; links are kept for 30 days after that. */
-const LINK_TTL_DAYS = 30;
+
 
 const dateFmt = new Intl.DateTimeFormat(undefined, {
   year: "numeric",
@@ -35,7 +34,7 @@ const dateFmt = new Intl.DateTimeFormat(undefined, {
 
 function snapshot(report: Report) {
   const generated = new Date(report.generated_at);
-  const expires = new Date(generated.getTime() + LINK_TTL_DAYS * 86_400_000);
+  const expires = new Date(generated.getTime() + REPORT_TTL_DAYS * 86_400_000);
   return {
     generated: dateFmt.format(generated),
     expires: dateFmt.format(expires),
@@ -95,7 +94,7 @@ function EmptyState() {
         </a>
         <strong>this page carries no report</strong>
         <span>
-          the link may have expired — reports live for {LINK_TTL_DAYS} days,
+          the link may have expired — reports live for {REPORT_TTL_DAYS} days,
           then the numbers are gone for good
         </span>
       </div>

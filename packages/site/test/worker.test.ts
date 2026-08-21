@@ -22,6 +22,12 @@ function publish(body: BodyInit, headers: Record<string, string> = {}) {
   });
 }
 
+/** Gzips a string the way the CLI does before posting it. */
+async function gzip(text: string): Promise<ArrayBuffer> {
+  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream("gzip"));
+  return new Response(stream).arrayBuffer();
+}
+
 describe("POST /api/publish", () => {
   it("stores a report and hands back its link", async () => {
     const res = await publish(JSON.stringify(report));
@@ -142,5 +148,54 @@ describe("everything else", () => {
     const css = await SELF.fetch("https://example.com/tokens.css");
     expect(css.status).toBe(200);
     expect(css.headers.get("content-type")).toContain("text/css");
+  });
+});
+
+describe("gzipped bodies", () => {
+  it("accepts a gzipped report and stores it inflated", async () => {
+    const res = await publish(await gzip(JSON.stringify(report)), {
+      "content-encoding": "gzip",
+    });
+    expect(res.status).toBe(200);
+    const out = await res.json<{ id: string }>();
+
+    // What lands in KV must be the JSON, not the compressed bytes — the
+    // dashboard reads it back verbatim.
+    const read = await SELF.fetch(`https://example.com/api/report/${out.id}`);
+    expect(await read.json()).toEqual(report);
+  });
+
+  // Whether a body arrives still compressed is the edge's decision, not the
+  // sender's, so the Worker sniffs the magic bytes instead of trusting the
+  // header. Both of these have to work.
+  it("inflates by content, not by header", async () => {
+    const res = await publish(await gzip(JSON.stringify(report)));
+    expect(res.status).toBe(200);
+  });
+
+  it("still accepts an uncompressed body that claims to be gzipped", async () => {
+    const res = await publish(JSON.stringify(report), { "content-encoding": "gzip" });
+    expect(res.status).toBe(200);
+  });
+
+  it("keeps accepting plain bodies, as already-published CLIs send", async () => {
+    const res = await publish(JSON.stringify(report));
+    expect(res.status).toBe(200);
+  });
+
+  it("refuses a body that expands past the cap", async () => {
+    // ~8 MB of zeroes compresses to a few KB. Checking only the compressed
+    // size would make this endpoint trivially cheap to exhaust.
+    const bomb = await gzip(`{"pad":"${"0".repeat(8 * 1024 * 1024)}"}`);
+    expect(bomb.byteLength).toBeLessThan(64 * 1024);
+    const res = await publish(bomb, { "content-encoding": "gzip" });
+    expect(res.status).toBe(413);
+  });
+
+  it("refuses bytes that start like gzip but are not", async () => {
+    const res = await publish(new Uint8Array([0x1f, 0x8b, 0x08, 0x00, 0x99, 0x99]), {
+      "content-encoding": "gzip",
+    });
+    expect(res.status).toBe(400);
   });
 });

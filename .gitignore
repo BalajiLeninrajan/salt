@@ -12,4 +12,7 @@ packages/site/test/.assets/
 packages/cli/build/
 packages/cli/npm/
 
+# rust build artifacts
+packages/cli/target/
+
 .DS_Store

@@ -55,4 +55,25 @@ try {
 }
 
 const result = spawnSync(binary, process.argv.slice(2), { stdio: "inherit" });
+
+// A binary that is present but will not run — exec bit lost by a packing tool,
+// wrong architecture, quarantined by Gatekeeper — used to surface as a bare
+// exit 1 with nothing printed, which is indistinguishable from salt itself
+// failing. Say what actually happened.
+if (result.error) {
+  fail(
+    `salt could not run its binary at ${binary}.\n` +
+      `${result.error.message}\n` +
+      `If it was installed correctly this usually means the file lost its\n` +
+      `executable bit, or the download is for a different architecture.`,
+  );
+}
+
+// Killed by a signal: report it the way a shell would, so Ctrl-C is 130 rather
+// than an indistinguishable 1.
+if (result.signal) {
+  const signals = { SIGINT: 130, SIGTERM: 143, SIGQUIT: 131 };
+  process.exit(signals[result.signal] ?? 1);
+}
+
 process.exit(result.status ?? 1);
