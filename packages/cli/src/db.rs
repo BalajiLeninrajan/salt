@@ -35,11 +35,10 @@ pub fn read_blobs(path: &Path) -> Result<Vec<Vec<u8>>> {
         })
     })?;
 
-    let mut out = Vec::new();
-    for row in rows {
-        if let Some(data) = row? {
-            out.push(data);
-        }
-    }
-    Ok(out)
+    // `Result<Option<T>>` transposed is `Option<Result<T>>`, so the rows that
+    // held neither a blob nor text drop out and the first real error still
+    // stops the scan.
+    Ok(rows
+        .filter_map(Result::transpose)
+        .collect::<rusqlite::Result<Vec<_>>>()?)
 }

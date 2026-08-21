@@ -47,7 +47,7 @@ impl Ui {
     }
 
     pub fn spinner(&self) -> Spinner {
-        Spinner::start(self.tty)
+        Spinner::new(self.tty)
     }
 }
 
@@ -57,17 +57,15 @@ pub struct Spinner {
     /// Shared rather than a channel so the scan can report progress from any
     /// worker thread: `Sender` is `Send` but not `Sync`.
     label: Arc<Mutex<String>>,
-    started: bool,
     done: Arc<AtomicBool>,
     handle: Option<JoinHandle<()>>,
 }
 
 impl Spinner {
-    fn start(tty: bool) -> Spinner {
+    fn new(tty: bool) -> Spinner {
         Spinner {
             tty,
             label: Arc::new(Mutex::new(String::new())),
-            started: false,
             done: Arc::new(AtomicBool::new(false)),
             handle: None,
         }
@@ -80,8 +78,9 @@ impl Spinner {
         }
         let done = Arc::clone(&self.done);
         let label = Arc::clone(&self.label);
-        *label.lock().expect("spinner label") = msg.to_string();
-        self.started = true;
+        if let Ok(mut l) = label.lock() {
+            *l = msg.to_string();
+        }
         self.handle = Some(thread::spawn(move || {
             const FRAMES: [char; 4] = ['◒', '◐', '◓', '◑'];
             let mut frame = 0;
@@ -99,11 +98,14 @@ impl Spinner {
     /// Updates the label. Dropped in a pipe: a progress line per file would
     /// bury whatever the caller actually wanted.
     pub fn message(&self, msg: &str) {
-        if self.started {
-            if let Ok(mut l) = self.label.lock() {
-                l.clear();
-                l.push_str(msg);
-            }
+        // No animation thread means nothing reads the label — in a pipe this
+        // is every call.
+        if self.handle.is_none() {
+            return;
+        }
+        if let Ok(mut l) = self.label.lock() {
+            l.clear();
+            l.push_str(msg);
         }
     }
 
@@ -118,7 +120,6 @@ impl Spinner {
 
     fn finish(&mut self) {
         self.done.store(true, Ordering::Relaxed);
-        self.started = false;
         if let Some(h) = self.handle.take() {
             let _ = h.join();
         }

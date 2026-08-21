@@ -20,10 +20,18 @@ const DEFAULT_HOST: &str = "https://salt.balajileninrajan.dev";
 /// this is the one copy that has to be kept in step by hand.
 const MAX_BODY_BYTES: usize = 512 * 1024;
 
-#[derive(Debug)]
+const NOT_A_LINK: &str = "the publishing endpoint returned something that is not a link";
+
+#[derive(Debug, serde::Deserialize)]
 pub struct Published {
     pub url: String,
     pub expires_in_days: f64,
+}
+
+/// The Worker's refusal shape: `{"error": "..."}`.
+#[derive(serde::Deserialize)]
+struct ApiError {
+    error: String,
 }
 
 /// The dashboard host. `SALT_HOST` overrides it; an empty value counts as unset.
@@ -78,33 +86,21 @@ pub fn publish(report_json: &str) -> Result<Published> {
     if !(200..300).contains(&status) {
         // The Worker answers with `{"error": "..."}`; anything else is passed
         // through raw so a proxy's HTML at least reaches the user.
-        let explanation = serde_json::from_str::<serde_json::Value>(&body)
-            .ok()
-            .and_then(|v| v.get("error").and_then(|e| e.as_str()).map(str::to_string))
-            .unwrap_or_else(|| body.trim().to_string());
+        let explanation = serde_json::from_str::<ApiError>(&body)
+            .map(|e| e.error)
+            // Anything else is passed through raw, so a proxy's HTML at least
+            // reaches the user.
+            .unwrap_or_else(|_| body.trim().to_string());
         if explanation.is_empty() {
             bail!("{endpoint} rejected the report with HTTP {status}");
         }
         bail!("{endpoint} rejected the report (HTTP {status}): {explanation}");
     }
 
-    let parsed: serde_json::Value = serde_json::from_str(&body)
-        .map_err(|_| anyhow!("the publishing endpoint returned something that is not a link"))?;
-
-    // The server also returns an `id`; the CLI has no use for it.
-    let url = parsed.get("url").and_then(|v| v.as_str());
-    let days = parsed
-        .get("expires_in_days")
-        .and_then(serde_json::Value::as_f64);
-    match (url, days) {
-        (Some(url), Some(expires_in_days)) => Ok(Published {
-            url: url.to_string(),
-            expires_in_days,
-        }),
-        _ => Err(anyhow!(
-            "the publishing endpoint returned something that is not a link"
-        )),
-    }
+    // The server also returns an `id`; serde ignores it, which is the point —
+    // walking the JSON by hand to pull two fields out was the most obviously
+    // transliterated code left in the crate.
+    serde_json::from_str::<Published>(&body).map_err(|_| anyhow!(NOT_A_LINK))
 }
 
 fn gzip(body: &str) -> Result<Vec<u8>> {

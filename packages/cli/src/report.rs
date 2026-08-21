@@ -11,7 +11,8 @@
 //! rather than being folded into the headline number.
 
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::path::PathBuf;
+use std::ffi::OsStr;
+use std::path::Path;
 
 use chrono::{DateTime, Local, Utc};
 
@@ -124,7 +125,7 @@ pub fn build(messages: Vec<Message>, stats: ScanStats, matcher: &Matcher, versio
     // stat'ing `.git`, and a busy project turns up in thousands of prompts; v1
     // repeated the whole chain for every one of them.
     let mut project_cache: HashMap<String, Option<String>> = HashMap::new();
-    let home = home_components();
+    let home = dirs::home_dir();
 
     for p in messages {
         let hits: Vec<Hit> = matcher.find(&p.text);
@@ -176,14 +177,10 @@ pub fn build(messages: Vec<Message>, stats: ScanStats, matcher: &Matcher, versio
         }
 
         if let Some(cwd) = p.cwd {
-            let name = match project_cache.get(&cwd) {
-                Some(cached) => cached.clone(),
-                None => {
-                    let name = project_name_with_home(&cwd, home.as_ref());
-                    project_cache.insert(cwd, name.clone());
-                    name
-                }
-            };
+            let name = project_cache
+                .entry(cwd)
+                .or_insert_with_key(|cwd| project_name_with_home(cwd, home.as_deref()))
+                .clone();
             if let Some(name) = name {
                 let e = by_project.entry(name).or_insert((0, 0));
                 e.0 += 1;
@@ -287,71 +284,34 @@ pub fn build(messages: Vec<Message>, stats: ScanStats, matcher: &Matcher, versio
     }
 }
 
-/// Normalized path components plus whether the path was absolute.
-struct Components {
-    root: bool,
-    parts: Vec<String>,
-}
-
-fn components(path: &str) -> Components {
-    let root = path.starts_with('/');
-    let segs = path.split('/').filter(|s| !s.is_empty());
-    // `.` survives only as the first component of a relative path.
-    let parts = segs
-        .enumerate()
-        .filter(|(i, seg)| *seg != "." || (*i == 0 && !root))
-        .map(|(_, seg)| seg.to_string())
-        .collect();
-    Components { root, parts }
-}
-
-fn path_of(root: bool, parts: &[String]) -> PathBuf {
-    let mut s = if root { "/".to_string() } else { String::new() };
-    s.push_str(&parts.join("/"));
-    PathBuf::from(s)
-}
-
-/// `Path::file_name`: none for an empty path or one ending in `.` or `..`.
-fn file_name(parts: &[String]) -> Option<String> {
-    match parts.last() {
-        Some(last) if last != "." && last != ".." => Some(last.clone()),
-        _ => None,
-    }
-}
-
-fn home_components() -> Option<Components> {
-    dirs::home_dir().and_then(|h| h.to_str().map(components))
-}
-
 /// Reduces a working directory to a shareable project name: the basename of the
 /// enclosing git repository, else the leaf directory.
 ///
-/// Paths compare the way v1's `std::path::Path` did — `//` collapsed, a
-/// non-leading `.` normalized away, `..` left alone — so no spelling of the
-/// home directory (`/Users/name/.`, `/Users//name`) slips past the exclusion.
+/// This used to normalise path components by hand so that no spelling of the
+/// home directory (`/Users/name/.`, `/Users//name`) slipped past the exclusion.
+/// `Path` already does exactly that — it compares by components, so repeated
+/// separators and non-leading `.` are equal by construction — and its
+/// `ancestors()` is the same chain the hand-rolled walk produced.
 pub fn project_name(cwd: &str) -> Option<String> {
-    project_name_with_home(cwd, home_components().as_ref())
+    project_name_with_home(cwd, dirs::home_dir().as_deref())
 }
 
 /// Same, with the home directory resolved once by the caller — `build` looks it
 /// up per report rather than per message.
-fn project_name_with_home(cwd: &str, home: Option<&Components>) -> Option<String> {
-    let path = components(cwd);
+fn project_name_with_home(cwd: &str, home: Option<&Path>) -> Option<String> {
+    let path = Path::new(cwd);
     // The home directory is not a project; prompts typed there would otherwise
     // rank as one and expose the account name.
-    if let Some(home) = home {
-        if path.root == home.root && path.parts == home.parts {
-            return None;
-        }
+    if home == Some(path) {
+        return None;
     }
 
-    // Walk to the filesystem root — or, for a relative path, to "" — exactly
-    // the ancestor chain `Path::parent` produces. A `.git` *file* counts too:
-    // that is what a worktree or submodule checkout has.
-    for n in (0..=path.parts.len()).rev() {
-        if path_of(path.root, &path.parts[..n]).join(".git").exists() {
-            return file_name(&path.parts[..n]);
-        }
-    }
-    file_name(&path.parts)
+    // A `.git` *file* counts too: that is what a worktree or submodule
+    // checkout has.
+    path.ancestors()
+        .find(|dir| dir.join(".git").exists())
+        .unwrap_or(path)
+        .file_name()
+        .and_then(OsStr::to_str)
+        .map(str::to_owned)
 }
