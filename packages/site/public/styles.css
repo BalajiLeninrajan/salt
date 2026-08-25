@@ -5,8 +5,10 @@
    genuinely this page's own: the drifting swears, the hero layout, the
    command row, and the copy button's "done" state.
 
-   Mono is rationed to code: the command string. Everything else, the
-   drifting swears included, is sans. */
+   Mono ships on the command string, and is adopted once more as a deliberate
+   accent: the drifting swears, which read as terminal output. Everything the
+   reader is meant to read straight through — the wordmark, the headline, the
+   lede, the footer — stays sans. */
 
 body { position: relative; overflow-x: hidden; }
 
@@ -29,7 +31,10 @@ body { position: relative; overflow-x: hidden; }
   position: absolute;
   top: 0;
   left: 0;
-  font-family: var(--sans);
+  /* Mono, so the swears read as something typed at a prompt rather than as
+     display type. Deliberate, and the only place off the code surfaces that
+     takes it. */
+  font-family: var(--mono);
   font-weight: 800;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -70,8 +75,19 @@ body { position: relative; overflow-x: hidden; }
 .page { width: 100%; max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
 
 /* The panel recipe supplies the surface; the padding is this page's. Opaque on
-   purpose — drift.js treats the panel as a solid body words vanish behind. */
-.panel { padding: 44px 44px 40px; }
+   purpose — drift.js treats the panel as a solid body words vanish behind.
+
+   The recipe's hairline is dropped: on this page the card is the only surface,
+   so the raise alone is enough to find its edge, and the outline read as a
+   drawn box sitting on the drift rather than as a body above it. The raise
+   itself steps down to the soft variant — both sides kept, so the top-left
+   light source still reads, just at half the offset and blur, which stops the
+   halo competing with the one thing moving on the page. */
+.panel {
+  padding: 44px 44px 40px;
+  border: 0;
+  box-shadow: var(--neu-raised-soft);
+}
 
 /* --- masthead --- */
 
