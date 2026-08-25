@@ -254,20 +254,34 @@ async function reportPage(id: string, env: Env, url: URL): Promise<Response> {
   });
 }
 
-/** A dead link should explain itself rather than 404 into the marketing page. */
+/**
+ * A dead link should explain itself rather than 404 into the marketing page.
+ *
+ * Styled with the same vendored catppuccin-neu files the marketing page links
+ * (tokens/utilities/recipes, synced into public/ by the prebuild hook), plus
+ * the marketing page's own thin layer for the shell/panel spacing.
+ */
 function expiredPage(url: URL): Response {
-  const html = `<!doctype html><meta charset="utf-8"/>
+  const html = `<!doctype html><html lang="en"><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Report not found — salt</title>
 <link rel="icon" href="/favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&display=swap"/>
 <link rel="stylesheet" href="/tokens.css"/>
+<link rel="stylesheet" href="/utilities.css"/>
+<link rel="stylesheet" href="/recipes.css"/>
 <link rel="stylesheet" href="/styles.css"/>
-<main style="max-width:34rem;margin:18vh auto;padding:0 1.5rem">
-  <h1>This report is gone.</h1>
-  <p>Published reports expire after 30 days. If it was yours, run
-     <code>salt</code> again to publish a fresh one.</p>
-  <p><a href="${url.origin}/">What is salt?</a></p>
-</main>`;
+<main class="shell"><div class="page page-enter">
+  <section class="panel">
+    <p class="cn-eyebrow">Expired link</p>
+    <h1 class="cn-display-sm">This report is gone.</h1>
+    <p class="lede">Published reports expire after 30 days. If it was yours, run
+      <code class="cn-code">salt</code> again to publish a fresh one.</p>
+    <p><a class="btn-text" href="${url.origin}/">What is salt?</a></p>
+  </section>
+</div></main>`;
   return new Response(html, {
     status: 404,
     headers: { "content-type": "text/html; charset=utf-8" },

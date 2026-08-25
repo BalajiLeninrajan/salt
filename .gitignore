@@ -5,6 +5,13 @@ dist/
 # wrangler local state
 .wrangler/
 
+# design-system CSS vendored into public/ by `catppuccin-neu-sync` (runs as the
+# site's predev/prebuild/pretest hook); styles.css there is hand-written and stays
+packages/site/public/tokens.css
+packages/site/public/utilities.css
+packages/site/public/recipes.css
+packages/site/public/index.css
+
 # assets staged for the site's Worker tests
 packages/site/test/.assets/
 

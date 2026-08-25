@@ -18,6 +18,9 @@ importers:
 
   packages/site:
     dependencies:
+      catppuccin-neu:
+        specifier: github:BalajiLeninrajan/catppuccin-neu#v0.1.1
+        version: https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/d8edc5aef254c9fa99c36e10f3b982cd728847aa
       react:
         specifier: ^19.0.0
         version: 19.2.8
@@ -1289,6 +1292,12 @@ packages:
 
   caniuse-lite@1.0.30001809:
     resolution: {integrity: sha512-xxWVywk6a6Arlk+hymeycyn/VgqEfLDxupvhH/xiY5SJ/18kmi9o6MiO320DCUzypORHLtvh0I4i04tUhCNHNQ==}
+
+  catppuccin-neu@https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/d8edc5aef254c9fa99c36e10f3b982cd728847aa:
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/d8edc5aef254c9fa99c36e10f3b982cd728847aa}
+    version: 0.1.1
+    engines: {node: '>=18'}
+    hasBin: true
 
   chai@5.3.3:
     resolution: {integrity: sha512-4zNhdJD/iOjSH0A05ea+Ke6MU5mmpQcbQsSOkgdaUMJ9zTlDTD/GYlwohmIE2u0gaxHYiVHEn1Fw9mZ/ktJWgw==}
@@ -2598,6 +2607,8 @@ snapshots:
   cac@6.7.14: {}
 
   caniuse-lite@1.0.30001809: {}
+
+  catppuccin-neu@https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/d8edc5aef254c9fa99c36e10f3b982cd728847aa: {}
 
   chai@5.3.3:
     dependencies:

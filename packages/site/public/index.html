@@ -23,7 +23,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&display=swap"
       rel="stylesheet"
     />
+    <!-- catppuccin-neu, vendored into public/ by the sync-css prebuild hook.
+         The three files work as plain links in this order. -->
     <link rel="stylesheet" href="/tokens.css" />
+    <link rel="stylesheet" href="/utilities.css" />
+    <link rel="stylesheet" href="/recipes.css" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -49,7 +53,7 @@
     </div>
 
     <main class="shell">
-      <div class="page">
+      <div class="page page-enter">
         <section class="panel hero">
           <div class="mast">
             <!-- Same mark as the dashboard: "salt" in Inter, with the `a`
@@ -83,24 +87,24 @@
             >
           </div>
 
-          <h1 class="headline">
+          <h1 class="cn-display headline">
             How much do you <em>swear</em> at your <em>coding agents</em>?
           </h1>
 
           <p class="lede">
             Your agents keep a complete, timestamped record of everything you
-            have ever typed at them. <code>salt</code> reads it and tells you
-            how salty you are.
+            have ever typed at them. <code class="cn-code">salt</code> reads it
+            and tells you how salty you are.
           </p>
 
-          <div class="command">
+          <div class="well command">
             <code class="command-text"
               ><span class="command-prompt">$</span>
               <span id="cmd">npx salt-ai</span
               ><span class="caret" aria-hidden="true"></span
             ></code>
             <button
-              class="btn copy"
+              class="btn btn-primary copy"
               id="copy"
               type="button"
               data-command="npx salt-ai"

@@ -13,19 +13,19 @@ export function WordList({ words }: { words: WordStat[] }) {
         <div
           key={w.word}
           className="word-row"
-          title={`${(w.share * 100).toFixed(1)}% of all swears`}
+          data-tip={`${(w.share * 100).toFixed(1)}% of all swears`}
         >
           <span className="word-rank">{String(i + 1).padStart(2, "0")}</span>
           <span className="word-cell">
-            <span className="word-text">{w.word}</span>
+            <span className="cn-name">{w.word}</span>
             <span
-              className="word-tier"
+              className="chip-tone word-tier"
               style={{ ["--tier-color" as string]: TIER_COLOR[w.tier] }}
             >
               {w.tier}
             </span>
           </span>
-          <span className="bar-track word-bar">
+          <span className="progress-track bar-track">
             <span
               className="bar-fill"
               style={{ width: `${(w.count / max) * 100}%`, background: TIER_COLOR[w.tier] }}

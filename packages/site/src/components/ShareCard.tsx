@@ -246,10 +246,10 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
   return (
     <section className="panel">
       <p className="eyebrow">08 — Share</p>
-      <h2 className="section-title">Share card</h2>
-      <p className="section-note">rate, top words, nothing else — safe to post anywhere</p>
+      <h2 className="cn-title section-title">Share card</h2>
+      <p className="cn-meta section-note">rate, top words, nothing else — safe to post anywhere</p>
 
-      <div className="chart-well share-well">
+      <div className="well chart-well share-well">
         <canvas
           ref={canvasRef}
           className="share-canvas"
@@ -259,17 +259,17 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
       </div>
 
       <div className="share-actions">
-        <button className="btn" onClick={copyPng}>
+        <button className="btn btn-primary" onClick={copyPng}>
           {pngState === "copied" ? "Copied" : pngState === "failed" ? "Copy failed" : "Copy PNG"}
         </button>
-        <button className="btn btn-ghost" onClick={downloadPng}>
+        <button className="btn btn-secondary" onClick={downloadPng}>
           Download PNG
         </button>
       </div>
 
       <div className="share-url">
-        <code>{shareUrl}</code>
-        <button className="btn btn-ghost btn-small" onClick={copyLink}>
+        <code className="cn-code">{shareUrl}</code>
+        <button className="btn btn-secondary btn-small" onClick={copyLink}>
           {linkState === "copied" ? "Copied" : linkState === "failed" ? "Failed" : "Copy link"}
         </button>
       </div>
