@@ -390,7 +390,7 @@
     start();
   }
 
-  // The words are JetBrains Mono from a webfont; measuring before it lands
+  // The words are Inter from a webfont; measuring before it lands
   // would size every box against the fallback and misplace every collision.
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(boot);

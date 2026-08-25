@@ -63,7 +63,7 @@ body { position: relative; overflow-x: hidden; }
   /* Ambient wash: must not read as a visible gradient. Transparent ground —
      an opaque fill here would hide the drift behind it. */
   background:
-    radial-gradient(1200px 700px at 12% -10%, rgb(203 166 247 / 0.01), transparent 60%),
+    radial-gradient(1200px 700px at 12% -10%, color-mix(in srgb, var(--mauve) 1%, transparent), transparent 60%),
     transparent;
 }
 

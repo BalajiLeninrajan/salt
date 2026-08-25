@@ -186,10 +186,14 @@ function ByHarness({ report }: { report: Report }) {
         ))}
       </div>
 
+      {/* Callouts keep one span child: the banner recipe is a flex row, and
+          its gap would otherwise replace the word spaces between text runs. */}
       {worst && worst.swears > 0 && (
         <p className="banner cn-tone-mauve callout">
-          <strong>{HARNESS_LABEL[worst.harness]}</strong> takes the most abuse —{" "}
-          {worst.rate.toFixed(1)} swears per 100 prompts.
+          <span>
+            <strong>{HARNESS_LABEL[worst.harness]}</strong> takes the most abuse
+            — {worst.rate.toFixed(1)} swears per 100 prompts.
+          </span>
         </p>
       )}
     </section>
@@ -282,14 +286,18 @@ function OtherSide({ report }: { report: Report }) {
 
       {a.swears === 0 ? (
         <p className="banner cn-tone-mauve callout">
-          The agent never swore once across {num.format(a.messages)} replies.
+          <span>
+            The agent never swore once across {num.format(a.messages)} replies.
+          </span>
         </p>
       ) : (
         ratio !== null && (
           <p className="banner cn-tone-mauve callout">
-            You swear <strong>{ratio.toFixed(0)}×</strong> more often per
-            message than the agent does: {userRate.toFixed(2)} against{" "}
-            {a.swears_per_100_messages.toFixed(2)} per 100.
+            <span>
+              You swear <strong>{ratio.toFixed(0)}×</strong> more often per
+              message than the agent does: {userRate.toFixed(2)} against{" "}
+              {a.swears_per_100_messages.toFixed(2)} per 100.
+            </span>
           </p>
         )
       )}

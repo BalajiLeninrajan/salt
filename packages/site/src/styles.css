@@ -38,7 +38,11 @@
 }
 .stat-row-sub { margin-top: 8px; }
 .stat-row-sub .metric-value { font-size: 12px; }
-.harness-card .stat-row-sub:first-of-type { margin-top: 14px; }
+/* The first sub-row sits 14px under whatever precedes it — the bar when the
+   card has one, the big value otherwise. (:first-of-type can't express this:
+   it keys on element type, and the card's first div is the .cn-value-lg.) */
+.harness-card .bar-track + .stat-row-sub,
+.harness-card .cn-value-lg + .stat-row-sub { margin-top: 14px; }
 
 /* ── hero ──────────────────────────────────────────────────────────────── */
 

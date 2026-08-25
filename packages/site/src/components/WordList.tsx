@@ -13,6 +13,10 @@ export function WordList({ words }: { words: WordStat[] }) {
         <div
           key={w.word}
           className="word-row"
+          // Focusable so the data-tip bubble (hover / :focus-visible only)
+          // is reachable from the keyboard; the sr-only span below carries
+          // the same fact for assistive tech.
+          tabIndex={0}
           data-tip={`${(w.share * 100).toFixed(1)}% of all swears`}
         >
           <span className="word-rank">{String(i + 1).padStart(2, "0")}</span>
@@ -32,6 +36,9 @@ export function WordList({ words }: { words: WordStat[] }) {
             />
           </span>
           <span className="word-count">{num.format(w.count)}</span>
+          <span className="cn-sr-only">
+            {(w.share * 100).toFixed(1)}% of all swears
+          </span>
         </div>
       ))}
     </div>
