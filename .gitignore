@@ -5,12 +5,11 @@ dist/
 # wrangler local state
 .wrangler/
 
-# The design-system CSS vendored into packages/site/public/ by
-# `catppuccin-neu-sync` (the site's predev/prebuild/pretest hook) is COMMITTED,
-# not ignored: the deploy (Cloudflare Workers Builds) configures its build
-# command outside this repo, and if that command bypassed the pnpm prebuild
-# hook the marketing page and Worker pages would 404 on /tokens.css et al.
-# The hook keeps the committed copies in sync with the package version.
+# generated from the catppuccin-neu package by sync-css; the predev/prebuild/pretest hooks regenerate them
+packages/site/public/tokens.css
+packages/site/public/utilities.css
+packages/site/public/recipes.css
+packages/site/public/index.css
 
 # assets staged for the site's Worker tests
 packages/site/test/.assets/
