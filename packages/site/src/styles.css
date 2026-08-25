@@ -149,9 +149,11 @@
   color: var(--text);
 }
 
-.harness-card .bar-track { margin-top: 14px; }
 /* One flat color per harness, not the package's accent gradient. */
-.harness-card .bar-fill { background: var(--entity-color); }
+.harness-card .bar-track {
+  margin-top: 14px;
+  --progress-fill: var(--entity-color);
+}
 
 .bar-track { display: block; }
 
