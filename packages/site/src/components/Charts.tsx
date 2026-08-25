@@ -101,12 +101,10 @@ export function Timeline({
                 strokeDasharray="3 5"
               />
               <text
+                className="cn-microlabel"
                 x={W - PAD.r + 8}
                 y={yS(v) + 3}
-                fill="var(--overlay-0)"
-                fontFamily="var(--sans)"
-                fontSize="10"
-                fontWeight="700"
+                fill="currentColor"
               >
                 {num.format(v)}
               </text>
@@ -132,26 +130,15 @@ export function Timeline({
             strokeLinejoin="round"
             strokeLinecap="round"
           />
-          <text
-            x={PAD.l}
-            y={H - 6}
-            fill="var(--overlay-0)"
-            fontFamily="var(--sans)"
-            fontSize="10"
-            fontWeight="700"
-            letterSpacing="0.06em"
-          >
+          <text className="cn-microlabel" x={PAD.l} y={H - 6} fill="currentColor">
             {first}
           </text>
           <text
+            className="cn-microlabel"
             x={W - PAD.r}
             y={H - 6}
             textAnchor="end"
-            fill="var(--overlay-0)"
-            fontFamily="var(--sans)"
-            fontSize="10"
-            fontWeight="700"
-            letterSpacing="0.06em"
+            fill="currentColor"
           >
             {last}
           </text>
@@ -291,13 +278,10 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
           return (
             <text
               key={`m${w}`}
+              className="cn-microlabel"
               x={LABEL_W + w * (CELL + GAP)}
               y={11}
-              fill="var(--overlay-0)"
-              fontFamily="var(--sans)"
-              fontSize="10"
-              fontWeight="700"
-              letterSpacing="0.06em"
+              fill="currentColor"
             >
               {MONTHS[monday.getMonth()]}
             </text>
@@ -307,13 +291,10 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
           d % 2 === 0 ? (
             <text
               key={label}
+              className="cn-microlabel"
               x={0}
               y={TOP + d * (CELL + GAP) + CELL / 2 + 3}
-              fill="var(--overlay-0)"
-              fontFamily="var(--sans)"
-              fontSize="10"
-              fontWeight="700"
-              letterSpacing="0.06em"
+              fill="currentColor"
             >
               {label}
             </text>

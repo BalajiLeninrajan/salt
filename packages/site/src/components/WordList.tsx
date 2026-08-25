@@ -8,7 +8,7 @@ export function WordList({ words }: { words: WordStat[] }) {
   const max = Math.max(...words.map((w) => w.count), 1);
 
   return (
-    <div className="word-list">
+    <div>
       {words.map((w, i) => (
         <div
           key={w.word}
@@ -20,7 +20,7 @@ export function WordList({ words }: { words: WordStat[] }) {
           data-tip={`${(w.share * 100).toFixed(1)}% of all swears`}
         >
           <span className="word-rank">{String(i + 1).padStart(2, "0")}</span>
-          <span className="word-cell">
+          <span>
             <span className="cn-name">{w.word}</span>
             <span
               className="chip-tone word-tier"

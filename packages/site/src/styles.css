@@ -333,25 +333,11 @@
 
 /* ── empty / loading states ────────────────────────────────────────────── */
 
+/* Composes the package `.empty-state` recipe; only layout is local. */
 .state {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
   min-height: 70vh;
-  text-align: center;
-  font: 650 12px/1.5 var(--sans);
-  letter-spacing: 0.05em;
-  color: var(--overlay-1);
-}
-.state strong {
-  font: 760 17px/1.3 var(--sans);
-  letter-spacing: -0.02em;
-  color: var(--text);
 }
 .state span {
-  font-size: 12px;
   max-width: 44ch;
   line-height: 1.6;
 }

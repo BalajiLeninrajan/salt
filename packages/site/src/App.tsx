@@ -62,7 +62,9 @@ export default function App() {
   if (!report) {
     return (
       <div className="app-shell shell">
-        <div className="state">loading report…</div>
+        <div className="empty-state state">
+          <span>loading report…</span>
+        </div>
       </div>
     );
   }
@@ -88,7 +90,7 @@ export default function App() {
 function EmptyState() {
   return (
     <div className="app-shell shell">
-      <div className="state">
+      <div className="empty-state state">
         <a className="logo-link state-logo" href="/">
           <Logo />
         </a>
