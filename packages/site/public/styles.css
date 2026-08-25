@@ -153,19 +153,27 @@ body { position: relative; overflow-x: hidden; }
   animation: blink 1.15s step-end infinite;
 }
 
-.copy { flex: 0 0 auto; min-width: 108px; }
-/* Copied! — a transient green re-key of the primary button. */
-.btn.done,
-.btn.done:hover:not(:disabled) {
-  border-color: var(--green);
-  background: var(--green);
-  box-shadow: var(--hard-offset) var(--hard-offset) 0 color-mix(in srgb, var(--green) 25%, var(--surface-0)),
-              inset 1px 1px rgb(255 255 255 / .16);
+/* An icon button, not a worded CTA: the command is the thing being read, and
+   a filled button spelling "Copy" beside it took the eye first. The recipe is
+   flat until hovered, when it tints toward --tone — mauve here, the page's
+   one accent, rather than the token default. */
+.copy {
+  flex: 0 0 auto;
+  --tone: var(--mauve);
 }
-.btn.done:active:not(:disabled) {
-  box-shadow: calc(var(--hard-offset) / 2) calc(var(--hard-offset) / 2) 0 color-mix(in srgb, var(--green) 25%, var(--surface-0)),
-              inset 1px 1px rgb(255 255 255 / .16);
-}
+.copy svg { width: 15px; height: 15px; }
+
+/* Copied — the glyph becomes a check and goes green for the moment copy.js
+   holds the state. Both glyphs are in the markup; only which one shows moves,
+   so the swap cannot flash an empty button. */
+.copy .done-glyph { display: none; }
+/* --tone is re-keyed, not just the color: the recipe's hover rule paints from
+   --tone at a higher specificity than this class, and the pointer is by
+   definition on the button the moment it flips — a plain `color` here would
+   lose and show a mauve check. */
+.copy.done { --tone: var(--green); color: var(--green); }
+.copy.done .copy-glyph { display: none; }
+.copy.done .done-glyph { display: block; }
 
 /* --- footer --- */
 
@@ -198,8 +206,7 @@ body { position: relative; overflow-x: hidden; }
 @media (max-width: 760px) {
   .shell { padding: 32px 14px 48px; }
   .panel { padding: 28px 22px 26px; }
-  .command { flex-direction: column; align-items: stretch; padding: 18px; gap: 14px; }
+  .command { padding: 10px 10px 10px 16px; gap: 10px; }
   .command-text { font-size: 14px; }
-  .copy { width: 100%; }
   .foot { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
