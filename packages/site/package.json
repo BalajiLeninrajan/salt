@@ -16,7 +16,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "catppuccin-neu": "github:BalajiLeninrajan/catppuccin-neu#v0.1.1",
+    "catppuccin-neu": "github:BalajiLeninrajan/catppuccin-neu#v0.1.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
