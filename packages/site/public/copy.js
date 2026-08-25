@@ -5,6 +5,9 @@
   var btn = document.getElementById("copy");
   var cmd = document.getElementById("cmd");
   var revert = null;
+  // The button's content is two SVGs, so the state has to live on the class
+  // and the tip — writing textContent here would delete the glyphs.
+  var LABEL = btn.getAttribute("aria-label");
 
   // navigator.clipboard needs a secure context. That covers production and
   // `wrangler dev` on localhost, but a page opened over plain http:// from a
@@ -30,12 +33,16 @@
   btn.addEventListener("click", function () {
     write(btn.getAttribute("data-command")).then(
       function () {
-        btn.textContent = "Copied";
         btn.classList.add("done");
+        btn.setAttribute("data-tip", "Copied");
+        btn.setAttribute("aria-label", "Copied");
       },
       function () {
-        // Selecting the text is the honest fallback: the user copies it.
-        btn.textContent = "Press ⌘C";
+        // Selecting the text is the honest fallback: the user copies it. The
+        // tip is the only place left to say so, now that the button has no
+        // words of its own.
+        btn.setAttribute("data-tip", "Press ⌘C");
+        btn.setAttribute("aria-label", "Press Command C to copy");
         var range = document.createRange();
         range.selectNodeContents(cmd);
         var sel = window.getSelection();
@@ -46,8 +53,9 @@
 
     clearTimeout(revert);
     revert = setTimeout(function () {
-      btn.textContent = "Copy";
       btn.classList.remove("done");
+      btn.setAttribute("data-tip", "Copy");
+      btn.setAttribute("aria-label", LABEL);
     }, 1800);
   });
 })();

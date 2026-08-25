@@ -23,7 +23,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&display=swap"
       rel="stylesheet"
     />
+    <!-- catppuccin-neu, vendored into public/ by the sync-css prebuild hook.
+         The three files work as plain links in this order. -->
     <link rel="stylesheet" href="/tokens.css" />
+    <link rel="stylesheet" href="/utilities.css" />
+    <link rel="stylesheet" href="/recipes.css" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -49,8 +53,8 @@
     </div>
 
     <main class="shell">
-      <div class="page">
-        <section class="panel hero">
+      <div class="page page-enter">
+        <section class="panel">
           <div class="mast">
             <!-- Same mark as the dashboard: "salt" in Inter, with the `a`
                  replaced by a drawn arch holding a lowercase `i`. Only the arch
@@ -83,29 +87,62 @@
             >
           </div>
 
-          <h1 class="headline">
+          <h1 class="cn-display headline">
             How much do you <em>swear</em> at your <em>coding agents</em>?
           </h1>
 
           <p class="lede">
             Your agents keep a complete, timestamped record of everything you
-            have ever typed at them. <code>salt</code> reads it and tells you
-            how salty you are.
+            have ever typed at them. <code class="cn-code">salt</code> reads it
+            and tells you how salty you are.
           </p>
 
-          <div class="command">
+          <div class="well command">
             <code class="command-text"
               ><span class="command-prompt">$</span>
               <span id="cmd">npx salt-ai</span
               ><span class="caret" aria-hidden="true"></span
             ></code>
+            <!-- The same affordance the design system puts in the corner of a
+                 code block: a .btn-icon, with the label in a data-tip bubble
+                 rather than a title= (which would draw the OS tooltip). Both
+                 glyphs ship in the markup and copy.js swaps which one shows,
+                 so the success state costs no request. -->
             <button
-              class="btn copy"
+              class="btn-icon copy"
               id="copy"
               type="button"
               data-command="npx salt-ai"
+              data-tip="Copy"
+              aria-label="Copy the install command"
             >
-              Copy
+              <svg
+                class="copy-glyph"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <rect x="9" y="9" width="11" height="11" rx="2.5" />
+                <path d="M5 15V5.5A2.5 2.5 0 0 1 7.5 3H15" />
+              </svg>
+              <svg
+                class="done-glyph"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
             </button>
           </div>
 

@@ -76,7 +76,7 @@ export function Timeline({
 
   return (
     <>
-      <div className="chart-well">
+      <div className="well chart-well">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           role="img"
@@ -101,12 +101,10 @@ export function Timeline({
                 strokeDasharray="3 5"
               />
               <text
+                className="cn-microlabel"
                 x={W - PAD.r + 8}
                 y={yS(v) + 3}
-                fill="var(--overlay-0)"
-                fontFamily="var(--mono)"
-                fontSize="9"
-                fontWeight="700"
+                fill="currentColor"
               >
                 {num.format(v)}
               </text>
@@ -132,42 +130,31 @@ export function Timeline({
             strokeLinejoin="round"
             strokeLinecap="round"
           />
-          <text
-            x={PAD.l}
-            y={H - 6}
-            fill="var(--overlay-0)"
-            fontFamily="var(--mono)"
-            fontSize="9"
-            fontWeight="700"
-            letterSpacing="0.06em"
-          >
+          <text className="cn-microlabel" x={PAD.l} y={H - 6} fill="currentColor">
             {first}
           </text>
           <text
+            className="cn-microlabel"
             x={W - PAD.r}
             y={H - 6}
             textAnchor="end"
-            fill="var(--overlay-0)"
-            fontFamily="var(--mono)"
-            fontSize="9"
-            fontWeight="700"
-            letterSpacing="0.06em"
+            fill="currentColor"
           >
             {last}
           </text>
         </svg>
       </div>
       <div className="legend">
-        <span className="legend-item">
+        <span className="cn-microlabel legend-item">
           <span className="legend-dot" style={{ background: "var(--surface-2)" }} />
           prompts / day · peak {num.format(maxPrompts)}
         </span>
-        <span className="legend-item">
+        <span className="cn-microlabel legend-item">
           <span className="legend-dot" style={{ background: "var(--mauve)" }} />
           your swears / day · peak {num.format(Math.max(...userSwears, 0))}
         </span>
         {agentSeries.map((s) => (
-          <span key={s.harness} className="legend-item">
+          <span key={s.harness} className="cn-microlabel legend-item">
             <span className="legend-dot" style={{ background: AGENT_LINE_COLOR[s.harness] }} />
             {HARNESS_LABEL[s.harness]} back · {num.format(s.total)}
           </span>
@@ -272,7 +259,7 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
   const H = TOP + 7 * (CELL + GAP);
 
   return (
-    <div className="chart-well heat-scroll">
+    <div className="well chart-well heat-scroll">
       {/* Natural size, centred: a short report is a small calendar, not a
           handful of enormous squares stretched across the well. */}
       <svg
@@ -291,13 +278,10 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
           return (
             <text
               key={`m${w}`}
+              className="cn-microlabel"
               x={LABEL_W + w * (CELL + GAP)}
               y={11}
-              fill="var(--overlay-0)"
-              fontFamily="var(--mono)"
-              fontSize="9"
-              fontWeight="700"
-              letterSpacing="0.06em"
+              fill="currentColor"
             >
               {MONTHS[monday.getMonth()]}
             </text>
@@ -307,13 +291,10 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
           d % 2 === 0 ? (
             <text
               key={label}
+              className="cn-microlabel"
               x={0}
               y={TOP + d * (CELL + GAP) + CELL / 2 + 3}
-              fill="var(--overlay-0)"
-              fontFamily="var(--mono)"
-              fontSize="9"
-              fontWeight="700"
-              letterSpacing="0.06em"
+              fill="currentColor"
             >
               {label}
             </text>
@@ -347,11 +328,11 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
         )}
       </svg>
       <div className="legend heat-legend">
-        <span className="legend-item">quieter</span>
+        <span className="cn-microlabel legend-item">quieter</span>
         {LEVELS.map((fill) => (
           <span key={fill} className="legend-swatch" style={{ background: fill }} />
         ))}
-        <span className="legend-item">louder</span>
+        <span className="cn-microlabel legend-item">louder</span>
       </div>
     </div>
   );

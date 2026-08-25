@@ -31,8 +31,8 @@ const TIER_HEX: Record<Tier, string> = {
   acronym: MOCHA.peach,
 };
 
+// Sans-first canon: the card carries no code, so every cut is Inter.
 const SANS = "Inter, sans-serif";
-const MONO = "'JetBrains Mono', monospace";
 
 function roundedRect(
   ctx: CanvasRenderingContext2D,
@@ -121,13 +121,13 @@ function draw(canvas: HTMLCanvasElement, report: Report) {
   letterSpacing(ctx, 0);
 
   ctx.fillStyle = MOCHA.mauve;
-  ctx.font = `700 22px ${MONO}`;
+  ctx.font = `700 22px ${SANS}`;
   letterSpacing(ctx, 3);
   ctx.fillText("SWEARS PER 100 PROMPTS", 72, 408);
   letterSpacing(ctx, 0);
 
   ctx.fillStyle = MOCHA.overlay1;
-  ctx.font = `600 19px ${MONO}`;
+  ctx.font = `600 19px ${SANS}`;
   ctx.fillText(
     `${num.format(t.swears)} swears · ${num.format(t.prompts)} prompts · ${num.format(t.sessions)} sessions`,
     72,
@@ -137,7 +137,7 @@ function draw(canvas: HTMLCanvasElement, report: Report) {
   // Top words as tier-tinted chips along the bottom.
   let cx = 72;
   const cy = 548;
-  ctx.font = `700 20px ${MONO}`;
+  ctx.font = `700 20px ${SANS}`;
   for (const w of report.top_words.slice(0, 5)) {
     const tw = ctx.measureText(w.word).width;
     const pad = 16;
@@ -157,7 +157,7 @@ function draw(canvas: HTMLCanvasElement, report: Report) {
   }
 
   ctx.fillStyle = MOCHA.overlay1;
-  ctx.font = `700 16px ${MONO}`;
+  ctx.font = `700 16px ${SANS}`;
   ctx.textAlign = "right";
   ctx.fillText(new Date(report.generated_at).toISOString().slice(0, 10), CARD_W - 72, 118);
   ctx.textAlign = "left";
@@ -181,13 +181,13 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
 
   useEffect(() => {
     let cancelled = false;
-    // The card is text-heavy; drawing before Inter and JetBrains Mono arrive
-    // would bake fallback glyphs into the bitmap. fonts.ready alone only covers
-    // faces the DOM already used, so the canvas-only cuts are loaded explicitly.
+    // The card is text-heavy; drawing before Inter arrives would bake fallback
+    // glyphs into the bitmap. fonts.ready alone only covers faces the DOM
+    // already used, so the canvas-only weights are loaded explicitly.
     const faces = [
+      `600 19px ${SANS}`,
       `700 58px ${SANS}`,
       `800 200px ${SANS}`,
-      `700 22px ${MONO}`,
     ];
     document.fonts.ready
       .then(() => Promise.all(faces.map((f) => document.fonts.load(f))))
@@ -246,10 +246,10 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
   return (
     <section className="panel">
       <p className="eyebrow">08 — Share</p>
-      <h2 className="section-title">Share card</h2>
-      <p className="section-note">rate, top words, nothing else — safe to post anywhere</p>
+      <h2 className="cn-title section-title">Share card</h2>
+      <p className="cn-meta section-note">rate, top words, nothing else — safe to post anywhere</p>
 
-      <div className="chart-well share-well">
+      <div className="well chart-well share-well">
         <canvas
           ref={canvasRef}
           className="share-canvas"
@@ -259,17 +259,17 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
       </div>
 
       <div className="share-actions">
-        <button className="btn" onClick={copyPng}>
+        <button className="btn btn-primary" onClick={copyPng}>
           {pngState === "copied" ? "Copied" : pngState === "failed" ? "Copy failed" : "Copy PNG"}
         </button>
-        <button className="btn btn-ghost" onClick={downloadPng}>
+        <button className="btn btn-secondary" onClick={downloadPng}>
           Download PNG
         </button>
       </div>
 
       <div className="share-url">
-        <code>{shareUrl}</code>
-        <button className="btn btn-ghost btn-small" onClick={copyLink}>
+        <code className="cn-code">{shareUrl}</code>
+        <button className="btn btn-secondary btn-small" onClick={copyLink}>
           {linkState === "copied" ? "Copied" : linkState === "failed" ? "Failed" : "Copy link"}
         </button>
       </div>

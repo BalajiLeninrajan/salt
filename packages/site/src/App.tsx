@@ -61,14 +61,16 @@ export default function App() {
   if (failed) return <EmptyState />;
   if (!report) {
     return (
-      <div className="shell">
-        <div className="state">loading report…</div>
+      <div className="app-shell shell">
+        <div className="empty-state state">
+          <span>loading report…</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="shell">
+    <div className="app-shell shell">
       <div className="page page-enter">
         <Hero report={report} />
         <ByHarness report={report} />
@@ -87,8 +89,8 @@ export default function App() {
 /** No id, or the id no longer resolves — reports expire on purpose. */
 function EmptyState() {
   return (
-    <div className="shell">
-      <div className="state">
+    <div className="app-shell shell">
+      <div className="empty-state state">
         <a className="logo-link state-logo" href="/">
           <Logo />
         </a>
@@ -115,29 +117,29 @@ function Hero({ report }: { report: Report }) {
         </a>
         <p className="eyebrow">01 — Swears per 100 prompts</p>
         <p className="score">{t.swears_per_100_prompts.toFixed(1)}</p>
-        <p className="score-caption">
+        <p className="cn-meta score-caption">
           {num.format(t.swears)} swears in {num.format(t.prompts)} prompts.
         </p>
-        <p className="snapshot">
+        <p className="cn-microlabel snapshot">
           Snapshot taken {generated} · this link expires {expires}
         </p>
       </section>
 
-      <section className="panel hero-card">
+      <section className="panel is-tilted hero-card">
         <div className="stat-row">
-          <span className="metric-label">Swears</span>
+          <span className="cn-label">Swears</span>
           <span className="metric-value">{num.format(t.swears)}</span>
         </div>
         <div className="stat-row">
-          <span className="metric-label">Prompts</span>
+          <span className="cn-label">Prompts</span>
           <span className="metric-value">{num.format(t.prompts)}</span>
         </div>
         <div className="stat-row">
-          <span className="metric-label">Salty prompts</span>
+          <span className="cn-label">Salty prompts</span>
           <span className="metric-value">{salty.toFixed(1)}%</span>
         </div>
         <div className="stat-row">
-          <span className="metric-label">Sessions</span>
+          <span className="cn-label">Sessions</span>
           <span className="metric-value">{num.format(t.sessions)}</span>
         </div>
       </section>
@@ -156,40 +158,44 @@ function ByHarness({ report }: { report: Report }) {
   return (
     <section className="panel">
       <p className="eyebrow">02 — By harness</p>
-      <h2 className="section-title">Which agent gets it worst</h2>
-      <p className="section-note">swears per 100 prompts</p>
+      <h2 className="cn-title section-title">Which agent gets it worst</h2>
+      <p className="cn-meta section-note">swears per 100 prompts</p>
 
       <div className="harness-grid">
         {rows.map((h) => (
           <article
             key={h.harness}
-            className="harness-card"
+            className="accent-card harness-card"
             style={{ ["--entity-color" as string]: HARNESS_COLOR[h.harness] }}
           >
             <h3 className="harness-name">{HARNESS_LABEL[h.harness]}</h3>
-            <div className="harness-rate">{h.rate.toFixed(1)}</div>
-            <div className="bar-track">
-              <div
+            <div className="cn-value-lg">{h.rate.toFixed(1)}</div>
+            <span className="progress-track bar-track">
+              <span
                 className="bar-fill"
                 style={{ width: `${(h.rate / max) * 100}%` }}
               />
-            </div>
+            </span>
             <div className="stat-row stat-row-sub">
-              <span className="metric-label">Prompts</span>
+              <span className="cn-label">Prompts</span>
               <span className="metric-value">{num.format(h.prompts)}</span>
             </div>
             <div className="stat-row stat-row-sub">
-              <span className="metric-label">Swears</span>
+              <span className="cn-label">Swears</span>
               <span className="metric-value">{num.format(h.swears)}</span>
             </div>
           </article>
         ))}
       </div>
 
+      {/* Callouts keep one span child: the banner recipe is a flex row, and
+          its gap would otherwise replace the word spaces between text runs. */}
       {worst && worst.swears > 0 && (
-        <p className="callout">
-          <strong>{HARNESS_LABEL[worst.harness]}</strong> takes the most abuse —{" "}
-          {worst.rate.toFixed(1)} swears per 100 prompts.
+        <p className="banner cn-tone-mauve callout">
+          <span>
+            <strong>{HARNESS_LABEL[worst.harness]}</strong> takes the most abuse
+            — {worst.rate.toFixed(1)} swears per 100 prompts.
+          </span>
         </p>
       )}
     </section>
@@ -202,11 +208,11 @@ function Vocabulary({ report }: { report: Report }) {
   return (
     <section className="panel">
       <p className="eyebrow">03 — Vocabulary</p>
-      <h2 className="section-title">Top words</h2>
-      <p className="section-note">ranked by count</p>
+      <h2 className="cn-title section-title">Top words</h2>
+      <p className="cn-meta section-note">ranked by count</p>
 
       {words.length === 0 ? (
-        <p className="section-note">no swears found</p>
+        <p className="cn-meta section-note">no swears found</p>
       ) : (
         <WordList words={words} />
       )}
@@ -225,26 +231,26 @@ function OtherSide({ report }: { report: Report }) {
   return (
     <section className="panel">
       <p className="eyebrow">04 — The other side</p>
-      <h2 className="section-title">Does the agent swear back?</h2>
-      <p className="section-note">visible replies only</p>
+      <h2 className="cn-title section-title">Does the agent swear back?</h2>
+      <p className="cn-meta section-note">visible replies only</p>
 
       <div className="metric-grid">
         <div className="stat-row">
-          <span className="metric-label">Replies</span>
+          <span className="cn-label">Replies</span>
           <span className="metric-value">{num.format(a.messages)}</span>
         </div>
         <div className="stat-row">
-          <span className="metric-label">Swears</span>
+          <span className="cn-label">Swears</span>
           <span className="metric-value">{num.format(a.swears)}</span>
         </div>
         <div className="stat-row">
-          <span className="metric-label">Per 100</span>
+          <span className="cn-label">Per 100</span>
           <span className="metric-value">
             {a.swears_per_100_messages.toFixed(2)}
           </span>
         </div>
         <div className="stat-row">
-          <span className="metric-label">Replies w/ swear</span>
+          <span className="cn-label">Replies w/ swear</span>
           <span className="metric-value">
             {num.format(a.messages_with_swear)}
           </span>
@@ -256,17 +262,17 @@ function OtherSide({ report }: { report: Report }) {
           {report.agent_by_harness.map((h) => (
             <article
               key={h.harness}
-              className="harness-card"
+              className="accent-card harness-card"
               style={{ ["--entity-color" as string]: HARNESS_COLOR[h.harness] }}
             >
               <h3 className="harness-name">{HARNESS_LABEL[h.harness]}</h3>
-              <div className="harness-rate">{h.rate.toFixed(2)}</div>
+              <div className="cn-value-lg">{h.rate.toFixed(2)}</div>
               <div className="stat-row stat-row-sub">
-                <span className="metric-label">Replies</span>
+                <span className="cn-label">Replies</span>
                 <span className="metric-value">{num.format(h.messages)}</span>
               </div>
               <div className="stat-row stat-row-sub">
-                <span className="metric-label">Swears</span>
+                <span className="cn-label">Swears</span>
                 <span className="metric-value">{num.format(h.swears)}</span>
               </div>
             </article>
@@ -281,15 +287,19 @@ function OtherSide({ report }: { report: Report }) {
       )}
 
       {a.swears === 0 ? (
-        <p className="callout">
-          The agent never swore once across {num.format(a.messages)} replies.
+        <p className="banner cn-tone-mauve callout">
+          <span>
+            The agent never swore once across {num.format(a.messages)} replies.
+          </span>
         </p>
       ) : (
         ratio !== null && (
-          <p className="callout">
-            You swear <strong>{ratio.toFixed(0)}×</strong> more often per
-            message than the agent does: {userRate.toFixed(2)} against{" "}
-            {a.swears_per_100_messages.toFixed(2)} per 100.
+          <p className="banner cn-tone-mauve callout">
+            <span>
+              You swear <strong>{ratio.toFixed(0)}×</strong> more often per
+              message than the agent does: {userRate.toFixed(2)} against{" "}
+              {a.swears_per_100_messages.toFixed(2)} per 100.
+            </span>
           </p>
         )
       )}
@@ -301,8 +311,8 @@ function OverTime({ report }: { report: Report }) {
   return (
     <section className="panel">
       <p className="eyebrow">05 — Over time</p>
-      <h2 className="section-title">Daily</h2>
-      <p className="section-note">
+      <h2 className="cn-title section-title">Daily</h2>
+      <p className="cn-meta section-note">
         {report.daily.length} active days · your swears against the agent's,
         same scale
       </p>
@@ -316,10 +326,10 @@ function When({ report }: { report: Report }) {
   return (
     <section className="panel">
       <p className="eyebrow">06 — When</p>
-      <h2 className="section-title">Day by day</h2>
+      <h2 className="cn-title section-title">Day by day</h2>
       {/* Days were cut in the publisher's time zone — "your" days, in this
           page's voice, even when a visitor elsewhere is reading. */}
-      <p className="section-note">
+      <p className="cn-meta section-note">
         shaded by swear volume, weighted by severity · your local days
         {excluded > 0 &&
           ` · ${num.format(excluded)} Cursor prompts dated by session (no per-message time)`}
@@ -352,12 +362,12 @@ function Where({ report }: { report: Report }) {
   return (
     <section className="panel">
       <p className="eyebrow">07 — Where</p>
-      <h2 className="section-title">Projects</h2>
-      <p className="section-note">top 15 projects</p>
+      <h2 className="cn-title section-title">Projects</h2>
+      <p className="cn-meta section-note">top 15 projects</p>
 
       <div className="table-wrap">
-        <table className="projects">
-          <caption>Swear counts per project, sortable</caption>
+        <table className="table-neu projects">
+          <caption className="cn-sr-only">Swear counts per project, sortable</caption>
           <thead>
             <tr>
               {head.map(([key, label]) => (
@@ -373,12 +383,12 @@ function Where({ report }: { report: Report }) {
           <tbody>
             {rows.map((p) => (
               <tr key={p.name}>
-                <td className="cell-name">
+                <td className="cell-name" data-label="Project">
                   <strong>{p.name}</strong>
                 </td>
-                <td>{num.format(p.prompts)}</td>
-                <td>{num.format(p.swears)}</td>
-                <td>{p.rate.toFixed(1)}</td>
+                <td data-label="Prompts">{num.format(p.prompts)}</td>
+                <td data-label="Swears">{num.format(p.swears)}</td>
+                <td data-label="Per 100">{p.rate.toFixed(1)}</td>
               </tr>
             ))}
           </tbody>
@@ -395,8 +405,8 @@ function Methodology({ report }: { report: Report }) {
   return (
     <footer className="panel">
       <p className="eyebrow">09 — Methodology</p>
-      <h2 className="section-title">What was counted</h2>
-      <p className="section-note">salt v{report.version}</p>
+      <h2 className="cn-title section-title">What was counted</h2>
+      <p className="cn-meta section-note">salt v{report.version}</p>
 
       <ul className="methodology">
         <li>
