@@ -1,57 +1,20 @@
 /* salt report dashboard — thin local layer over catppuccin-neu, which arrives
    through main.tsx (`import "catppuccin-neu/css/index.css"`). Surfaces, type
-   roles, depth, buttons, and the table all come from the package; this file
-   carries the dashboard's own layout and the few salt-only treatments.
+   roles, depth, layout, buttons, and the table all come from the package as
+   classes on the elements; this file carries the dashboard's own geometry
+   (the hero ratio, the word-row columns, the chart SVGs, the wordmark) and
+   the few salt-only treatments.
 
    Contract bridge: the report components set --entity-color and --tier-color
    inline (drift-stable names, read as strings at runtime elsewhere in this
    repo, so they are never renamed); the bridges below map them onto the
    package's --accent / --tone contract props. */
 
-.shell {
-  min-height: 100vh;
-  padding: 56px 24px 96px;
-}
-
-.page {
-  max-width: 1080px;
-  margin: 0 auto;
-  display: grid;
-  gap: 28px;
-}
-
-/* ── shared bits ───────────────────────────────────────────────────────── */
-
-/* The package panel carries the surface; the padding is this dashboard's. */
-.panel { padding: 26px 28px; }
-
-/* Type comes from .cn-title / .cn-meta on the elements; spacing is local. */
-.section-title { margin: 0 0 4px; }
-.section-note { margin: 0 0 20px; }
-.section-gap { margin-top: 18px; }
-
-/* Values are sans + tabular per canon; the sizes are this dashboard's own. */
-.metric-value {
-  font: 650 22px/1 var(--sans);
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
-.stat-row-sub { margin-top: 8px; }
-.stat-row-sub .metric-value { font-size: 12px; }
-/* The first sub-row sits 14px under whatever precedes it — the bar when the
-   card has one, the big value otherwise. (:first-of-type can't express this:
-   it keys on element type, and the card's first div is the .cn-value-lg.) */
-.harness-card .bar-track + .stat-row-sub,
-.harness-card .cn-value-lg + .stat-row-sub { margin-top: 14px; }
-
 /* ── hero ──────────────────────────────────────────────────────────────── */
 
-.hero {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 22px;
-  align-items: stretch;
-}
+/* Composes cn-grid-2; the ratio is this page's, and the split holds until the
+   tilted card flattens (the package's 1060 breakpoint), not the grid's 520. */
+.hero { grid-template-columns: 1.15fr 0.85fr; }
 
 .hero-main {
   display: flex;
@@ -81,51 +44,13 @@
 .logo-link { text-decoration: none; }
 .logo-link:hover { opacity: 0.8; }
 
-.hero-logo {
-  align-self: flex-start;
-  font-size: 34px;
-  margin-bottom: 22px;
-}
+.hero-logo { align-self: flex-start; font-size: 34px; }
 
-.score {
-  margin: 0;
-  font-family: var(--sans);
-  font-size: clamp(38px, 5vw, 64px);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-  font-weight: 820;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
+/* Composes cn-stack; the rows sit in the middle of the tilted card. */
+.hero-card { align-content: center; }
 
-.score-caption {
-  margin: 12px 0 0;
-  max-width: 42ch;
-  color: var(--subtext-0);
-}
-
-/* The report is a snapshot on a clock: when it was taken, when it stops
-   resolving. Quieter than the caption above it, but on the first screen. */
-.snapshot { margin: 14px 0 0; }
-
-/* Signature flourish via `panel is-tilted`; only the grid is local. */
-.hero-card {
-  display: grid;
-  gap: 14px;
-  align-content: center;
-}
-
-/* Four-up counter strip. A recessed readout carved from the panel, not a
-   raised card. */
-.metric-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  padding: 18px 20px;
-  margin-bottom: 18px;
-  border-radius: 13px;
-  box-shadow: var(--neu-inset-soft);
-}
+/* The counter strip's rows stack label over value instead of the recipe's
+   baseline pair. */
 .metric-grid .stat-row {
   flex-direction: column;
   align-items: flex-start;
@@ -134,75 +59,23 @@
 
 /* ── harness cards — accent-card keyed by the harness color ────────────── */
 
-.harness-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
 .harness-card { --accent: var(--entity-color); }
 
-.harness-name {
-  margin: 0 0 14px;
-  font: 720 15px/1.3 var(--sans);
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
+/* cn-name, a step up: the card's title, not a row's. */
+.harness-name { font-size: 15px; }
 
-/* One flat color per harness, not the package's accent gradient. */
-.harness-card .bar-track {
-  margin-top: 14px;
-  --progress-fill: var(--entity-color);
-}
+/* One flat color per harness. */
+.harness-card .progress-track { --progress-fill: var(--entity-color); }
 
-.bar-track { display: block; }
+/* ── word rows — ranked-row on a fixed column grid ─────────────────────── */
 
-/* Composes `banner cn-tone-mauve`; spacing and the emphasis color are local. */
-.callout { margin-top: 18px; line-height: 1.6; }
-.callout strong { color: var(--text); }
+.word-row { display: grid; grid-template-columns: 24px 1fr 120px 56px; }
 
-/* ── word rows ─────────────────────────────────────────────────────────── */
-
-.word-row {
-  display: grid;
-  grid-template-columns: 24px 1fr 120px 56px;
-  align-items: center;
-  gap: 14px;
-  padding: 9px 10px;
-  border-radius: 10px;
-  transition: box-shadow 0.16s ease, background 0.16s ease;
-}
-.word-row:hover {
-  background: color-mix(in srgb, var(--mauve) 5%, var(--base));
-  box-shadow: var(--neu-inset-soft);
-}
-
-.word-rank {
-  font: 700 12px/1 var(--sans);
-  font-variant-numeric: tabular-nums;
-  color: var(--overlay-0);
-}
 /* Composes `chip-tone`, keyed by the word's tier. */
-.word-tier {
-  --tone: var(--tier-color);
-  margin-left: 8px;
-}
-.word-count {
-  font: 700 12px/1 var(--sans);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--subtext-1);
-}
+.word-tier { --tone: var(--tier-color); }
 
-/* ── charts — wells compose the package `.well` ────────────────────────── */
+/* ── charts — SVGs inside package wells ────────────────────────────────── */
 
-/* An explicit dark fill (the .cn-bg-well mix, set here because the recipe's
-   own transparent ground wins the layer order): the oklab calendar ramp
-   mixes toward --mantle and needs a mantle-ish ground under it. */
-.chart-well {
-  padding: 18px 16px 10px;
-  background: color-mix(in srgb, var(--crust) 38%, var(--mantle));
-}
 .chart-well svg {
   display: block;
   width: 100%;
@@ -215,18 +88,6 @@
   margin: 0 auto;
 }
 
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  margin-top: 14px;
-}
-/* Type comes from .cn-microlabel on the items; only the row is local. */
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
 .legend-dot {
   width: 8px;
   height: 8px;
@@ -234,31 +95,14 @@
 }
 
 /* The calendar's ramp key: quieter → louder, in the cells' own shape. */
-.heat-legend {
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.heat-legend .legend-item { gap: 0; }
 .legend-swatch {
   width: 11px;
   height: 11px;
   border-radius: 4px;
 }
 
-/* Wide charts scroll inside their own well, never the page. */
-.heat-scroll {
-  overflow-x: auto;
-  scrollbar-color: var(--surface-2) transparent;
-}
+/* ── projects table — sort buttons on top of `table-neu` ───────────────── */
 
-/* ── projects table — numeric alignment on top of `table-neu` ──────────── */
-
-.table-wrap { overflow-x: auto; }
-.projects th,
-.projects td { text-align: right; }
-.projects th:first-child,
-.projects td:first-child { text-align: left; }
 .projects th button {
   all: unset;
   cursor: pointer;
@@ -275,7 +119,6 @@
 
 /* ── share ─────────────────────────────────────────────────────────────── */
 
-.share-well { padding: 14px; }
 .share-canvas {
   display: block;
   width: 100%;
@@ -283,47 +126,12 @@
   border-radius: 10px;
 }
 
-.share-actions {
-  margin-top: 18px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* A carved slot holding the link — borderless, the inset defines it. */
-.share-url {
-  margin-top: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 8px 8px 14px;
-  border-radius: 10px;
-  box-shadow: var(--neu-inset-soft);
-}
-.share-url code {
-  color: var(--subtext-0);
-  overflow-wrap: anywhere;
-  min-width: 0;
-}
-
-.btn-small {
-  min-height: var(--control-h-sm);
-  padding: 0 14px;
-  font-size: 12px;
-  flex: 0 0 auto;
-}
+/* The link breaks anywhere rather than pushing the slot wide. */
+.share-url code { overflow-wrap: anywhere; }
 
 /* ── methodology ───────────────────────────────────────────────────────── */
 
-.methodology {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding-left: 18px;
-  font: 500 13px/1.65 var(--sans);
-  color: var(--subtext-0);
-}
+.methodology { padding-left: 18px; }
 /* Inline machine literals — the one mono voice in the footer. */
 .methodology code {
   font: 500 12px/1 var(--mono);
@@ -336,39 +144,24 @@
 /* ── empty / loading states ────────────────────────────────────────────── */
 
 /* Composes the package `.empty-state` recipe; only layout is local. */
-.state {
-  min-height: 70vh;
-}
+.state { min-height: 70vh; }
 .state span {
   max-width: 44ch;
   line-height: 1.6;
 }
-.state .state-logo {
-  font-size: 40px;
-  margin-bottom: 12px;
-}
+.state-logo { font-size: 40px; }
 
 /* ── responsive ────────────────────────────────────────────────────────── */
 
 @media (max-width: 1060px) {
-  .hero { grid-template-columns: 1fr; }
   /* The tilt is ornament; the package flattens `is-tilted` here. */
-  .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
-  .shell { padding: 32px 14px 64px; }
-  .panel { padding: 20px 18px; }
-  .harness-grid { grid-template-columns: 1fr; }
-  .word-row {
-    grid-template-columns: 20px 1fr 70px 44px;
-    gap: 10px;
-  }
-  /* table-neu stacks into cards here; numbers go back to reading flush left. */
+  .word-row { grid-template-columns: 20px 1fr 70px 44px; gap: 10px; }
+  /* table-neu stacks into cards here; a right-aligned number floats in its
+     grid cell, so the numbers go back to reading flush left. */
   .projects td { text-align: left; }
-  .share-url {
-    flex-direction: column;
-    align-items: stretch;
-  }
   .share-actions .btn { flex: 1; }
 }

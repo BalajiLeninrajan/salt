@@ -52,10 +52,10 @@
       <span style="font-size: 24px">f*ck</span>
     </div>
 
-    <main class="shell">
-      <div class="page page-enter">
-        <section class="panel">
-          <div class="mast">
+    <div class="app-shell shell page-enter" style="--page-width: 760px">
+      <main class="page-main page">
+        <section class="panel cn-raised-soft cn-p-28">
+          <div class="mast cn-mb-28">
             <!-- Same mark as the dashboard: "salt" in Inter, with the `a`
                  replaced by a drawn arch holding a lowercase `i`. Only the arch
                  is drawn; s/l/t are real text. The numbers below are ARCH from
@@ -87,7 +87,7 @@
             >
           </div>
 
-          <h1 class="cn-display headline">
+          <h1 class="cn-display cn-mb-16">
             How much do you <em>swear</em> at your <em>coding agents</em>?
           </h1>
 
@@ -97,19 +97,19 @@
             and tells you how salty you are.
           </p>
 
-          <div class="well command">
+          <div class="command is-full">
             <code class="command-text"
-              ><span class="command-prompt">$</span>
-              <span id="cmd">npx salt-ai</span
+              ><span class="command-prompt">$</span
+              ><span id="cmd">npx salt-ai</span
               ><span class="caret" aria-hidden="true"></span
             ></code>
-            <!-- The same affordance the design system puts in the corner of a
-                 code block: a .btn-icon, with the label in a data-tip bubble
-                 rather than a title= (which would draw the OS tooltip). Both
-                 glyphs ship in the markup and copy.js swaps which one shows,
-                 so the success state costs no request. -->
+            <!-- The recipe's copy control: a .btn-icon, with the label in a
+                 data-tip bubble rather than a title= (which would draw the OS
+                 tooltip). Both glyphs ship in the markup; copy.js toggles
+                 is-copied on the .command and the recipe swaps which one
+                 shows, so the success state costs no request. -->
             <button
-              class="btn-icon copy"
+              class="btn-icon command-copy"
               id="copy"
               type="button"
               data-command="npx salt-ai"
@@ -155,19 +155,47 @@
         <!-- TODO: real marketing sections — a dashboard screenshot, the
              per-harness comparison, the privacy explainer. -->
 
-        <footer class="foot">
-          <span
+      </main>
+
+      <footer class="footer-neu">
+        <!-- The wordmark is a <strong>, not a <span>: the recipe styles a
+             direct span child as the trailing note. -->
+        <span class="footer-brand"
+          ><strong class="logo" role="img" aria-label="salt"
+            >s<svg
+              class="logo-a"
+              viewBox="0 0 91 100"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M 13.5 100 L 13.5 45.5 A 32 32 0 0 1 77.5 45.5 L 77.5 100"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="27"
+              />
+              <circle cx="45.5" cy="44" r="8.5" fill="#b4befe" />
+              <rect
+                x="37"
+                y="59"
+                width="17"
+                height="41"
+                rx="8.5"
+                fill="#b4befe"
+              /></svg
+            >lt</strong
+          ><span
             >Reads your local sessions. Publishes counts, never prompt
             text.</span
-          >
-          <nav class="foot-links">
-            <!-- TODO: point at the published package once v0.1.0 ships. -->
-            <a href="https://www.npmjs.com/package/salt-ai">npm</a>
-            <a href="https://github.com/BalajiLeninrajan/salt">GitHub</a>
-          </nav>
-        </footer>
-      </div>
-    </main>
+          ></span
+        >
+        <nav class="cn-row cn-gap-16">
+          <!-- TODO: point at the published package once v0.1.0 ships. -->
+          <a class="btn-text" href="https://www.npmjs.com/package/salt-ai">npm</a>
+          <a class="btn-text" href="https://github.com/BalajiLeninrajan/salt">GitHub</a>
+        </nav>
+      </footer>
+    </div>
 
     <script src="/copy.js"></script>
     <script src="/drift.js"></script>

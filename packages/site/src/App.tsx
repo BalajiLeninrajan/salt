@@ -61,17 +61,22 @@ export default function App() {
   if (failed) return <EmptyState />;
   if (!report) {
     return (
-      <div className="app-shell shell">
-        <div className="empty-state state">
-          <span>loading report…</span>
-        </div>
+      <div className="app-shell">
+        <main className="page-main">
+          <div className="empty-state state">
+            <span>loading report…</span>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="app-shell shell">
-      <div className="page page-enter">
+    <div className="app-shell">
+      <main
+        className="page-main page-enter cn-stack cn-gap-28"
+        style={{ ["--page-width" as string]: "1080px" }}
+      >
         <Hero report={report} />
         <ByHarness report={report} />
         <Vocabulary report={report} />
@@ -81,7 +86,7 @@ export default function App() {
         <Where report={report} />
         <ShareCard report={report} shareUrl={window.location.href} />
         <Methodology report={report} />
-      </div>
+      </main>
     </div>
   );
 }
@@ -89,17 +94,19 @@ export default function App() {
 /** No id, or the id no longer resolves — reports expire on purpose. */
 function EmptyState() {
   return (
-    <div className="app-shell shell">
-      <div className="empty-state state">
-        <a className="logo-link state-logo" href="/">
-          <Logo />
-        </a>
-        <strong>this page carries no report</strong>
-        <span>
-          the link may have expired — reports live for {REPORT_TTL_DAYS} days,
-          then the numbers are gone for good
-        </span>
-      </div>
+    <div className="app-shell">
+      <main className="page-main">
+        <div className="empty-state state">
+          <a className="logo-link state-logo cn-mb-12" href="/">
+            <Logo />
+          </a>
+          <strong>this page carries no report</strong>
+          <span>
+            the link may have expired — reports live for {REPORT_TTL_DAYS} days,
+            then the numbers are gone for good
+          </span>
+        </div>
+      </main>
     </div>
   );
 }
@@ -110,37 +117,43 @@ function Hero({ report }: { report: Report }) {
   const { generated, expires } = snapshot(report);
 
   return (
-    <header className="hero">
-      <section className="panel hero-main">
-        <a className="logo-link hero-logo" href="/">
+    <header className="hero cn-grid-2 cn-gap-22">
+      <section className="panel cn-p-22 hero-main">
+        <a className="logo-link hero-logo cn-mb-22" href="/">
           <Logo />
         </a>
         <p className="eyebrow">01 — Swears per 100 prompts</p>
-        <p className="score">{t.swears_per_100_prompts.toFixed(1)}</p>
-        <p className="cn-meta score-caption">
+        <p className="cn-display cn-tabular cn-text-text cn-m-0">
+          {t.swears_per_100_prompts.toFixed(1)}
+        </p>
+        <p className="cn-meta cn-text-subtext-0 cn-mt-12 cn-mb-0">
           {num.format(t.swears)} swears in {num.format(t.prompts)} prompts.
         </p>
-        <p className="cn-microlabel snapshot">
+        {/* The report is a snapshot on a clock: when it was taken, when it
+            stops resolving. Quieter than the caption above it, but on the
+            first screen. */}
+        <p className="cn-microlabel cn-mt-12 cn-mb-0">
           Snapshot taken {generated} · this link expires {expires}
         </p>
       </section>
 
-      <section className="panel is-tilted hero-card">
+      {/* Signature flourish via `panel is-tilted`; the stack is the package's. */}
+      <section className="panel is-tilted cn-p-22 cn-stack cn-gap-16 hero-card">
         <div className="stat-row">
           <span className="cn-label">Swears</span>
-          <span className="metric-value">{num.format(t.swears)}</span>
+          <span className="cn-value cn-text-text">{num.format(t.swears)}</span>
         </div>
         <div className="stat-row">
           <span className="cn-label">Prompts</span>
-          <span className="metric-value">{num.format(t.prompts)}</span>
+          <span className="cn-value cn-text-text">{num.format(t.prompts)}</span>
         </div>
         <div className="stat-row">
           <span className="cn-label">Salty prompts</span>
-          <span className="metric-value">{salty.toFixed(1)}%</span>
+          <span className="cn-value cn-text-text">{salty.toFixed(1)}%</span>
         </div>
         <div className="stat-row">
           <span className="cn-label">Sessions</span>
-          <span className="metric-value">{num.format(t.sessions)}</span>
+          <span className="cn-value cn-text-text">{num.format(t.sessions)}</span>
         </div>
       </section>
     </header>
@@ -156,33 +169,35 @@ function ByHarness({ report }: { report: Report }) {
   );
 
   return (
-    <section className="panel">
+    <section className="panel cn-p-22">
       <p className="eyebrow">02 — By harness</p>
-      <h2 className="cn-title section-title">Which agent gets it worst</h2>
-      <p className="cn-meta section-note">swears per 100 prompts</p>
+      <h2 className="cn-title cn-mb-4">Which agent gets it worst</h2>
+      <p className="cn-meta cn-mb-22">swears per 100 prompts</p>
 
-      <div className="harness-grid">
+      <div className="cn-grid-3 cn-gap-16">
         {rows.map((h) => (
           <article
             key={h.harness}
             className="accent-card harness-card"
             style={{ ["--entity-color" as string]: HARNESS_COLOR[h.harness] }}
           >
-            <h3 className="harness-name">{HARNESS_LABEL[h.harness]}</h3>
+            <h3 className="cn-name harness-name cn-m-0 cn-mb-12">
+              {HARNESS_LABEL[h.harness]}
+            </h3>
             <div className="cn-value-lg">{h.rate.toFixed(1)}</div>
-            <span className="progress-track bar-track">
+            <span className="progress-track cn-block cn-mt-12">
               <span
                 className="bar-fill"
                 style={{ width: `${(h.rate / max) * 100}%` }}
               />
             </span>
-            <div className="stat-row stat-row-sub">
+            <div className="stat-row cn-mt-12">
               <span className="cn-label">Prompts</span>
-              <span className="metric-value">{num.format(h.prompts)}</span>
+              <b>{num.format(h.prompts)}</b>
             </div>
-            <div className="stat-row stat-row-sub">
+            <div className="stat-row cn-mt-8">
               <span className="cn-label">Swears</span>
-              <span className="metric-value">{num.format(h.swears)}</span>
+              <b>{num.format(h.swears)}</b>
             </div>
           </article>
         ))}
@@ -191,7 +206,7 @@ function ByHarness({ report }: { report: Report }) {
       {/* Callouts keep one span child: the banner recipe is a flex row, and
           its gap would otherwise replace the word spaces between text runs. */}
       {worst && worst.swears > 0 && (
-        <p className="banner cn-tone-mauve callout">
+        <p className="banner cn-tone-mauve cn-mt-16">
           <span>
             <strong>{HARNESS_LABEL[worst.harness]}</strong> takes the most abuse
             — {worst.rate.toFixed(1)} swears per 100 prompts.
@@ -206,13 +221,13 @@ function Vocabulary({ report }: { report: Report }) {
   const words = report.top_words.slice(0, 12);
 
   return (
-    <section className="panel">
+    <section className="panel cn-p-22">
       <p className="eyebrow">03 — Vocabulary</p>
-      <h2 className="cn-title section-title">Top words</h2>
-      <p className="cn-meta section-note">ranked by count</p>
+      <h2 className="cn-title cn-mb-4">Top words</h2>
+      <p className="cn-meta cn-mb-22">ranked by count</p>
 
       {words.length === 0 ? (
-        <p className="cn-meta section-note">no swears found</p>
+        <p className="cn-meta cn-mb-22">no swears found</p>
       ) : (
         <WordList words={words} />
       )}
@@ -229,51 +244,55 @@ function OtherSide({ report }: { report: Report }) {
     a.swears_per_100_messages > 0 ? userRate / a.swears_per_100_messages : null;
 
   return (
-    <section className="panel">
+    <section className="panel cn-p-22">
       <p className="eyebrow">04 — The other side</p>
-      <h2 className="cn-title section-title">Does the agent swear back?</h2>
-      <p className="cn-meta section-note">visible replies only</p>
+      <h2 className="cn-title cn-mb-4">Does the agent swear back?</h2>
+      <p className="cn-meta cn-mb-22">visible replies only</p>
 
-      <div className="metric-grid">
+      {/* Four-up counter strip. A recessed readout carved from the panel,
+          not a raised card: the well, at the soft depth. */}
+      <div className="well cn-inset-soft cn-p-16 cn-grid-4 cn-mb-16 metric-grid">
         <div className="stat-row">
           <span className="cn-label">Replies</span>
-          <span className="metric-value">{num.format(a.messages)}</span>
+          <span className="cn-value cn-text-text">{num.format(a.messages)}</span>
         </div>
         <div className="stat-row">
           <span className="cn-label">Swears</span>
-          <span className="metric-value">{num.format(a.swears)}</span>
+          <span className="cn-value cn-text-text">{num.format(a.swears)}</span>
         </div>
         <div className="stat-row">
           <span className="cn-label">Per 100</span>
-          <span className="metric-value">
+          <span className="cn-value cn-text-text">
             {a.swears_per_100_messages.toFixed(2)}
           </span>
         </div>
         <div className="stat-row">
           <span className="cn-label">Replies w/ swear</span>
-          <span className="metric-value">
+          <span className="cn-value cn-text-text">
             {num.format(a.messages_with_swear)}
           </span>
         </div>
       </div>
 
       {report.agent_by_harness.length > 0 && (
-        <div className="harness-grid">
+        <div className="cn-grid-3 cn-gap-16">
           {report.agent_by_harness.map((h) => (
             <article
               key={h.harness}
               className="accent-card harness-card"
               style={{ ["--entity-color" as string]: HARNESS_COLOR[h.harness] }}
             >
-              <h3 className="harness-name">{HARNESS_LABEL[h.harness]}</h3>
+              <h3 className="cn-name harness-name cn-m-0 cn-mb-12">
+                {HARNESS_LABEL[h.harness]}
+              </h3>
               <div className="cn-value-lg">{h.rate.toFixed(2)}</div>
-              <div className="stat-row stat-row-sub">
+              <div className="stat-row cn-mt-12">
                 <span className="cn-label">Replies</span>
-                <span className="metric-value">{num.format(h.messages)}</span>
+                <b>{num.format(h.messages)}</b>
               </div>
-              <div className="stat-row stat-row-sub">
+              <div className="stat-row cn-mt-8">
                 <span className="cn-label">Swears</span>
-                <span className="metric-value">{num.format(h.swears)}</span>
+                <b>{num.format(h.swears)}</b>
               </div>
             </article>
           ))}
@@ -281,20 +300,20 @@ function OtherSide({ report }: { report: Report }) {
       )}
 
       {words.length > 0 && (
-        <div className="section-gap">
+        <div className="cn-mt-16">
           <WordList words={words} />
         </div>
       )}
 
       {a.swears === 0 ? (
-        <p className="banner cn-tone-mauve callout">
+        <p className="banner cn-tone-mauve cn-mt-16">
           <span>
             The agent never swore once across {num.format(a.messages)} replies.
           </span>
         </p>
       ) : (
         ratio !== null && (
-          <p className="banner cn-tone-mauve callout">
+          <p className="banner cn-tone-mauve cn-mt-16">
             <span>
               You swear <strong>{ratio.toFixed(0)}×</strong> more often per
               message than the agent does: {userRate.toFixed(2)} against{" "}
@@ -309,10 +328,10 @@ function OtherSide({ report }: { report: Report }) {
 
 function OverTime({ report }: { report: Report }) {
   return (
-    <section className="panel">
+    <section className="panel cn-p-22">
       <p className="eyebrow">05 — Over time</p>
-      <h2 className="cn-title section-title">Daily</h2>
-      <p className="cn-meta section-note">
+      <h2 className="cn-title cn-mb-4">Daily</h2>
+      <p className="cn-meta cn-mb-22">
         {report.daily.length} active days · your swears against the agent's,
         same scale
       </p>
@@ -324,12 +343,12 @@ function OverTime({ report }: { report: Report }) {
 function When({ report }: { report: Report }) {
   const excluded = report.coverage.session_precision_prompts;
   return (
-    <section className="panel">
+    <section className="panel cn-p-22">
       <p className="eyebrow">06 — When</p>
-      <h2 className="cn-title section-title">Day by day</h2>
+      <h2 className="cn-title cn-mb-4">Day by day</h2>
       {/* Days were cut in the publisher's time zone — "your" days, in this
           page's voice, even when a visitor elsewhere is reading. */}
-      <p className="cn-meta section-note">
+      <p className="cn-meta cn-mb-22">
         shaded by swear volume, weighted by severity · your local days
         {excluded > 0 &&
           ` · ${num.format(excluded)} Cursor prompts dated by session (no per-message time)`}
@@ -360,18 +379,22 @@ function Where({ report }: { report: Report }) {
   ];
 
   return (
-    <section className="panel">
+    <section className="panel cn-p-22">
       <p className="eyebrow">07 — Where</p>
-      <h2 className="cn-title section-title">Projects</h2>
-      <p className="cn-meta section-note">top 15 projects</p>
+      <h2 className="cn-title cn-mb-4">Projects</h2>
+      <p className="cn-meta cn-mb-22">top 15 projects</p>
 
-      <div className="table-wrap">
+      <div className="table-scroll">
         <table className="table-neu projects">
           <caption className="cn-sr-only">Swear counts per project, sortable</caption>
           <thead>
             <tr>
               {head.map(([key, label]) => (
-                <th key={key} aria-sort={sort === key ? "descending" : "none"}>
+                <th
+                  key={key}
+                  className={key === "name" ? "cn-text-left" : "cn-text-right"}
+                  aria-sort={sort === key ? "descending" : "none"}
+                >
                   <button onClick={() => setSort(key)}>
                     {label}
                     {sort === key ? " ↓" : ""}
@@ -383,12 +406,12 @@ function Where({ report }: { report: Report }) {
           <tbody>
             {rows.map((p) => (
               <tr key={p.name}>
-                <td className="cell-name" data-label="Project">
+                <td className="cell-name cn-text-left" data-label="Project">
                   <strong>{p.name}</strong>
                 </td>
-                <td data-label="Prompts">{num.format(p.prompts)}</td>
-                <td data-label="Swears">{num.format(p.swears)}</td>
-                <td data-label="Per 100">{p.rate.toFixed(1)}</td>
+                <td className="cn-text-right" data-label="Prompts">{num.format(p.prompts)}</td>
+                <td className="cn-text-right" data-label="Swears">{num.format(p.swears)}</td>
+                <td className="cn-text-right" data-label="Per 100">{p.rate.toFixed(1)}</td>
               </tr>
             ))}
           </tbody>
@@ -403,12 +426,12 @@ function Methodology({ report }: { report: Report }) {
   const gb = (c.bytes_scanned / 1e9).toFixed(1);
 
   return (
-    <footer className="panel">
+    <footer className="panel cn-p-22">
       <p className="eyebrow">09 — Methodology</p>
-      <h2 className="cn-title section-title">What was counted</h2>
-      <p className="cn-meta section-note">salt v{report.version}</p>
+      <h2 className="cn-title cn-mb-4">What was counted</h2>
+      <p className="cn-meta cn-mb-22">salt v{report.version}</p>
 
-      <ul className="methodology">
+      <ul className="methodology cn-copy cn-m-0">
         <li>
           Scanned {num.format(c.files_scanned)} session files ({gb} GB) across
           Claude Code, Codex, and Cursor

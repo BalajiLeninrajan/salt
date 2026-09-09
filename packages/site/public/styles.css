@@ -1,9 +1,10 @@
 /* salt marketing page — thin local layer over catppuccin-neu. The design
    system itself (tokens.css, utilities.css, recipes.css, index.css) is
    vendored into this directory by `catppuccin-neu-sync`, which runs as the
-   site's predev/prebuild/pretest hook; this file carries only what is
-   genuinely this page's own: the drifting swears, the hero layout, the
-   command row, and the copy button's "done" state.
+   site's predev/prebuild/pretest hook. The page frame (app-shell, page-main,
+   panel, command, footer-neu) is all package classes; this file carries only
+   what is genuinely this page's own: the drifting swears, the wordmark, the
+   caret, and the ambient wash.
 
    Mono ships on the command string, and is adopted once more as a deliberate
    accent: the drifting swears, which read as terminal output. Everything the
@@ -24,7 +25,7 @@ body { position: relative; overflow-x: hidden; }
 
 /* Hidden until drift.js has measured and placed everything — otherwise the
    whole set flashes stacked in the top-left corner on first paint. */
-.drift { opacity: 0; transition: opacity 600ms ease-out; }
+.drift { opacity: 0; transition: opacity 600ms var(--ease-out); }
 .drift.ready { opacity: 1; }
 
 .drift span {
@@ -47,7 +48,7 @@ body { position: relative; overflow-x: hidden; }
   will-change: transform, opacity;
   /* Slow, to match the splash drift.js animates on top of this — the colour
      should still be arriving while the brightness is bleeding away. */
-  transition: color 1400ms ease-out;
+  transition: color 1400ms var(--ease-out);
 }
 
 /* No transition on the placement itself — the words are driven frame by frame,
@@ -58,40 +59,28 @@ body { position: relative; overflow-x: hidden; }
 
 /* --- page frame --- */
 
+/* Composes .app-shell. The package's ground is opaque --base; here it has to
+   be transparent, or it would hide the drift. The wash is this page's own
+   shape: a wide ellipse off the top-left, not the package's bloom. */
 .shell {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  display: grid;
-  align-items: center;
-  padding: 56px 24px 72px;
-  /* Ambient wash: must not read as a visible gradient. Transparent ground —
-     an opaque fill here would hide the drift behind it. */
   background:
     radial-gradient(1200px 700px at 12% -10%, color-mix(in srgb, var(--mauve) 1%, transparent), transparent 60%),
     transparent;
 }
 
-.page { width: 100%; max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+/* The page column is .page-main; it also centers its one panel vertically. */
+.page { align-content: center; }
 
-/* The panel recipe supplies the surface; the padding is this page's. Opaque on
-   purpose — drift.js treats the panel as a solid body words vanish behind.
-
-   The recipe's hairline is dropped: on this page the card is the only surface,
+/* The recipe's hairline is dropped: on this page the card is the only surface,
    so the raise alone is enough to find its edge, and the outline read as a
    drawn box sitting on the drift rather than as a body above it. The raise
-   itself steps down to the soft variant — both sides kept, so the top-left
-   light source still reads, just at half the offset and blur, which stops the
-   halo competing with the one thing moving on the page. */
-.panel {
-  padding: 44px 44px 40px;
-  border: 0;
-  box-shadow: var(--neu-raised-soft);
-}
+   steps down to the soft variant (cn-raised-soft on the element). Opaque on
+   purpose — drift.js treats the panel as a solid body words vanish behind. */
+.panel { border: 0; }
 
 /* --- masthead --- */
 
-.mast { margin-bottom: 30px; }
+.mast { font-size: 34px; }
 
 /* The wordmark: real Inter for s/l/t, a drawn arch for the `a`. The arch SVG is
    exactly one x-height tall and sits on the baseline, so it lines up with the
@@ -99,7 +88,6 @@ body { position: relative; overflow-x: hidden; }
 .logo {
   font-family: var(--sans);
   font-weight: 700;
-  font-size: 34px;
   letter-spacing: -0.015em;
   line-height: 1;
   color: var(--text);
@@ -112,37 +100,10 @@ body { position: relative; overflow-x: hidden; }
   margin: 0 0.06em; /* Inter's measured sidebearing on `n` */
 }
 
-/* --- copy --- */
-
-/* Type comes from .cn-display; only the spacing is local. */
-.headline { margin: 0 0 18px; }
-
 /* --- the command --- */
 
-/* Composes .well: a carved well, because the command is what you reach into
-   and take. The explicit dark fill (the .cn-bg-well mix) is set here because
-   the recipe's own transparent ground wins the cascade order. */
-.command {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 10px 10px 22px;
-  background: color-mix(in srgb, var(--crust) 38%, var(--mantle));
-}
-
-.command-text {
-  display: flex;
-  align-items: center;
-  font: 700 16px/1.4 var(--mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
-  color: var(--text);
-  overflow-x: auto;
-  white-space: nowrap;
-}
-.command-prompt { color: var(--mauve); user-select: none; margin-right: 10px; }
-
+/* The .command recipe supplies the well, the prompt, and the copy button's
+   done state; the blinking caret is this page's. */
 .caret {
   display: inline-block;
   width: 9px;
@@ -151,62 +112,4 @@ body { position: relative; overflow-x: hidden; }
   background: var(--mauve);
   opacity: 0.8;
   animation: blink 1.15s step-end infinite;
-}
-
-/* An icon button, not a worded CTA: the command is the thing being read, and
-   a filled button spelling "Copy" beside it took the eye first. The recipe is
-   flat until hovered, when it tints toward --tone — mauve here, the page's
-   one accent, rather than the token default. */
-.copy {
-  flex: 0 0 auto;
-  --tone: var(--mauve);
-}
-.copy svg { width: 15px; height: 15px; }
-
-/* Copied — the glyph becomes a check and goes green for the moment copy.js
-   holds the state. Both glyphs are in the markup; only which one shows moves,
-   so the swap cannot flash an empty button. */
-.copy .done-glyph { display: none; }
-/* --tone is re-keyed, not just the color: the recipe's hover rule paints from
-   --tone at a higher specificity than this class, and the pointer is by
-   definition on the button the moment it flips — a plain `color` here would
-   lose and show a mauve check. */
-.copy.done { --tone: var(--green); color: var(--green); }
-.copy.done .copy-glyph { display: none; }
-.copy.done .done-glyph { display: block; }
-
-/* --- footer --- */
-
-.foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 8px;
-  font: 500 13px var(--sans);
-  color: var(--overlay-0);
-}
-
-.foot-links { display: flex; gap: 20px; }
-.foot-links a {
-  font: 700 12px/1 var(--sans);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--overlay-1);
-  text-decoration: none;
-  padding-bottom: 2px;
-  border-bottom: 1px solid transparent;
-  transition: color 0.16s ease, border-color 0.16s ease;
-}
-.foot-links a:hover {
-  color: var(--mauve);
-  border-bottom-color: color-mix(in srgb, var(--mauve) 50%, transparent);
-}
-
-@media (max-width: 760px) {
-  .shell { padding: 32px 14px 48px; }
-  .panel { padding: 28px 22px 26px; }
-  .command { padding: 10px 10px 10px 16px; gap: 10px; }
-  .command-text { font-size: 14px; }
-  .foot { flex-direction: column; align-items: flex-start; gap: 12px; }
 }

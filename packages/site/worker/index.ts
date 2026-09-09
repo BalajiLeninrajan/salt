@@ -273,15 +273,15 @@ function expiredPage(url: URL): Response {
 <link rel="stylesheet" href="/utilities.css"/>
 <link rel="stylesheet" href="/recipes.css"/>
 <link rel="stylesheet" href="/styles.css"/>
-<main class="shell"><div class="page page-enter">
-  <section class="panel">
+<div class="app-shell shell page-enter" style="--page-width: 760px"><main class="page-main page">
+  <section class="panel cn-raised-soft cn-p-28">
     <p class="cn-eyebrow">Expired link</p>
     <h1 class="cn-display-sm">This report is gone.</h1>
     <p class="lede">Published reports expire after 30 days. If it was yours, run
       <code class="cn-code">salt</code> again to publish a fresh one.</p>
     <p><a class="btn-text" href="${url.origin}/">What is salt?</a></p>
   </section>
-</div></main>`;
+</main></div>`;
   return new Response(html, {
     status: 404,
     headers: { "content-type": "text/html; charset=utf-8" },
