@@ -4,6 +4,9 @@
 (function () {
   var btn = document.getElementById("copy");
   var cmd = document.getElementById("cmd");
+  // The .command recipe owns the done state: is-copied on the row swaps the
+  // button's glyph and goes green. The tip and label are still ours.
+  var row = btn.closest(".command");
   var revert = null;
   // The button's content is two SVGs, so the state has to live on the class
   // and the tip — writing textContent here would delete the glyphs.
@@ -33,7 +36,7 @@
   btn.addEventListener("click", function () {
     write(btn.getAttribute("data-command")).then(
       function () {
-        btn.classList.add("done");
+        row.classList.add("is-copied");
         btn.setAttribute("data-tip", "Copied");
         btn.setAttribute("aria-label", "Copied");
       },
@@ -53,7 +56,7 @@
 
     clearTimeout(revert);
     revert = setTimeout(function () {
-      btn.classList.remove("done");
+      row.classList.remove("is-copied");
       btn.setAttribute("data-tip", "Copy");
       btn.setAttribute("aria-label", LABEL);
     }, 1800);

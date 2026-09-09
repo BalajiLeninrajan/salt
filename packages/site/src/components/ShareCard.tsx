@@ -244,12 +244,12 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
   }
 
   return (
-    <section className="panel">
+    <section className="panel cn-p-22">
       <p className="eyebrow">08 — Share</p>
-      <h2 className="cn-title section-title">Share card</h2>
-      <p className="cn-meta section-note">rate, top words, nothing else — safe to post anywhere</p>
+      <h2 className="cn-title cn-mb-4">Share card</h2>
+      <p className="cn-meta cn-mb-22">rate, top words, nothing else — safe to post anywhere</p>
 
-      <div className="well chart-well share-well">
+      <div className="well cn-bg-well cn-p-12">
         <canvas
           ref={canvasRef}
           className="share-canvas"
@@ -258,7 +258,7 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
         />
       </div>
 
-      <div className="share-actions">
+      <div className="share-actions cn-cluster cn-gap-12 cn-mt-16">
         <button className="btn btn-primary" onClick={copyPng}>
           {pngState === "copied" ? "Copied" : pngState === "failed" ? "Copy failed" : "Copy PNG"}
         </button>
@@ -267,9 +267,10 @@ export function ShareCard({ report, shareUrl }: { report: Report; shareUrl: stri
         </button>
       </div>
 
-      <div className="share-url">
-        <code className="cn-code">{shareUrl}</code>
-        <button className="btn btn-secondary btn-small" onClick={copyLink}>
+      {/* A carved slot holding the link — borderless, the inset defines it. */}
+      <div className="share-url cn-inset-soft cn-r-control cn-cluster cn-between cn-gap-12 cn-mt-12 cn-px-12 cn-py-8">
+        <code className="cn-code cn-text-subtext-0 cn-min-0">{shareUrl}</code>
+        <button className="btn btn-secondary is-sm cn-fixed cn-auto-l" onClick={copyLink}>
           {linkState === "copied" ? "Copied" : linkState === "failed" ? "Failed" : "Copy link"}
         </button>
       </div>

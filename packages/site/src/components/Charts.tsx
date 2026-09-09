@@ -76,7 +76,7 @@ export function Timeline({
 
   return (
     <>
-      <div className="well chart-well">
+      <div className="well cn-bg-well cn-p-16 chart-well">
         <svg
           viewBox={`0 0 ${W} ${H}`}
           role="img"
@@ -144,17 +144,17 @@ export function Timeline({
           </text>
         </svg>
       </div>
-      <div className="legend">
-        <span className="cn-microlabel legend-item">
+      <div className="cn-cluster cn-gap-16 cn-mt-12">
+        <span className="cn-microlabel cn-row">
           <span className="legend-dot" style={{ background: "var(--surface-2)" }} />
           prompts / day · peak {num.format(maxPrompts)}
         </span>
-        <span className="cn-microlabel legend-item">
+        <span className="cn-microlabel cn-row">
           <span className="legend-dot" style={{ background: "var(--mauve)" }} />
           your swears / day · peak {num.format(Math.max(...userSwears, 0))}
         </span>
         {agentSeries.map((s) => (
-          <span key={s.harness} className="cn-microlabel legend-item">
+          <span key={s.harness} className="cn-microlabel cn-row">
             <span className="legend-dot" style={{ background: AGENT_LINE_COLOR[s.harness] }} />
             {HARNESS_LABEL[s.harness]} back · {num.format(s.total)}
           </span>
@@ -259,7 +259,7 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
   const H = TOP + 7 * (CELL + GAP);
 
   return (
-    <div className="well chart-well heat-scroll">
+    <div className="well cn-bg-well cn-p-16 chart-well cn-scroll-x">
       {/* Natural size, centred: a short report is a small calendar, not a
           handful of enormous squares stretched across the well. */}
       <svg
@@ -327,12 +327,12 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
           }),
         )}
       </svg>
-      <div className="legend heat-legend">
-        <span className="cn-microlabel legend-item">quieter</span>
+      <div className="cn-cluster cn-center cn-gap-4 cn-mt-12">
+        <span className="cn-microlabel">quieter</span>
         {LEVELS.map((fill) => (
           <span key={fill} className="legend-swatch" style={{ background: fill }} />
         ))}
-        <span className="cn-microlabel legend-item">louder</span>
+        <span className="cn-microlabel">louder</span>
       </div>
     </div>
   );

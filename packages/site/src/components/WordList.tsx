@@ -12,15 +12,15 @@ export function WordList({ words }: { words: WordStat[] }) {
       {words.map((w, i) => (
         <div
           key={w.word}
-          className="word-row"
+          className="ranked-row word-row"
           // Focusable so the data-tip bubble (hover / :focus-visible only)
           // is reachable from the keyboard; the sr-only span below carries
           // the same fact for assistive tech.
           tabIndex={0}
           data-tip={`${(w.share * 100).toFixed(1)}% of all swears`}
         >
-          <span className="word-rank">{String(i + 1).padStart(2, "0")}</span>
-          <span>
+          <span className="cn-meta">{String(i + 1).padStart(2, "0")}</span>
+          <span className="cn-row">
             <span className="cn-name">{w.word}</span>
             <span
               className="chip-tone word-tier"
@@ -29,13 +29,13 @@ export function WordList({ words }: { words: WordStat[] }) {
               {w.tier}
             </span>
           </span>
-          <span className="progress-track bar-track">
+          <span className="progress-track cn-block">
             <span
               className="bar-fill"
               style={{ width: `${(w.count / max) * 100}%`, background: TIER_COLOR[w.tier] }}
             />
           </span>
-          <span className="word-count">{num.format(w.count)}</span>
+          <b>{num.format(w.count)}</b>
           <span className="cn-sr-only">
             {(w.share * 100).toFixed(1)}% of all swears
           </span>
