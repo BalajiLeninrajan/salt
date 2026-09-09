@@ -146,55 +146,19 @@
             </button>
           </div>
 
-          <!-- These have to match what the tool actually does. The scan is
-               local, but publishing is the default and the only way to reach
-               the dashboard, so this list says what is uploaded rather than
-               claiming nothing is. -->
         </section>
+
+        <nav class="cn-row cn-end cn-gap-16 cn-mt-16 cn-px-8" aria-label="Links">
+          <!-- TODO: point at the published package once v0.1.0 ships. -->
+          <a class="btn-text" href="https://www.npmjs.com/package/salt-ai">npm</a>
+          <a class="btn-text" href="https://github.com/BalajiLeninrajan/salt">GitHub</a>
+        </nav>
 
         <!-- TODO: real marketing sections — a dashboard screenshot, the
              per-harness comparison, the privacy explainer. -->
 
       </main>
 
-      <footer class="footer-neu">
-        <!-- The wordmark is a <strong>, not a <span>: the recipe styles a
-             direct span child as the trailing note. -->
-        <span class="footer-brand"
-          ><strong class="logo" role="img" aria-label="salt"
-            >s<svg
-              class="logo-a"
-              viewBox="0 0 91 100"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                d="M 13.5 100 L 13.5 45.5 A 32 32 0 0 1 77.5 45.5 L 77.5 100"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="27"
-              />
-              <circle cx="45.5" cy="44" r="8.5" fill="#b4befe" />
-              <rect
-                x="37"
-                y="59"
-                width="17"
-                height="41"
-                rx="8.5"
-                fill="#b4befe"
-              /></svg
-            >lt</strong
-          ><span
-            >Reads your local sessions. Publishes counts, never prompt
-            text.</span
-          ></span
-        >
-        <nav class="cn-row cn-gap-16">
-          <!-- TODO: point at the published package once v0.1.0 ships. -->
-          <a class="btn-text" href="https://www.npmjs.com/package/salt-ai">npm</a>
-          <a class="btn-text" href="https://github.com/BalajiLeninrajan/salt">GitHub</a>
-        </nav>
-      </footer>
     </div>
 
     <script src="/copy.js"></script>

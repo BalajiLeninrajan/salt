@@ -2,7 +2,7 @@
    system itself (tokens.css, utilities.css, recipes.css, index.css) is
    vendored into this directory by `catppuccin-neu-sync`, which runs as the
    site's predev/prebuild/pretest hook. The page frame (app-shell, page-main,
-   panel, command, footer-neu) is all package classes; this file carries only
+   panel, command, the link row) is all package classes; this file carries only
    what is genuinely this page's own: the drifting swears, the wordmark, the
    caret, and the ambient wash.
 
