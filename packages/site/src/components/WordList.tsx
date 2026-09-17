@@ -3,12 +3,17 @@ import { TIER_COLOR } from "@salt/core";
 
 const num = new Intl.NumberFormat("en-US");
 
-/** Ranked word rows: rank, word, tier chip, tier-colored bar, count. */
+/**
+ * Ranked word rows: rank, word, tier chip, tier-colored bar, count.
+ *
+ * Emits the rows bare, with no wrapper, so they can be direct children of a
+ * panel and run edge to edge; the recipe rounds the last row into the corner.
+ */
 export function WordList({ words }: { words: WordStat[] }) {
   const max = Math.max(...words.map((w) => w.count), 1);
 
   return (
-    <div>
+    <>
       {words.map((w, i) => (
         <div
           key={w.word}
@@ -41,6 +46,6 @@ export function WordList({ words }: { words: WordStat[] }) {
           </span>
         </div>
       ))}
-    </div>
+    </>
   );
 }
