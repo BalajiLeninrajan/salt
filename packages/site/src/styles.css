@@ -35,6 +35,11 @@
 
 /* ── topbar ────────────────────────────────────────────────────────────── */
 
+/* No rubber-band at the top of the page. The bar is sticky, so the elastic
+   overscroll dragged it down with the document; with the bounce off it stays
+   put. */
+html { overscroll-behavior-y: none; }
+
 /* The recipe fades the bar's rule and cast in over the first 60px of scroll,
    so at the top of the page the bar and the page were one surface. On a
    mantle fill the bar is its own band, and it keeps its bottom rule at rest
