@@ -89,13 +89,13 @@ function Frame({ report, children }: { report?: Report; children: ReactNode }) {
   const when = report && snapshot(report);
   return (
     <div className="app-shell" style={{ ["--page-width" as string]: "1080px" }}>
-      <header className="topbar is-split is-compact">
+      <header className="topbar is-split cn-bg-mantle">
         <a className="wordmark is-lg" href="/">
           <Logo />
         </a>
         {when && (
           <div className="cn-row cn-gap-12">
-            <span className="cn-meta topbar-meta">
+            <span className="cn-meta cn-text-subtext-0 topbar-meta">
               Taken {when.generated} · link expires {when.expires}
             </span>
             <CopyLink url={window.location.href} />

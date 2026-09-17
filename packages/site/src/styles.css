@@ -33,6 +33,17 @@
 
 .wordmark:hover { opacity: 0.8; }
 
+/* ── topbar ────────────────────────────────────────────────────────────── */
+
+/* The recipe fades the bar's rule and cast in over the first 60px of scroll,
+   so at the top of the page the bar and the page were one surface. On a
+   mantle fill the bar is its own band, and it keeps its bottom rule at rest
+   so the edge is there before anyone scrolls. */
+.topbar {
+  animation: none;
+  border-bottom-color: var(--surface-0);
+}
+
 /* ── hero ──────────────────────────────────────────────────────────────── */
 
 /* Composes cn-grid-2; the ratio is this page's, and the split holds until the
