@@ -86,7 +86,7 @@ export const TIER_WEIGHT: Record<Tier, number> = {
   acronym: 6,
 };
 
-/** Tier drives the accent channel on word rows and the share card. */
+/** Tier drives the accent channel on word rows and chips. */
 export const TIER_COLOR: Record<Tier, string> = {
   mild: "var(--overlay-2)",
   medium: "var(--yellow)",

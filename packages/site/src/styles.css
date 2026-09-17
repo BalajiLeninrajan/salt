@@ -1,30 +1,21 @@
 /* salt report dashboard — thin local layer over catppuccin-neu, which arrives
    through main.tsx (`import "catppuccin-neu/css/index.css"`). Surfaces, type
-   roles, depth, layout, buttons, and the table all come from the package as
-   classes on the elements; this file carries the dashboard's own geometry
-   (the hero ratio, the word-row columns, the chart SVGs, the wordmark) and
-   the few salt-only treatments.
+   roles, depth, layout, buttons, the bar, and the table all come from the
+   package as classes on the elements; this file carries the dashboard's own
+   geometry (the hero number and ratio, the word-row columns, the chart SVGs,
+   the wordmark) and the few salt-only treatments.
 
    Contract bridge: the report components set --entity-color and --tier-color
    inline (drift-stable names, read as strings at runtime elsewhere in this
    repo, so they are never renamed); the bridges below map them onto the
    package's --accent / --tone contract props. */
 
-/* ── hero ──────────────────────────────────────────────────────────────── */
+/* ── wordmark ──────────────────────────────────────────────────────────── */
 
-/* Composes cn-grid-2; the ratio is this page's, and the split holds until the
-   tilted card flattens (the package's 1060 breakpoint), not the grid's 520. */
-.hero { grid-template-columns: 1.15fr 0.85fr; }
-
-.hero-main {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* The wordmark: real Inter for s/l/t, a drawn arch for the `a`. The arch SVG
-   is exactly one x-height tall and sits on the baseline, so it lines up with
-   the text without any nudging. */
+/* Real Inter for s/l/t, a drawn arch for the `a`. The arch SVG is exactly
+   one x-height tall and sits on the baseline, so it lines up with the text
+   without any nudging. Sized by the font-size of whatever holds it: the
+   topbar's `wordmark is-lg`, or the empty state. */
 .logo {
   font-family: var(--sans);
   font-weight: 700;
@@ -40,11 +31,44 @@
   margin: 0 0.06em; /* Inter's measured sidebearing on `n` */
 }
 
-/* The wordmark doubles as the way back to the landing page. */
-.logo-link { text-decoration: none; }
-.logo-link:hover { opacity: 0.8; }
+.wordmark:hover { opacity: 0.8; }
 
-.hero-logo { align-self: flex-start; font-size: 34px; }
+/* ── topbar ────────────────────────────────────────────────────────────── */
+
+/* No rubber-band at the top of the page. The bar is sticky, so the elastic
+   overscroll dragged it down with the document; with the bounce off it stays
+   put. */
+html { overscroll-behavior-y: none; }
+
+/* The recipe fades the bar's rule and cast in over the first 60px of scroll,
+   so at the top of the page the bar and the page were one surface. On a
+   mantle fill the bar is its own band, and it keeps its bottom rule at rest
+   so the edge is there before anyone scrolls. */
+.topbar {
+  animation: none;
+  border-bottom-color: var(--surface-0);
+}
+
+/* ── hero ──────────────────────────────────────────────────────────────── */
+
+/* Composes cn-grid-2; the ratio is this page's, and the split holds until the
+   tilted card flattens (the package's 1060 breakpoint), not the grid's 520. */
+.hero { grid-template-columns: 1.15fr 0.85fr; }
+
+.hero-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* The one number the page is about. Bigger than any shipped display role:
+   it sits on the page ground with nothing around it, and at 46px it read as
+   a stat, not a headline. */
+.hero-number {
+  font: 800 clamp(72px, 9vw, 112px) / 0.95 var(--sans);
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
 
 /* Composes cn-stack; the rows sit in the middle of the tilted card. */
 .hero-card { align-content: center; }
@@ -69,7 +93,13 @@
 
 /* ── word rows — ranked-row on a fixed column grid ─────────────────────── */
 
-.word-row { display: grid; grid-template-columns: 24px 1fr 120px 56px; }
+/* The rows are direct children of the panel, so their inline padding meets
+   the panel body's 22px rather than the recipe's 14px. */
+.word-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 120px 56px;
+  padding-inline: 22px;
+}
 
 /* Composes `chip-tone`, keyed by the word's tier. */
 .word-tier { --tone: var(--tier-color); }
@@ -117,21 +147,13 @@
   outline-offset: 3px;
 }
 
-/* ── share ─────────────────────────────────────────────────────────────── */
+/* ── methodology — fine print on the page ground ───────────────────────── */
 
-.share-canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
+.methodology {
+  border-top: 1px solid var(--surface-0);
+  padding-top: 22px;
 }
-
-/* The link breaks anywhere rather than pushing the slot wide. */
-.share-url code { overflow-wrap: anywhere; }
-
-/* ── methodology ───────────────────────────────────────────────────────── */
-
-.methodology { padding-left: 18px; }
+.methodology-list { padding-left: 18px; }
 /* Inline machine literals — the one mono voice in the footer. */
 .methodology code {
   font: 500 12px/1 var(--mono);
@@ -144,12 +166,11 @@
 /* ── empty / loading states ────────────────────────────────────────────── */
 
 /* Composes the package `.empty-state` recipe; only layout is local. */
-.state { min-height: 70vh; }
+.state { min-height: 60vh; }
 .state span {
   max-width: 44ch;
   line-height: 1.6;
 }
-.state-logo { font-size: 40px; }
 
 /* ── responsive ────────────────────────────────────────────────────────── */
 
@@ -159,9 +180,16 @@
 }
 
 @media (max-width: 760px) {
+  /* The dates are decoration next to the button at phone width. */
+  .topbar-meta { display: none; }
   .word-row { grid-template-columns: 20px 1fr 70px 44px; gap: 10px; }
   /* table-neu stacks into cards here; a right-aligned number floats in its
      grid cell, so the numbers go back to reading flush left. */
   .projects td { text-align: left; }
-  .share-actions .btn { flex: 1; }
+}
+
+@media (max-width: 520px) {
+  /* Four short counters read fine two abreast on a phone; a single column
+     of them was four rows for four numbers. */
+  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
