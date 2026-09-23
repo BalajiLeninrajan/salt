@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AgentDayStat, DayStat } from "@salt/core";
 import {
+  agentVerdict,
   depositDays,
   fillPercent,
   jarCapacity,
@@ -115,5 +116,39 @@ describe("monthStarts", () => {
       { index: 0, month: "Jun" },
       { index: 21, month: "Jul" },
     ]);
+  });
+});
+
+describe("agentVerdict", () => {
+  const agent = (swears: number, per100: number) => ({ swears, per100, messages: 15000 });
+
+  it("says so when the agent never swore", () => {
+    expect(agentVerdict({ swears: 662, per100: 7.1 }, agent(0, 0))).toBe(
+      "Not once in 15,000 replies.",
+    );
+  });
+
+  it("never prints Infinity when you never swore", () => {
+    const v = agentVerdict({ swears: 0, per100: 0 }, agent(18, 0.12));
+    expect(v).toBe("You never swore, so it out-swore you.");
+    expect(v).not.toContain("Infinity");
+  });
+
+  it("puts the bigger swearer first", () => {
+    expect(agentVerdict({ swears: 662, per100: 7.1 }, agent(18, 0.12))).toBe(
+      "You swear 59 times as often, per message.",
+    );
+    expect(agentVerdict({ swears: 3, per100: 0.1 }, agent(90, 0.6))).toBe(
+      "It swears 6 times as often as you, per message.",
+    );
+  });
+
+  it("calls near-equal rates even", () => {
+    expect(agentVerdict({ swears: 10, per100: 1 }, agent(12, 1.2))).toBe(
+      "About as often as you, per message.",
+    );
+    expect(agentVerdict({ swears: 10, per100: 1 }, agent(9, 0.9))).toBe(
+      "About as often as you, per message.",
+    );
   });
 });

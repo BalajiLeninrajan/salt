@@ -11,6 +11,7 @@ import { AGENT_LINE_COLOR, HARNESS_LABEL, REPORT_TTL_DAYS, TIER_COLOR } from "@s
 import { CopyCommand, CopyLink } from "./components/CopyLink";
 import { Logo } from "./components/Logo";
 import {
+  agentVerdict,
   depositDays,
   fillPercent,
   HARNESSES,
@@ -65,22 +66,34 @@ const vars = (v: Record<string, string | number>) => v as CSSProperties;
 
 export default function App() {
   const [report, setReport] = useState<Report | null>(null);
-  const [failed, setFailed] = useState(false);
+  // "gone" only when there is no id or the store says 404: that report is
+  // expired for good. Anything else (a 5xx, a dropped connection) can
+  // succeed on a retry, so it must not claim the numbers are gone.
+  const [failed, setFailed] = useState<"gone" | "error" | null>(REPORT_ID ? null : "gone");
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (!REPORT_ID) {
-      setFailed(true);
-      return;
-    }
+    if (!REPORT_ID) return;
     fetch(`/api/report/${REPORT_ID}`)
-      .then((r) =>
-        r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)),
-      )
-      .then(setReport)
-      .catch(() => setFailed(true));
-  }, []);
+      .then((r) => {
+        if (r.status === 404) return setFailed("gone");
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json().then(setReport);
+      })
+      .catch(() => setFailed("error"));
+  }, [attempt]);
 
-  if (failed) return <EmptyState />;
+  if (failed === "gone") return <EmptyState />;
+  if (failed === "error") {
+    return (
+      <LoadError
+        onRetry={() => {
+          setFailed(null);
+          setAttempt((n) => n + 1);
+        }}
+      />
+    );
+  }
   if (!report) {
     return (
       <Frame>
@@ -154,6 +167,26 @@ function EmptyState() {
           good. Fill a new one from your own machine.
         </p>
         <CopyCommand command="npx salt-ai" />
+        <a className="btn-text" href="/">
+          What is salt?
+        </a>
+      </main>
+    </Frame>
+  );
+}
+
+/** The report may still exist; the fetch failed. Say so and offer a retry. */
+function LoadError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <Frame>
+      <main className="page-main is-narrow">
+        <div className="empty-state" role="alert">
+          <strong>Couldn't load this report</strong>
+          <span>The link is fine. The server or your connection didn't answer.</span>
+          <button type="button" className="btn btn-secondary cn-mt-12" onClick={onRetry}>
+            Try again
+          </button>
+        </div>
       </main>
     </Frame>
   );
@@ -191,6 +224,7 @@ function Jar({
     >
       <div className="st-lid" />
       <div className="st-glass well cn-bg-well">
+        <div className="st-inside">
         {fill > 0 && (
           <div
             // A sliver has no room for gaps between plates; they would read
@@ -207,6 +241,7 @@ function Jar({
             ))}
           </div>
         )}
+        </div>
       </div>
     </figure>
   );
@@ -372,17 +407,10 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
     .filter((h) => h.messages > 0)
     .sort((x, y) => y.swears - x.swears);
   const words = report.agent_top_words.slice(0, 3);
-  const userRate = report.totals.swears_per_100_prompts;
-  const ratio = a.swears_per_100_messages > 0 ? userRate / a.swears_per_100_messages : null;
-
-  const verdict =
-    a.swears === 0
-      ? `Not once in ${num.format(a.messages)} replies.`
-      : ratio !== null && ratio >= 2
-        ? `You swear ${ratio.toFixed(0)} times as often, per message.`
-        : ratio !== null && ratio <= 0.5
-          ? `It swears ${(1 / ratio).toFixed(0)} times as often as you, per message.`
-          : "About as often as you, per message.";
+  const verdict = agentVerdict(
+    { swears: report.totals.swears, per100: report.totals.swears_per_100_prompts },
+    { swears: a.swears, per100: a.swears_per_100_messages, messages: a.messages },
+  );
   const said =
     words.length > 0
       ? ` It said ${words.map((w) => `${w.word} ${num.format(w.count)}`).join(", ")}.`
@@ -390,7 +418,7 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
 
   return (
     <aside className="panel is-tilted">
-      <div className="panel-body cn-stack cn-gap-16">
+      <div className="panel-body st-agents">
         <div>
           <h2 className="cn-title cn-m-0">Does the agent swear back?</h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">Its jar, on the same scale as yours.</p>
@@ -403,6 +431,7 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
           />
           <div className="st-shelf" aria-hidden="true" />
         </div>
+        <div className="cn-stack cn-gap-16">
         <p className="cn-copy cn-m-0">
           {coins(a.swears)} in {num.format(a.messages)} replies. {verdict}
           {said}
@@ -419,6 +448,7 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
             ))}
           </dl>
         )}
+        </div>
       </div>
     </aside>
   );
@@ -454,7 +484,8 @@ function Deposits({ report }: { report: Report }) {
           </h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">
             One coin per swear, one stack per day, {num.format(active)} active days.
-            {peak.total > 0 && ` The tallest stack is ${num.format(peak.total)}, on ${dayOf(peak.date)}.`}
+            {peak.total > 0 &&
+              ` The tallest stack is ${coins(peak.total)}, yours and the agents', on ${dayOf(peak.date)}.`}
             {excluded > 0 &&
               ` ${num.format(excluded)} Cursor prompts are dated by session, since Cursor keeps no per-message time.`}
           </p>
@@ -463,6 +494,9 @@ function Deposits({ report }: { report: Report }) {
           <li className="legend-item" style={vars({ "--tone": "var(--mauve)" })}>
             You
           </li>
+          {/* The hero's key uses these hues for where you typed. Here they
+              are the agents' own swears, so the group says whose they are. */}
+          {agents.length > 0 && <li className="legend-item st-legend-group">Agents</li>}
           {agents.map((h) => (
             <li key={h} className="legend-item" style={vars({ "--tone": TONE[h] })}>
               {HARNESS_LABEL[h]}

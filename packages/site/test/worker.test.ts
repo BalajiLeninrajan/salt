@@ -112,11 +112,11 @@ describe("GET /r/:id", () => {
     expect(html).toContain('<div id="root">');
 
     // The shell's own <title>salt</title> must be replaced, not shadowed.
-    expect(html).toContain("<title>4.2 swears per 100 prompts — salt</title>");
+    expect(html).toContain("<title>4.2 swears per 100 prompts, salt</title>");
     expect(html).not.toContain("<title>salt</title>");
 
     expect(html).toContain(
-      '<meta property="og:title" content="4.2 swears per 100 prompts — salt"/>',
+      '<meta property="og:title" content="4.2 swears per 100 prompts, salt"/>',
     );
     expect(html).toContain(
       '<meta property="og:description" content="42 swears across 1,000 prompts typed at coding agents."/>',

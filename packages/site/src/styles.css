@@ -80,11 +80,18 @@ html { overscroll-behavior-y: none; }
 .st-glass {
   width: 100%;
   height: var(--jar-h);
+  padding: var(--space-2);
+  border-radius: 22% 22% 34% 34% / 9% 9% 16% 16%;
+}
+/* The inside of the glass, its curve inset by the padding. It clips the
+   coins, so a sliver follows the rounded base instead of running past it. */
+.st-inside {
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: var(--space-2);
-  border-radius: 22% 22% 34% 34% / 9% 9% 16% 16%;
+  overflow: clip;
+  border-radius: 20% 20% 32% 32% / 7% 7% 14% 14%;
 }
 .st-fill {
   display: flex;
@@ -93,7 +100,7 @@ html { overscroll-behavior-y: none; }
   height: var(--fill);
   min-height: 3px;
   overflow: clip;
-  border-radius: var(--cn-radius-chip) var(--cn-radius-chip) 30% 30% / var(--cn-radius-chip) var(--cn-radius-chip) 16% 16%;
+  border-radius: var(--cn-radius-chip) var(--cn-radius-chip) 0 0;
   transform-origin: bottom;
   animation: st-pour .9s var(--ease-out) .18s backwards;
 }
@@ -129,6 +136,11 @@ html { overscroll-behavior-y: none; }
 .st-stand > .st-shelf { grid-column: 1 / -1; }
 .st-key { padding-bottom: var(--space-5); }
 .st-stats { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-6); }
+
+/* The aside: its heading, the jar, then what the jar says. Once the aside
+   drops under the word list, the jar and its text sit side by side, so the
+   jar keeps the page's one scale without a screen of empty glass. */
+.st-agents { display: grid; gap: var(--space-4); }
 
 /* Contents and the agents' jar side by side. */
 .st-split {
@@ -173,6 +185,9 @@ html { overscroll-behavior-y: none; }
 .st-days > span > * { flex: var(--n) 1 0; }
 .st-days .st-coins { --stripe: max(var(--coin), 4px); }
 .st-days > .is-quiet { height: 2px; background: var(--surface-1); animation: none; }
+/* "Agents" heads the harness items in the day key: a word, no swatch. */
+.st-legend-group { color: var(--overlay-2); }
+.st-legend-group::before { content: none; }
 .st-months { position: relative; height: 16px; margin-top: var(--space-2); }
 .st-months span { position: absolute; top: 0; }
 
@@ -200,6 +215,9 @@ html { overscroll-behavior-y: none; }
 @media (max-width: 900px) {
   .st-split { grid-template-columns: minmax(0, 1fr); }
   .st-split > aside { width: min(100%, 420px); }
+  .st-agents { grid-template-columns: auto minmax(0, 1fr); align-items: end; }
+  .st-agents > :first-child { grid-column: 1 / -1; }
+  .st-agents > .st-shelved > .st-shelf { width: calc(var(--jar-w) + 16px); }
 }
 @media (max-width: 760px) {
   .st-hero { grid-template-columns: minmax(0, 1fr); }

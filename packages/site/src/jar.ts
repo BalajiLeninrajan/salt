@@ -126,3 +126,22 @@ export function oneIn(prompts: number, salty: number): number | null {
   if (salty <= 0 || prompts <= 0) return null;
   return Math.max(1, Math.round(prompts / salty));
 }
+
+/**
+ * How the agents' swearing compares with yours, per message. The two rates
+ * are per 100 prompts and per 100 replies, so the ratio is a like-for-like
+ * "per message". A side with no swears at all gets its own sentence, since
+ * a ratio against zero is no number to print.
+ */
+export function agentVerdict(
+  you: { swears: number; per100: number },
+  agent: { swears: number; per100: number; messages: number },
+): string {
+  if (agent.swears === 0) return `Not once in ${agent.messages.toLocaleString("en-US")} replies.`;
+  if (you.swears === 0 || you.per100 <= 0) return "You never swore, so it out-swore you.";
+  if (agent.per100 <= 0) return "About as often as you, per message.";
+  const ratio = you.per100 / agent.per100;
+  if (ratio >= 2) return `You swear ${ratio.toFixed(0)} times as often, per message.`;
+  if (ratio <= 0.5) return `It swears ${(1 / ratio).toFixed(0)} times as often as you, per message.`;
+  return "About as often as you, per message.";
+}

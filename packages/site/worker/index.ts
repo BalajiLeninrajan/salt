@@ -219,7 +219,7 @@ async function reportPage(id: string, env: Env, url: URL): Promise<Response> {
   const html = await shell.text();
 
   const t = report.totals;
-  const title = `${t.swears_per_100_prompts.toFixed(1)} swears per 100 prompts — salt`;
+  const title = `${t.swears_per_100_prompts.toFixed(1)} swears per 100 prompts, salt`;
   const description =
     `${t.swears.toLocaleString("en-US")} swears across ` +
     `${t.prompts.toLocaleString("en-US")} prompts typed at coding agents.`;
