@@ -1,10 +1,25 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import type { ProjectStat, Report } from "@salt/core";
-import { HARNESS_COLOR, HARNESS_LABEL, REPORT_TTL_DAYS, TIER_COLOR } from "@salt/core";
-import { Calendar, Timeline } from "./components/Charts";
-import { CopyLink } from "./components/CopyLink";
+import { AGENT_LINE_COLOR, HARNESS_LABEL, REPORT_TTL_DAYS, TIER_COLOR } from "@salt/core";
+import { CopyCommand, CopyLink } from "./components/CopyLink";
 import { Logo } from "./components/Logo";
-import { WordList } from "./components/WordList";
+import {
+  depositDays,
+  fillPercent,
+  HARNESSES,
+  jarCapacity,
+  monthStarts,
+  oneIn,
+  sharePercent,
+  type Harness,
+} from "./jar";
 
 const num = new Intl.NumberFormat("en-US");
 
@@ -16,28 +31,37 @@ declare global {
 }
 
 /**
- * This page addresses the person who ran and published the report in the
- * second person ("you"), even though anyone with the link can view it.
- * Keep the copy about the numbers — data-handling details live in the
- * methodology footer, not sprinkled through every section.
+ * The report is a swear jar: every swear dropped one coin in. Each section
+ * reads one part of the jar (how full it is and who filled it, what is in
+ * it, the agents' jar at the same scale, the day each coin went in, where the
+ * jar sat), so the page is built around that one object.
+ *
+ * The page addresses the person who ran and published the report as "you",
+ * even though anyone with the link can view it. Data-handling details live in
+ * the methodology footer, not in every section.
  */
 const REPORT_ID =
   typeof window === "undefined" ? undefined : window.__SALT_REPORT_ID__;
 
-const dateFmt = new Intl.DateTimeFormat(undefined, {
+/** Harness tones as package tokens, the same hues as HARNESS_COLOR. */
+const TONE: Record<Harness, string> = AGENT_LINE_COLOR;
+
+const longDate = new Intl.DateTimeFormat(undefined, {
   year: "numeric",
-  month: "short",
+  month: "long",
   day: "numeric",
 });
+const dayDate = new Intl.DateTimeFormat(undefined, {
+  month: "long",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const dayOf = (date: string) => dayDate.format(new Date(`${date}T00:00:00Z`));
 
-function snapshot(report: Report) {
-  const generated = new Date(report.generated_at);
-  const expires = new Date(generated.getTime() + REPORT_TTL_DAYS * 86_400_000);
-  return {
-    generated: dateFmt.format(generated),
-    expires: dateFmt.format(expires),
-  };
-}
+const coins = (n: number) => `${num.format(n)} ${n === 1 ? "coin" : "coins"}`;
+
+/** Custom properties inline, typed once. */
+const vars = (v: Record<string, string | number>) => v as CSSProperties;
 
 export default function App() {
   const [report, setReport] = useState<Report | null>(null);
@@ -60,306 +84,471 @@ export default function App() {
   if (!report) {
     return (
       <Frame>
-        <div className="empty-state state">
-          <span>loading report…</span>
-        </div>
+        <main className="page-main">
+          <div className="empty-state">
+            <span>Loading the report</span>
+          </div>
+        </main>
       </Frame>
     );
   }
+  return <ReportPage report={report} />;
+}
+
+function ReportPage({ report }: { report: Report }) {
+  // One capacity for every jar on the page, so the hero jar is to scale and
+  // the agents' jar is filled on the same one.
+  const capacity = jarCapacity(report.totals.swears, report.agent.swears);
+  const showAgents = report.agent.messages > 0;
 
   return (
-    <Frame report={report}>
-      <Hero report={report} />
-      <ByHarness report={report} />
-      <Vocabulary report={report} />
-      <OtherSide report={report} />
-      <OverTime report={report} />
-      <Where report={report} />
-      <Methodology report={report} />
+    <Frame action={<CopyLink url={window.location.href} />}>
+      <main className="page-main page-enter cn-stack cn-gap-32 st-report">
+        <Hero report={report} capacity={capacity} />
+        <div className={showAgents ? "st-split" : undefined}>
+          <Contents report={report} />
+          {showAgents && <AgentJar report={report} capacity={capacity} />}
+        </div>
+        <Deposits report={report} />
+        <Where report={report} />
+        <Methodology report={report} />
+      </main>
     </Frame>
   );
 }
 
 /**
- * The page frame: a compact bar with the wordmark and the one action this
- * page has, then the page column. The bar is sticky, so the link is always
- * one click away no matter how far down the report the reader has got.
+ * The page frame: a compact bar with the wordmark and, on a report, the one
+ * action the page has. The bar is sticky, so the link is always one click
+ * away however far down the report the reader has got.
  */
-function Frame({ report, children }: { report?: Report; children: ReactNode }) {
-  const when = report && snapshot(report);
+function Frame({ action, children }: { action?: ReactNode; children: ReactNode }) {
   return (
-    <div className="app-shell" style={{ ["--page-width" as string]: "1080px" }}>
+    <div className="app-shell" style={vars({ "--page-width": "1080px" })}>
       <header className="topbar is-split cn-bg-mantle">
         <a className="wordmark is-lg" href="/">
           <Logo />
         </a>
-        {when && (
-          <div className="cn-row cn-gap-12">
-            <span className="cn-stack cn-gap-4 cn-meta cn-text-subtext-0 cn-text-right">
-              <span className="cn-nowrap">Taken {when.generated}</span>
-              <span className="cn-nowrap">Expires {when.expires}</span>
-            </span>
-            <CopyLink url={window.location.href} />
-          </div>
-        )}
+        {action}
       </header>
-      <main className="page-main page-enter cn-stack cn-gap-32">{children}</main>
+      {children}
     </div>
   );
 }
 
-/** No id, or the id no longer resolves — reports expire on purpose. */
+/**
+ * No id, or the id no longer resolves: reports expire on purpose. The same
+ * jar with nothing in it, and the command that fills a new one.
+ */
 function EmptyState() {
   return (
     <Frame>
-      <div className="empty-state state">
-        <strong>this page carries no report</strong>
-        <span>
-          the link may have expired. Reports live for {REPORT_TTL_DAYS} days,
-          then the numbers are gone for good
-        </span>
-      </div>
+      <main className="page-main is-narrow page-enter st-gone">
+        <div className="st-shelved" aria-hidden="true">
+          <Jar capacity={1} />
+          <div className="st-shelf" />
+        </div>
+        <h1 className="cn-display is-sm cn-m-0">This jar was emptied.</h1>
+        <p className="cn-lede cn-m-0">
+          Reports live for {REPORT_TTL_DAYS} days, then the numbers are gone for
+          good. Fill a new one from your own machine.
+        </p>
+        <CopyCommand command="npx salt-ai" />
+      </main>
     </Frame>
   );
 }
 
-/** Title and the one line under it that every panel opens with. */
-function Heading({ title, note }: { title: string; note: ReactNode }) {
+interface Coins {
+  key: string;
+  n: number;
+  tone: string;
+}
+
+/**
+ * A jar: a raised lid on a carved glass, filled from the bottom to its share
+ * of `capacity` with coin-striped plates. `stack` runs bottom first, and each
+ * plate's share of the fill is its share of the coins.
+ */
+function Jar({
+  stack = [],
+  capacity,
+  label,
+}: {
+  stack?: Coins[];
+  capacity: number;
+  label?: string;
+}) {
+  const total = stack.reduce((s, c) => s + c.n, 0);
+  const fill = fillPercent(total, capacity);
+  const shown = stack.filter((c) => c.n > 0).reverse();
   return (
-    <>
-      <h2 className="cn-title cn-m-0">{title}</h2>
-      <p className="cn-meta cn-mt-4 cn-mb-0">{note}</p>
-    </>
+    <figure
+      className="st-jar cn-m-0"
+      role={label ? "img" : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+    >
+      <div className="st-lid" />
+      <div className="st-glass well cn-bg-well">
+        {fill > 0 && (
+          <div
+            // A sliver has no room for gaps between plates; they would read
+            // as more coins than there are.
+            className={`st-fill${fill < 6 ? " is-sliver" : ""}`}
+            style={vars({ "--fill": `${fill}%` })}
+          >
+            {shown.map((c) => (
+              <span
+                key={c.key}
+                className="st-coins"
+                style={vars({ "--n": c.n, "--accent": c.tone })}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </figure>
   );
 }
 
-function Hero({ report }: { report: Report }) {
+function Hero({ report, capacity }: { report: Report; capacity: number }) {
   const t = report.totals;
   const salty = t.prompts ? (100 * t.prompts_with_swear) / t.prompts : 0;
-  // "One prompt in N" reads better than a percentage on a first screen.
-  const every = t.prompts_with_swear ? Math.round(t.prompts / t.prompts_with_swear) : 0;
-  const line =
-    t.swears === 0
+  const every = oneIn(t.prompts, t.prompts_with_swear);
+  const taken = new Date(report.generated_at);
+  const expires = new Date(taken.getTime() + REPORT_TTL_DAYS * 86_400_000);
+  const rate = `That is ${t.swears_per_100_prompts.toFixed(1)} swears for every 100 prompts you typed.`;
+
+  // Largest at the bottom of the jar; the key reads top down, like the jar.
+  const used = report.by_harness
+    .filter((h) => h.prompts > 0)
+    .sort((a, b) => b.swears - a.swears);
+  const stack = used.map((h) => ({ key: h.harness, n: h.swears, tone: TONE[h.harness] }));
+  const worst = used.length > 1 ? used.reduce((a, b) => (b.rate > a.rate ? b : a)) : null;
+
+  const lede =
+    t.swears === 0 || every === null
       ? `Not a single swear in ${num.format(t.prompts)} prompts.`
-      : every <= 1
-        ? "Nearly every prompt has a swear in it."
-        : `One prompt in ${num.format(every)} has a swear in it.`;
-  // With one harness there is no comparison to draw below, so the hero says
-  // where the swearing went instead.
-  const used = report.by_harness.filter((h) => h.prompts > 0);
-  const where = used.length === 1 ? ` All of it at ${HARNESS_LABEL[used[0]!.harness]}.` : "";
+      : every === 1
+        ? `Nearly every prompt cost you a coin. ${rate}`
+        : `One prompt in ${num.format(every)} cost you a coin. ${rate}`;
 
   return (
-    <header className="hero cn-grid-2 cn-gap-32">
-      {/* The number sits on the page ground: a box around a single figure
-          reads as a widget, not a headline. */}
-      <section className="hero-main">
-        <p className="cn-label cn-m-0">Swears per 100 prompts</p>
-        <p className="hero-number cn-text-text cn-mt-8 cn-mb-0">
-          {t.swears_per_100_prompts.toFixed(1)}
+    <header className="st-hero">
+      <div className="cn-stack cn-gap-24">
+        <h1 className="cn-display cn-m-0">
+          {t.swears === 0 ? (
+            <>
+              Your swear jar is <em>empty</em>.
+            </>
+          ) : (
+            <>
+              You dropped <em>{coins(t.swears)}</em> in the swear jar.
+            </>
+          )}
+        </h1>
+        <p className="cn-lede cn-m-0">{lede}</p>
+        <div className="st-stats">
+          <div className="stat cn-p-0">
+            <span>Salty prompts</span>
+            <strong className="cn-text-text">{salty.toFixed(1)}%</strong>
+          </div>
+          <div className="stat cn-p-0">
+            <span>Prompts</span>
+            <strong className="cn-text-text">{num.format(t.prompts)}</strong>
+          </div>
+          <div className="stat cn-p-0">
+            <span>Sessions</span>
+            <strong className="cn-text-text">{num.format(t.sessions)}</strong>
+          </div>
+        </div>
+        <p className="cn-meta cn-m-0">
+          Taken {longDate.format(taken)}. The jar is emptied on{" "}
+          {longDate.format(expires)}, when this link expires.
         </p>
-        <p className="cn-lede cn-mt-12 cn-mb-0">{line + where}</p>
-      </section>
+      </div>
 
-      {/* Signature flourish via `panel is-tilted`; the stack is the package's. */}
-      <section className="panel is-tilted cn-p-24 cn-stack cn-gap-16 hero-card">
-        <div className="stat is-inline">
-          <span>Swears</span>
-          <strong className="cn-value cn-text-text">{num.format(t.swears)}</strong>
+      <div className="st-stand">
+        <Jar
+          stack={stack}
+          capacity={capacity}
+          label={`${coins(t.swears)} in a jar that holds ${num.format(capacity)}`}
+        />
+        <div className="cn-stack cn-gap-12 st-key">
+          <div className="cn-row cn-between cn-baseline cn-gap-12">
+            <h2 className="cn-name cn-m-0">Who you swore at</h2>
+            <span className="cn-label cn-nowrap">coins · rate</span>
+          </div>
+          <div className="cn-divide">
+            {[...used].reverse().map((h) => (
+              <div key={h.harness} className="stat is-inline">
+                <span className="legend-item cn-name" style={vars({ "--tone": TONE[h.harness] })}>
+                  {HARNESS_LABEL[h.harness]}
+                </span>
+                <span className="cn-meta cn-auto-l">{num.format(h.swears)}</span>
+                <b className="cn-value">{h.rate.toFixed(1)}</b>
+              </div>
+            ))}
+          </div>
+          <p className="cn-meta cn-m-0">
+            {worst && worst.swears > 0 &&
+              `${HARNESS_LABEL[worst.harness]} takes the most, at ${worst.rate.toFixed(1)} per 100 prompts. `}
+            Every jar on this page holds {num.format(capacity)} coins.
+          </p>
         </div>
-        <div className="stat is-inline">
-          <span>Prompts</span>
-          <strong className="cn-value cn-text-text">{num.format(t.prompts)}</strong>
-        </div>
-        <div className="stat is-inline">
-          <span>Salty prompts</span>
-          <strong className="cn-value cn-text-text">{salty.toFixed(1)}%</strong>
-        </div>
-        <div className="stat is-inline">
-          <span>Sessions</span>
-          <strong className="cn-value cn-text-text">{num.format(t.sessions)}</strong>
-        </div>
-      </section>
+        <div className="st-shelf" aria-hidden="true" />
+      </div>
     </header>
   );
 }
 
-function ByHarness({ report }: { report: Report }) {
-  const rows = report.by_harness.filter((r) => r.prompts > 0);
-  // One harness is not a comparison; the hero already names it.
-  if (rows.length < 2) return null;
-  const max = Math.max(...rows.map((r) => r.rate), 0.0001);
-  const worst = rows.reduce((a, b) => (b.rate > a.rate ? b : a));
-
-  // The finding is the subtitle. A banner restating what three cards already
-  // show was one more box on a page that had too many.
-  const note =
-    worst.swears > 0
-      ? `${HARNESS_LABEL[worst.harness]} takes the most abuse, at ${worst.rate.toFixed(1)} per 100 prompts`
-      : "swears per 100 prompts";
+/** What is in the jar: the label on it, one row per word. */
+function Contents({ report }: { report: Report }) {
+  const words = report.top_words.slice(0, 12);
+  const top = words[0];
+  const max = Math.max(...words.map((w) => w.count), 1);
+  const tiers = (["strong", "acronym", "medium", "mild"] as const).filter((tier) =>
+    words.some((w) => w.tier === tier),
+  );
 
   return (
     <section className="panel">
-      <div className="panel-body">
-        <Heading title="Which agent gets it worst" note={note} />
-        <div className={`${rows.length >= 3 ? "cn-grid-3" : "cn-grid-2"} cn-gap-16 cn-mt-24`}>
-          {rows.map((h) => (
-            <article
-              key={h.harness}
-              className="accent-card harness-card"
-              style={{ ["--entity-color" as string]: HARNESS_COLOR[h.harness] }}
-            >
-              <h3 className="cn-name harness-name cn-m-0 cn-mb-12">
-                {HARNESS_LABEL[h.harness]}
-              </h3>
-              <div className="cn-value-lg">{h.rate.toFixed(1)}</div>
-              <span className="progress-track cn-block cn-mt-12">
-                <span style={{ width: `${(h.rate / max) * 100}%` }} />
+      <div className="panel-body cn-row cn-between cn-wrap cn-gap-16">
+        <div>
+          <h2 className="cn-title cn-m-0">What is in the jar</h2>
+          <p className="cn-meta cn-mt-4 cn-mb-0">
+            {top
+              ? `${num.format(report.top_words.length)} distinct words. "${top.word}" alone is ${sharePercent(top.share)} of the jar.`
+              : "Nothing yet."}
+          </p>
+        </div>
+        {tiers.length > 0 && (
+          <ul className="legend" aria-label="Tiers">
+            {tiers.map((tier) => (
+              <li key={tier} className="legend-item" style={vars({ "--tone": TIER_COLOR[tier] })}>
+                {tier}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {/* Rows run edge to edge; the recipe rounds the last one into the
+          panel corner. Focusable so the tip is reachable from the keyboard. */}
+      {words.map((w, i) => (
+        <div
+          key={w.word}
+          className="ranked-row st-word"
+          tabIndex={0}
+          data-tip={`${coins(w.count)}, ${w.tier}`}
+        >
+          <span className="cn-meta">{String(i + 1).padStart(2, "0")}</span>
+          <strong className="cn-truncate">{w.word}</strong>
+          <span
+            className="progress-track cn-block"
+            style={vars({ "--progress-fill": TIER_COLOR[w.tier] })}
+          >
+            <span style={{ width: `${(w.count / max) * 100}%` }} />
+          </span>
+          <b>{num.format(w.count)}</b>
+          <span className="cn-meta cn-text-right">
+            {sharePercent(w.share)}
+            <span className="cn-sr-only"> of the jar, {w.tier}</span>
+          </span>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+/**
+ * The agents' jar, the same size and capacity as the hero's, so a sliver
+ * here is literally a sliver of the same jar. It is the page's one tilted
+ * panel, because it is the aside.
+ */
+function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
+  const a = report.agent;
+  const harnesses = report.agent_by_harness
+    .filter((h) => h.messages > 0)
+    .sort((x, y) => y.swears - x.swears);
+  const words = report.agent_top_words.slice(0, 3);
+  const userRate = report.totals.swears_per_100_prompts;
+  const ratio = a.swears_per_100_messages > 0 ? userRate / a.swears_per_100_messages : null;
+
+  const verdict =
+    a.swears === 0
+      ? `Not once in ${num.format(a.messages)} replies.`
+      : ratio !== null && ratio >= 2
+        ? `You swear ${ratio.toFixed(0)} times as often, per message.`
+        : ratio !== null && ratio <= 0.5
+          ? `It swears ${(1 / ratio).toFixed(0)} times as often as you, per message.`
+          : "About as often as you, per message.";
+  const said =
+    words.length > 0
+      ? ` It said ${words.map((w) => `${w.word} ${num.format(w.count)}`).join(", ")}.`
+      : "";
+
+  return (
+    <aside className="panel is-tilted">
+      <div className="panel-body cn-stack cn-gap-16">
+        <div>
+          <h2 className="cn-title cn-m-0">Does the agent swear back?</h2>
+          <p className="cn-meta cn-mt-4 cn-mb-0">Its jar, on the same scale as yours.</p>
+        </div>
+        <div className="st-shelved">
+          <Jar
+            capacity={capacity}
+            stack={harnesses.map((h) => ({ key: h.harness, n: h.swears, tone: TONE[h.harness] }))}
+            label={`The agents' jar: ${coins(a.swears)} in a jar that holds ${num.format(capacity)}`}
+          />
+          <div className="st-shelf" aria-hidden="true" />
+        </div>
+        <p className="cn-copy cn-m-0">
+          {coins(a.swears)} in {num.format(a.messages)} replies. {verdict}
+          {said}
+        </p>
+        {harnesses.length > 1 && (
+          <dl className="kv">
+            {harnesses.map((h) => (
+              <Fragment key={h.harness}>
+                <dt>{HARNESS_LABEL[h.harness]}</dt>
+                <dd>
+                  {num.format(h.swears)} in {num.format(h.messages)} replies
+                </dd>
+              </Fragment>
+            ))}
+          </dl>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+/**
+ * When the coins went in: one stack per calendar day, standing on a shelf in
+ * a well. Your coins sit at the bottom in mauve, the agents' on top in their
+ * harness colors. The coin shrinks when a heavy day would overflow the well,
+ * so the tallest stack always fits and every stack keeps its proportion.
+ */
+function Deposits({ report }: { report: Report }) {
+  const days = useMemo(
+    () => depositDays(report.daily, report.agent_daily),
+    [report.daily, report.agent_daily],
+  );
+  if (days.length === 0) return null;
+
+  const active = days.filter((d) => d.prompts > 0).length;
+  const peak = days.reduce((a, b) => (b.total > a.total ? b : a));
+  const months = monthStarts(days);
+  const agents = HARNESSES.filter((h) => days.some((d) => d.agents[h] > 0));
+  const excluded = report.coverage.session_precision_prompts;
+  // Gaps between stacks close up as the range grows, so a year still fits.
+  const gap = days.length > 300 ? 0 : days.length > 150 ? 1 : 2;
+
+  return (
+    <section className="cn-stack cn-gap-16" aria-labelledby="st-deposits">
+      <div className="cn-row cn-between cn-wrap cn-gap-16">
+        <div>
+          <h2 className="cn-title cn-m-0" id="st-deposits">
+            When the coins went in
+          </h2>
+          <p className="cn-meta cn-mt-4 cn-mb-0">
+            One coin per swear, one stack per day, {num.format(active)} active days.
+            {peak.total > 0 && ` The tallest stack is ${num.format(peak.total)}, on ${dayOf(peak.date)}.`}
+            {excluded > 0 &&
+              ` ${num.format(excluded)} Cursor prompts are dated by session, since Cursor keeps no per-message time.`}
+          </p>
+        </div>
+        <ul className="legend" aria-label="Whose coins">
+          <li className="legend-item" style={vars({ "--tone": "var(--mauve)" })}>
+            You
+          </li>
+          {agents.map((h) => (
+            <li key={h} className="legend-item" style={vars({ "--tone": TONE[h] })}>
+              {HARNESS_LABEL[h]}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="well cn-bg-well st-deposits">
+        <div
+          className="st-days"
+          aria-hidden="true"
+          style={vars({ "--max": Math.max(peak.total, 1), "--gap": `${gap}px` })}
+        >
+          {days.map((d, i) => {
+            const tip =
+              d.prompts === 0 && d.total === 0
+                ? `${dayOf(d.date)}: no prompts`
+                : `${dayOf(d.date)}: ${num.format(d.you)} in ${num.format(d.prompts)} prompts` +
+                  (d.agentTotal > 0 ? `, ${num.format(d.agentTotal)} from the agents` : "");
+            if (d.total === 0) {
+              return <span key={d.date} className="is-quiet" data-tip={tip} />;
+            }
+            return (
+              <span key={d.date} data-tip={tip} style={vars({ "--n": d.total, "--i": i })}>
+                {[...HARNESSES].reverse().map(
+                  (h) =>
+                    d.agents[h] > 0 && (
+                      <span
+                        key={h}
+                        className="st-coins"
+                        style={vars({ "--n": d.agents[h], "--accent": TONE[h] })}
+                      />
+                    ),
+                )}
+                {d.you > 0 && (
+                  <span
+                    className="st-coins"
+                    style={vars({ "--n": d.you, "--accent": "var(--mauve)" })}
+                  />
+                )}
               </span>
-              <div className="stat is-inline cn-mt-12">
-                <span>Prompts</span>
-                <b>{num.format(h.prompts)}</b>
-              </div>
-              <div className="stat is-inline cn-mt-8">
-                <span>Swears</span>
-                <b>{num.format(h.swears)}</b>
-              </div>
-            </article>
+            );
+          })}
+        </div>
+        <div className="st-shelf" aria-hidden="true" />
+        <div className="st-months" aria-hidden="true">
+          {months.map((m) => (
+            <span
+              key={m.index}
+              className="cn-label"
+              style={{ left: `${(m.index / days.length) * 100}%` }}
+            >
+              {m.month}
+            </span>
           ))}
         </div>
       </div>
-    </section>
-  );
-}
 
-function Vocabulary({ report }: { report: Report }) {
-  const words = report.top_words.slice(0, 12);
-  const top = words[0];
-  const note = top
-    ? `${num.format(report.top_words.length)} distinct words · "${top.word}" alone is ${(top.share * 100).toFixed(0)}% of all swears`
-    : "no swears found";
-
-  return (
-    <section className="panel">
-      <div className="panel-body">
-        <Heading title="Top words" note={note} />
-      </div>
-      {/* Rows run edge to edge; the recipe rounds the last one into the
-          panel corner. */}
-      {words.length > 0 && <WordList words={words} />}
-    </section>
-  );
-}
-
-function OtherSide({ report }: { report: Report }) {
-  const a = report.agent;
-  const words = report.agent_top_words.slice(0, 6);
-  const harnesses = report.agent_by_harness.filter((h) => h.messages > 0);
-  const userRate = report.totals.swears_per_100_prompts;
-  // How many times more often the human swears, per message, than the agent.
-  const ratio =
-    a.swears_per_100_messages > 0 ? userRate / a.swears_per_100_messages : null;
-
-  const note =
-    a.swears === 0
-      ? `not once, across ${num.format(a.messages)} visible replies`
-      : ratio !== null && ratio >= 2
-        ? `you swear ${ratio.toFixed(0)}× more often per message than it does · visible replies only`
-        : "visible replies only";
-
-  return (
-    <section className="panel">
-      <div className="panel-body">
-        <Heading title="Does the agent swear back?" note={note} />
-
-        {/* Four-up counter strip. A recessed readout carved from the panel,
-            not a raised card: the well, at the soft depth. */}
-        <div className="well cn-inset-soft cn-p-16 cn-grid-4 cn-mt-24 metric-grid">
-          <div className="stat cn-p-0">
-            <span>Replies</span>
-            <strong className="cn-text-text">{num.format(a.messages)}</strong>
-          </div>
-          <div className="stat cn-p-0">
-            <span>Swears</span>
-            <strong className="cn-text-text">{num.format(a.swears)}</strong>
-          </div>
-          <div className="stat cn-p-0">
-            <span>Per 100</span>
-            <strong className="cn-text-text">{a.swears_per_100_messages.toFixed(2)}</strong>
-          </div>
-          <div className="stat cn-p-0">
-            <span>Replies w/ swear</span>
-            <strong className="cn-text-text">{num.format(a.messages_with_swear)}</strong>
-          </div>
-        </div>
-
-        {/* Per harness as a strip of rows, not a second deck of cards: the
-            cards above already carry the per-harness comparison that matters. */}
-        {harnesses.length > 1 && (
-          <div className="cn-divide cn-mt-16">
-            {harnesses.map((h) => (
-              <div key={h.harness} className="stat is-inline">
-                <span
-                  className="legend-item cn-name"
-                  style={{ ["--tone" as string]: HARNESS_COLOR[h.harness] }}
-                >
-                  {HARNESS_LABEL[h.harness]}
-                </span>
-                <span className="cn-meta">
-                  {num.format(h.swears)} in {num.format(h.messages)} replies
-                  {" · "}
-                  <b>{h.rate.toFixed(2)}</b> per 100
-                </span>
-              </div>
+      {/* The stacks carry pointer tips only; this table carries the same
+          days for screen readers. A table ignores the sr-only box size, so
+          a wrapper carries it. */}
+      <div className="cn-sr-only">
+      <table>
+        <caption>Swears per active day</caption>
+        <thead>
+          <tr>
+            <th scope="col">Day</th>
+            <th scope="col">Your swears</th>
+            <th scope="col">Prompts</th>
+            <th scope="col">Agent swears</th>
+          </tr>
+        </thead>
+        <tbody>
+          {days
+            .filter((d) => d.prompts > 0 || d.total > 0)
+            .map((d) => (
+              <tr key={d.date}>
+                <th scope="row">{dayOf(d.date)}</th>
+                <td>{d.you}</td>
+                <td>{d.prompts}</td>
+                <td>{d.agentTotal}</td>
+              </tr>
             ))}
-          </div>
-        )}
-
-        {words.length > 0 && (
-          <div className="cn-cluster cn-gap-8 cn-mt-16">
-            <span className="cn-label">Its words</span>
-            {words.map((w) => (
-              <span
-                key={w.word}
-                className="tag word-tier"
-                style={{ ["--tier-color" as string]: TIER_COLOR[w.tier] }}
-              >
-                {w.word} · {num.format(w.count)}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function OverTime({ report }: { report: Report }) {
-  const days = report.daily;
-  if (days.length === 0) return null;
-  const dates = days.map((d) => d.date).sort();
-  const excluded = report.coverage.session_precision_prompts;
-
-  return (
-    <section className="panel">
-      <div className="panel-body">
-        <Heading
-          title="Over time"
-          note={`${num.format(days.length)} active days, ${dates[0]} to ${dates[dates.length - 1]} · your swears against the agent's, same scale`}
-        />
-        <div className="cn-mt-24">
-          <Timeline daily={days} agentDaily={report.agent_daily} />
-        </div>
-
-        {/* Days were cut in the publisher's time zone — "your" days, in this
-            page's voice, even when a visitor elsewhere is reading. */}
-        <h3 className="cn-name cn-mt-32 cn-mb-4">Day by day</h3>
-        <p className="cn-meta cn-mt-0 cn-mb-12">
-          shaded by swear volume, weighted by severity · your local days
-          {excluded > 0 &&
-            ` · ${num.format(excluded)} Cursor prompts dated by session (no per-message time)`}
-        </p>
-        <Calendar daily={days} />
+        </tbody>
+      </table>
       </div>
     </section>
   );
@@ -380,30 +569,33 @@ function Where({ report }: { report: Report }) {
     return copy.slice(0, SHOWN);
   }, [report.projects, sort]);
 
+  if (report.projects.length === 0) return null;
+
   const head: [SortKey, string][] = [
     ["name", "Project"],
     ["prompts", "Prompts"],
-    ["swears", "Swears"],
+    ["swears", "Coins"],
     ["rate", "Per 100"],
   ];
 
   const total = report.projects.length;
   const note =
     total > SHOWN
-      ? `top ${SHOWN} of ${num.format(total)} projects`
-      : `${num.format(total)} projects`;
+      ? `Top ${SHOWN} of ${num.format(total)} projects.`
+      : `${num.format(total)} ${total === 1 ? "project" : "projects"}.`;
 
   return (
     <section className="panel">
       <div className="panel-body">
-        <Heading title="Where it happens" note={note} />
+        <h2 className="cn-title cn-m-0">Where the jar sat</h2>
+        <p className="cn-meta cn-mt-4 cn-mb-0">{note}</p>
       </div>
-      {/* The table fills the panel edge to edge; the recipe rounds its last
-          row into the panel corners. Its cells carry no data-label, so on a
-          phone it stays a table and scrolls sideways if it has to. */}
+      {/* The table fills the panel edge to edge and ends at its last row; the
+          recipe rounds that row into the panel corners. Its cells carry no
+          data-label, so on a phone it stays a table. */}
       <div className="table-scroll">
-        <table className="data-table projects">
-          <caption className="cn-sr-only">Swear counts per project, sortable</caption>
+        <table className="data-table st-projects">
+          <caption className="cn-sr-only">Swears per project, sortable</caption>
           <thead>
             <tr>
               {head.map(([key, label]) => (
@@ -438,18 +630,18 @@ function Where({ report }: { report: Report }) {
   );
 }
 
-/** On the page ground, under a rule: the fine print, not a tenth panel. */
+/** On the page ground, under a rule: the fine print, not another panel. */
 function Methodology({ report }: { report: Report }) {
   const c = report.coverage;
   const gb = (c.bytes_scanned / 1e9).toFixed(1);
 
   return (
-    <footer className="methodology">
+    <footer className="st-method">
       <div className="cn-row cn-between cn-baseline cn-mb-12">
         <h2 className="cn-label cn-m-0">What was counted</h2>
         <span className="cn-code-meta">salt v{report.version}</span>
       </div>
-      <ul className="cn-copy cn-m-0 methodology-list">
+      <ul className="cn-copy cn-m-0">
         <li>
           Scanned {num.format(c.files_scanned)} session files ({gb} GB) across
           Claude Code, Codex, and Cursor
@@ -465,7 +657,7 @@ function Methodology({ report }: { report: Report }) {
         </li>
         <li>
           Matching is word-bounded with an allowlist, and folds{" "}
-          <code className="cn-code-inline">f*ck</code> /{" "}
+          <code className="cn-code-inline">f*ck</code> and{" "}
           <code className="cn-code-inline">sh1t</code> onto their canonical spelling.
         </li>
         {c.notes.map((n) => (

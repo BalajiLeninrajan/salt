@@ -1,21 +1,14 @@
-/* salt report dashboard — thin local layer over catppuccin-neu, which arrives
-   through main.tsx (`import "catppuccin-neu/css/index.css"`). Surfaces, type
-   roles, depth, layout, buttons, the bar, and the table all come from the
-   package as classes on the elements; this file carries the dashboard's own
-   geometry (the hero number and ratio, the word-row columns, the chart SVGs,
-   the wordmark) and the few salt-only treatments.
-
-   Contract bridge: the report components set --entity-color and --tier-color
-   inline (drift-stable names, read as strings at runtime elsewhere in this
-   repo, so they are never renamed); the bridges below map them onto the
-   package's --accent / --tone contract props. */
+/* salt report: a thin local layer over catppuccin-neu, which arrives through
+   main.tsx (`import "catppuccin-neu/css/index.css"`). Surfaces, type roles,
+   depth, buttons, bars, tables, legends and the command come from the
+   package as classes on the elements. This file carries the wordmark, the
+   report bar, and the swear jar, which is the page's own idea. */
 
 /* ── wordmark ──────────────────────────────────────────────────────────── */
 
 /* Real Inter for s/l/t, a drawn arch for the `a`. The arch SVG is exactly
    one x-height tall and sits on the baseline, so it lines up with the text
-   without any nudging. Sized by the font-size of whatever holds it: the
-   topbar's `wordmark is-lg`, or the empty state. */
+   without any nudging. Sized by the font-size of whatever holds it. */
 .logo {
   font-family: var(--sans);
   font-weight: 700;
@@ -33,118 +26,198 @@
 
 .wordmark:hover { opacity: 0.8; }
 
-/* ── topbar ────────────────────────────────────────────────────────────── */
+/* ── report bar ────────────────────────────────────────────────────────── */
 
 /* No rubber-band at the top of the page. The bar is sticky, so the elastic
-   overscroll dragged it down with the document; with the bounce off it stays
-   put. */
+   overscroll dragged it down with the document. */
 html { overscroll-behavior-y: none; }
 
-/* The recipe fades the bar's rule and cast in over the first 60px of scroll,
-   so at the top of the page the bar and the page were one surface. On a
-   mantle fill the bar is its own band, and it keeps its bottom rule at rest
-   so the edge is there before anyone scrolls. */
+/* The recipe fades the bar's rule and cast in over the first 60px of scroll.
+   On a mantle fill the bar is its own band, so it keeps its bottom rule at
+   rest and the edge is there before anyone scrolls. */
 .topbar {
   animation: none;
   border-bottom-color: var(--surface-0);
 }
 
-/* ── hero ──────────────────────────────────────────────────────────────── */
+/* ── the swear jar (st-) ───────────────────────────────────────────────────
+   Every swear is one coin. The jar is a carved well for the glass under a
+   raised lid, filled with coin-striped plates in their owner's color, and
+   everything stands on a raised shelf. Every jar on the page shares one
+   size, set here, and one capacity, set by the page, so a jar's fill is a
+   literal count and two jars compare honestly. The day stacks reuse the same
+   coins on a shelf inside a well.
 
-/* Composes cn-grid-2; the ratio is this page's, and the split holds until the
-   tilted card flattens (the package's 1060 breakpoint), not the grid's 520. */
-.hero { grid-template-columns: 1.15fr 0.85fr; }
+   Motion: each jar fills once and each day's stack rises once, on arrival,
+   from the shelf (st-pour, transform only). Nothing loops. */
 
-.hero-main {
+.st-report,
+.st-gone {
+  --jar-w: 176px;
+  --jar-h: 272px;
+}
+
+/* One coin: a plate in its owner's color over a darker rim, so a stack
+   reads as coins, not a bar. */
+.st-coins {
+  background: repeating-linear-gradient(to top,
+    color-mix(in srgb, var(--accent) 34%, var(--crust)) 0 1px,
+    color-mix(in srgb, var(--accent) 90%, var(--base)) 1px var(--stripe, 8px));
+}
+
+.st-jar { display: grid; justify-items: center; width: var(--jar-w); }
+.st-lid {
+  position: relative;
+  z-index: 1;
+  width: 78%;
+  height: 14px;
+  margin-bottom: -3px;
+  background: var(--surface-0);
+  border: 1px solid var(--edge);
+  border-radius: var(--cn-radius-control);
+  box-shadow: var(--neu-raised-soft);
+}
+.st-glass {
+  width: 100%;
+  height: var(--jar-h);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
+  padding: var(--space-2);
+  border-radius: 22% 22% 34% 34% / 9% 9% 16% 16%;
 }
-
-/* The one number the page is about. Bigger than any shipped display role:
-   it sits on the page ground with nothing around it, and at 46px it read as
-   a stat, not a headline. */
-.hero-number {
-  font: 800 clamp(72px, 9vw, 112px) / 0.95 var(--sans);
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
+.st-fill {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: var(--fill);
+  min-height: 3px;
+  overflow: clip;
+  border-radius: var(--cn-radius-chip) var(--cn-radius-chip) 30% 30% / var(--cn-radius-chip) var(--cn-radius-chip) 16% 16%;
+  transform-origin: bottom;
+  animation: st-pour .9s var(--ease-out) .18s backwards;
 }
+.st-fill > * { flex: var(--n) 1 0; min-height: 2px; }
+.st-fill.is-sliver { gap: 0; }
+.st-fill.is-sliver > * { min-height: 1px; }
+@keyframes st-pour { from { transform: scaleY(0); } }
 
-/* Composes cn-stack; the rows sit in the middle of the tilted card. */
-.hero-card { align-content: center; }
+/* The shelf every jar and day stack stands on. */
+.st-shelf {
+  height: 10px;
+  background: var(--surface-0);
+  border: 1px solid var(--edge);
+  border-radius: var(--cn-radius-chip);
+  box-shadow: var(--neu-raised-soft);
+}
+.st-shelved { display: grid; justify-items: center; }
+.st-shelved > .st-shelf { width: min(100%, calc(var(--jar-w) + 56px)); }
 
-/* ── harness cards — accent-card keyed by the harness color ────────────── */
-
-/* The plate and the bar take the harness color; the progress fill reads
-   --accent by default. */
-.harness-card { --accent: var(--entity-color); }
-
-/* cn-name, a step up: the card's title, not a row's. */
-.harness-name { font-size: 15px; }
-
-/* ── word rows — ranked-row on a fixed column grid ─────────────────────── */
-
-/* The rows are direct children of the panel, so their inline padding meets
-   the panel body's padding rather than the recipe's. This is the default
-   --body-pad value; the token itself turns into two values under compact
-   density, which padding-inline would read as start and end. */
-.word-row {
+/* Hero: the headline on the ground, the jar and its key on the shelf. */
+.st-hero {
   display: grid;
-  grid-template-columns: 24px 1fr 120px 56px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  gap: var(--space-6);
+  align-items: end;
+}
+.st-stand {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 var(--space-5);
+  align-items: end;
+}
+.st-stand > .st-shelf { grid-column: 1 / -1; }
+.st-key { padding-bottom: var(--space-5); }
+.st-stats { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-6); }
+
+/* Contents and the agents' jar side by side. */
+.st-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-6);
+  align-items: start;
+}
+.st-word {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 9ch) minmax(0, 1fr) 44px 40px;
   padding-inline: var(--space-5);
 }
+.st-word b { text-align: right; }
 
-/* Composes `tag`, keyed by the word's tier. */
-.word-tier { --tone: var(--tier-color); }
-
-/* ── charts — SVGs inside package wells ────────────────────────────────── */
-
-.chart-well svg {
-  display: block;
-  width: 100%;
-  height: auto;
+/* Deposits: one stack per day in a well, coins shrinking on heavy days so
+   the tallest stack fits. --max is the tallest stack, set by the page. */
+.st-deposits { padding: var(--space-5) var(--space-4) var(--space-3); }
+@media (max-width: 520px) { .st-deposits { padding-inline: var(--space-3); } }
+.st-days {
+  --days-h: 156px;
+  --coin: min(8px, var(--days-h) / var(--max, 1));
+  display: flex;
+  align-items: flex-end;
+  gap: var(--gap, 2px);
+  height: var(--days-h);
+  padding-inline: var(--space-1);
 }
-/* The calendar is sized by its own cells, not by the well it sits in. */
-.chart-well svg.cal {
-  width: auto;
-  max-width: 100%;
-  margin: 0 auto;
+.st-days > span {
+  flex: 1 1 0;
+  min-width: 0;
+  height: calc(var(--n) * var(--coin));
+  display: flex;
+  flex-direction: column;
+  border-radius: 2px 2px 0 0;
+  overflow: clip;
+  transform-origin: bottom;
+  /* Each day's coins land once, left to right, 2.5ms apart. */
+  animation: st-pour var(--t-slow) var(--ease-out) backwards;
+  animation-delay: calc(.2s + var(--i, 0) * 2.5ms);
 }
+.st-days > span > * { flex: var(--n) 1 0; }
+.st-days .st-coins { --stripe: max(var(--coin), 4px); }
+.st-days > .is-quiet { height: 2px; background: var(--surface-1); animation: none; }
+.st-months { position: relative; height: 16px; margin-top: var(--space-2); }
+.st-months span { position: absolute; top: 0; }
 
-/* ── methodology — fine print on the page ground ───────────────────────── */
-
-.methodology {
-  border-top: 1px solid var(--surface-0);
-  padding-top: var(--space-5);
-}
-.methodology-list { padding-left: 18px; }
-
-/* ── empty / loading states ────────────────────────────────────────────── */
-
-/* Composes the package `.empty-state` recipe; only layout is local. */
-.state { min-height: 60vh; }
-.state span {
-  max-width: 44ch;
-  line-height: 1.6;
-}
-
-/* ── responsive ────────────────────────────────────────────────────────── */
-
-@media (max-width: 1060px) {
-  /* The tilt is ornament; the package flattens `is-tilted` here. */
-  .hero { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 760px) {
-  .word-row { grid-template-columns: 20px 1fr 70px 44px; gap: 10px; }
-}
-
+/* Projects: four columns fit a phone once the cells step down. */
 @media (max-width: 520px) {
-  /* Four columns fit a phone once the cells step down to the small inline
-     gap, so the table stays whole instead of scrolling its last column off. */
-  .projects { --cell-pad: var(--space-3) var(--space-2); }
+  .st-projects { --cell-pad: var(--space-3) var(--space-2); }
+}
 
-  /* Four short counters read fine two abreast on a phone; a single column
-     of them was four rows for four numbers. */
-  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.st-method { border-top: 1px solid var(--surface-0); padding-top: var(--space-5); }
+.st-method ul { padding-left: 18px; }
+
+/* The expired screen: the same jar, empty, with the command under it. */
+.st-gone {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--space-4);
+  /* The bar and the column's block padding, so the screen never scrolls. */
+  min-height: calc(100svh - 72px - 2 * var(--page-pad));
+  text-align: center;
+}
+.st-gone > p { max-width: 46ch; }
+.st-gone > .st-shelved { margin-bottom: var(--space-2); --jar-w: 120px; --jar-h: 150px; }
+
+@media (max-width: 900px) {
+  .st-split { grid-template-columns: minmax(0, 1fr); }
+  .st-split > aside { width: min(100%, 420px); }
+}
+@media (max-width: 760px) {
+  .st-hero { grid-template-columns: minmax(0, 1fr); }
+  .st-days { --days-h: 116px; gap: min(var(--gap, 2px), 1px); }
+  /* On a phone the empty jar sits near the top, under the bar. */
+  .st-gone { min-height: 0; align-content: start; }
+}
+@media (max-width: 520px) {
+  .st-report { --jar-w: 132px; --jar-h: 208px; }
+  .st-stand { column-gap: var(--space-4); }
+  .st-word {
+    grid-template-columns: 18px minmax(0, 8ch) minmax(0, 1fr) 36px 34px;
+    gap: var(--space-2);
+    padding-inline: var(--space-4);
+  }
+}
+
+/* Reduced motion: every jar is already full and every stack already stands. */
+@media (prefers-reduced-motion: reduce) {
+  .st-fill, .st-days > span { animation: none; transform: none; }
 }
