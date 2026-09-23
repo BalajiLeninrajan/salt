@@ -34,7 +34,7 @@ declare global {
 /**
  * The report is a swear jar: every swear dropped one coin in. Each section
  * reads one part of the jar (how full it is and who filled it, what is in
- * it, the agents' jar at the same scale, the day each coin went in, where the
+ * it, the agents' much smaller jar, the day each coin went in, where the
  * jar sat), so the page is built around that one object.
  *
  * The page addresses the person who ran and published the report as "you",
@@ -109,9 +109,9 @@ export default function App() {
 }
 
 function ReportPage({ report }: { report: Report }) {
-  // One capacity for every jar on the page, so the hero jar is to scale and
-  // the agents' jar is filled on the same one.
-  const capacity = jarCapacity(report.totals.swears, report.agent.swears);
+  // Each jar has its own capacity, sized to what went in it. The agents'
+  // jar is a much smaller jar, so its handful of coins still reads.
+  const capacity = jarCapacity(report.totals.swears);
   const showAgents = report.agent.messages > 0;
 
   return (
@@ -329,7 +329,7 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
           <p className="cn-meta cn-m-0">
             {worst && worst.swears > 0 &&
               `${HARNESS_LABEL[worst.harness]} takes the most, at ${worst.rate.toFixed(1)} per 100 prompts. `}
-            Every jar on this page holds {num.format(capacity)} coins.
+            Your jar holds {num.format(capacity)} coins.
           </p>
         </div>
         <div className="st-shelf" aria-hidden="true" />
@@ -397,12 +397,14 @@ function Contents({ report }: { report: Report }) {
 }
 
 /**
- * The agents' jar, the same size and capacity as the hero's, so a sliver
- * here is literally a sliver of the same jar. It is the page's one tilted
- * panel, because it is the aside.
+ * The agents' jar: a small jar with its own capacity, because agents almost
+ * never swear and one coin should still be visible. The caption says how
+ * much smaller it is than yours. It is the page's one tilted panel, because
+ * it is the aside.
  */
 function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
   const a = report.agent;
+  const small = jarCapacity(a.swears);
   const harnesses = report.agent_by_harness
     .filter((h) => h.messages > 0)
     .sort((x, y) => y.swears - x.swears);
@@ -421,13 +423,15 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
       <div className="panel-body st-agents">
         <div>
           <h2 className="cn-title cn-m-0">Does the agent swear back?</h2>
-          <p className="cn-meta cn-mt-4 cn-mb-0">Its jar, on the same scale as yours.</p>
+          <p className="cn-meta cn-mt-4 cn-mb-0">
+            A much smaller jar. It holds {num.format(small)} coins, yours holds {num.format(capacity)}.
+          </p>
         </div>
-        <div className="st-shelved">
+        <div className="st-shelved is-small">
           <Jar
-            capacity={capacity}
+            capacity={small}
             stack={harnesses.map((h) => ({ key: h.harness, n: h.swears, tone: TONE[h.harness] }))}
-            label={`The agents' jar: ${coins(a.swears)} in a jar that holds ${num.format(capacity)}`}
+            label={`The agents' jar: ${coins(a.swears)} in a jar that holds ${num.format(small)}`}
           />
           <div className="st-shelf" aria-hidden="true" />
         </div>

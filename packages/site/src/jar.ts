@@ -15,10 +15,9 @@ export const HARNESSES: Harness[] = ["claude", "codex", "cursor"];
 const STEPS = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
 
 /**
- * How many coins a jar holds. Every jar on the page shares this one number,
- * so a jar's fill height is a literal count and two jars side by side compare
- * honestly. It rounds the larger total up to a readable figure, so the
- * fullest jar sits between about two thirds and full.
+ * How many coins a jar holds: the total rounded up to a readable figure, so
+ * a jar sits between about two thirds and full. Never under 10, so one coin
+ * is a tenth of a jar at most.
  */
 export function jarCapacity(...totals: number[]): number {
   const most = Math.max(0, ...totals);

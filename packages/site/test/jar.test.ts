@@ -26,9 +26,9 @@ describe("jarCapacity", () => {
 });
 
 describe("fillPercent", () => {
-  it("fills both jars on the same scale", () => {
+  it("fills each jar against its own capacity", () => {
     expect(fillPercent(662, 800)).toBeCloseTo(82.75);
-    expect(fillPercent(18, 800)).toBeCloseTo(2.25);
+    expect(fillPercent(4, jarCapacity(4))).toBeCloseTo(40);
   });
 
   it("never goes over the brim or below empty", () => {

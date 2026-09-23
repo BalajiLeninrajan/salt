@@ -119,6 +119,10 @@ html { overscroll-behavior-y: none; }
 }
 .st-shelved { display: grid; justify-items: center; }
 .st-shelved > .st-shelf { width: min(100%, calc(var(--jar-w) + 56px)); }
+/* The agents' jar: a third of the size, so a few coins fill a visible share. */
+.st-shelved.is-small { --jar-w: 72px; --jar-h: 104px; }
+.st-shelved.is-small .st-glass { padding: var(--space-1); }
+.st-shelved.is-small .st-lid { height: 8px; }
 
 /* Hero: the headline on the ground, the jar and its key on the shelf. */
 .st-hero {
@@ -138,8 +142,7 @@ html { overscroll-behavior-y: none; }
 .st-stats { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-6); }
 
 /* The aside: its heading, the jar, then what the jar says. Once the aside
-   drops under the word list, the jar and its text sit side by side, so the
-   jar keeps the page's one scale without a screen of empty glass. */
+   drops under the word list, the jar and its text sit side by side. */
 .st-agents { display: grid; gap: var(--space-4); }
 
 /* Contents and the agents' jar side by side. */
@@ -162,7 +165,8 @@ html { overscroll-behavior-y: none; }
 @media (max-width: 520px) { .st-deposits { padding-inline: var(--space-3); } }
 .st-days {
   --days-h: 156px;
-  --coin: min(8px, var(--days-h) / var(--max, 1));
+  /* The tallest day fills the chart; a chart of quiet days never shows one coin as a tower. */
+  --coin: calc(var(--days-h) / max(var(--max, 1), 8));
   display: flex;
   align-items: flex-end;
   gap: var(--gap, 2px);
