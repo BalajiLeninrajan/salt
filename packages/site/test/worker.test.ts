@@ -132,9 +132,11 @@ describe("GET /r/:id", () => {
     const res = await SELF.fetch("https://example.com/r/0000000000");
     expect(res.status).toBe(404);
     const html = await res.text();
-    expect(html).toContain("This report is gone.");
-    expect(html).toContain('href="/styles/index.css"');
-    expect(html).toContain('href="/styles.css"');
+    // The dashboard shell without a report id: it draws the empty jar.
+    expect(html).toContain('<div id="root">');
+    expect(html).not.toContain("__SALT_REPORT_ID__");
+    expect(html).toContain("<title>Report not found, salt</title>");
+    expect(html).not.toContain("<title>salt</title>");
   });
 });
 

@@ -212,7 +212,7 @@ async function readReport(id: string, env: Env): Promise<Response> {
  */
 async function reportPage(id: string, env: Env, url: URL): Promise<Response> {
   const report = await loadReport(id, env);
-  if (!report) return expiredPage(url);
+  if (!report) return expiredPage(url, env);
 
   const shell = await env.ASSETS.fetch(new URL("/app.html", url.origin));
   if (!shell.ok) return problem(500, "dashboard bundle is missing from this deploy");
@@ -257,32 +257,31 @@ async function reportPage(id: string, env: Env, url: URL): Promise<Response> {
 /**
  * A dead link should explain itself rather than 404 into the marketing page.
  *
- * Styled with the same catppuccin-neu copy the marketing page links
- * (styles/index.css, synced into public/styles/ by the sync-css hook), plus the
- * marketing page's own thin layer for the shell/panel spacing.
+ * It serves the dashboard shell without a report id, so the dashboard draws
+ * its own expired screen (the empty jar) and the design lives in one place.
+ * The minimal page below is only for a deploy whose bundle is missing.
  */
-function expiredPage(url: URL): Response {
+async function expiredPage(url: URL, env: Env): Promise<Response> {
+  const headers = { "content-type": "text/html; charset=utf-8" };
+  const shell = await env.ASSETS.fetch(new URL("/app.html", url.origin));
+  if (shell.ok) {
+    const html = (await shell.text()).replace(
+      /<title[^>]*>[\s\S]*?<\/title>/i,
+      () => "<title>Report not found, salt</title>",
+    );
+    return new Response(html, { status: 404, headers });
+  }
   const html = `<!doctype html><html lang="en"><meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Report not found — salt</title>
-<link rel="icon" href="/favicon.svg"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"/>
+<title>Report not found, salt</title>
 <link rel="stylesheet" href="/styles/index.css"/>
-<link rel="stylesheet" href="/styles.css"/>
-<div class="app-shell shell page-enter" style="--page-width: 760px"><main class="page-main page">
-  <section class="panel cn-raised-soft cn-p-32">
-    <h1 class="cn-display is-sm cn-mb-16">This report is gone.</h1>
-    <p class="lede">Published reports expire after 30 days. If it was yours, run
-      <code class="cn-code">salt</code> again to publish a fresh one.</p>
-    <p><a class="btn-text" href="${url.origin}/">What is salt?</a></p>
-  </section>
-</main></div>`;
-  return new Response(html, {
-    status: 404,
-    headers: { "content-type": "text/html; charset=utf-8" },
-  });
+<main class="page-main is-narrow">
+  <h1 class="cn-display is-sm">This jar was emptied.</h1>
+  <p class="cn-lede">Published reports expire after 30 days. Run
+    <code class="cn-code">npx salt-ai</code> to publish a fresh one.</p>
+  <p><a class="btn-text" href="${url.origin}/">What is salt?</a></p>
+</main>`;
+  return new Response(html, { status: 404, headers });
 }
 
 function problem(status: number, message: string): Response {
