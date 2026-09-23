@@ -259,7 +259,6 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
     .filter((h) => h.prompts > 0)
     .sort((a, b) => b.swears - a.swears);
   const stack = used.map((h) => ({ key: h.harness, n: h.swears, tone: TONE[h.harness] }));
-  const worst = used.length > 1 ? used.reduce((a, b) => (b.rate > a.rate ? b : a)) : null;
 
   const lede =
     t.swears === 0 || every === null
@@ -309,27 +308,6 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
           capacity={capacity}
           label={`${swears(t.swears)} in a jar that holds ${num.format(capacity)}`}
         />
-        <div className="cn-stack cn-gap-12 st-key">
-          {used.length > 1 ? (
-            <ul className="legend cn-stack cn-gap-8" aria-label="Who you swore at">
-              {[...used].reverse().map((h) => (
-                <li key={h.harness} className="legend-item" style={vars({ "--tone": TONE[h.harness] })}>
-                  <span>
-                    <strong className="cn-name">{HARNESS_LABEL[h.harness]}</strong>{" "}
-                    <span className="cn-meta">
-                      {swears(h.swears)}, {h.rate.toFixed(1)} per 100 prompts
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          <p className="cn-meta cn-m-0">
-            {used.length === 1 && `All of it in ${HARNESS_LABEL[used[0]!.harness]}. `}
-            {worst && worst.swears > 0 && `${HARNESS_LABEL[worst.harness]} takes the most. `}
-            Your jar holds {num.format(capacity)}.
-          </p>
-        </div>
       </div>
     </header>
   );

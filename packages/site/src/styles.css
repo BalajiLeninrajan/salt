@@ -133,20 +133,15 @@ html { overscroll-behavior-y: none; }
 .st-shelved.is-small .st-inside { box-shadow: var(--neu-inset-soft); }
 .st-shelved.is-small .st-lid { height: 8px; }
 
-/* Hero: the headline on the ground, the jar and its key on the shelf. */
+/* Hero: the headline on the ground, the jar beside it. */
 .st-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
   gap: var(--space-6);
   align-items: end;
 }
-.st-stand {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0 var(--space-5);
-  align-items: end;
-}
-.st-key { padding-bottom: var(--space-5); }
+/* The jar stands alone in its column; its stripes carry the harness colours. */
+.st-stand { display: grid; justify-items: center; align-items: end; }
 .st-stats { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-6); }
 
 /* The aside: its heading, the jar, then what the jar says. Once the aside
@@ -249,7 +244,6 @@ html { overscroll-behavior-y: none; }
 }
 @media (max-width: 520px) {
   .st-report { --jar-w: 108px; --jar-h: 160px; }
-  .st-stand { column-gap: var(--space-4); }
   .st-word {
     grid-template-columns: 18px minmax(0, 8ch) minmax(0, 1fr) 36px 34px;
     gap: var(--space-2);
