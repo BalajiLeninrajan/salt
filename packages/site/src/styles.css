@@ -51,6 +51,10 @@ html { overscroll-behavior-y: none; }
    Motion: each jar fills once and each day's stack rises once, on arrival,
    from the shelf (st-pour, transform only). Nothing loops. */
 
+/* main grows to fill the viewport; keep the sections packed at the top
+   instead of letting the grid spread the extra height between rows. */
+.st-report { align-content: start; }
+
 .st-report,
 .st-gone {
   --jar-w: 128px;
