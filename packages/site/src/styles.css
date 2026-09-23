@@ -106,7 +106,6 @@ html { overscroll-behavior-y: none; }
 .st-fill {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   height: var(--fill);
   min-height: 3px;
   overflow: clip;
@@ -114,9 +113,14 @@ html { overscroll-behavior-y: none; }
   transform-origin: bottom;
   animation: st-pour .9s var(--ease-out) .18s backwards;
 }
-.st-fill > * { flex: var(--n) 1 0; min-height: 2px; }
-.st-fill.is-sliver { gap: 0; }
-.st-fill.is-sliver > * { min-height: 1px; }
+.st-fill > * { flex: var(--n) 1 0; }
+/* One stripe per coin: the inside of the jar divided by its capacity. A jar
+   too big for that to read draws its plates solid. */
+.st-jar { --inside-h: calc(var(--jar-h) - 2 * var(--space-2)); }
+.st-fill .st-coins { --stripe: calc(var(--inside-h) / var(--cap, 1)); }
+.st-jar.is-solid .st-coins, .st-days.is-solid .st-coins {
+  background: color-mix(in srgb, var(--accent) 90%, var(--base));
+}
 @keyframes st-pour { from { transform: scaleY(0); } }
 
 /* The shelf the day stacks stand on. */
@@ -132,6 +136,7 @@ html { overscroll-behavior-y: none; }
 .st-shelved.is-small .st-glass { padding: var(--space-1); box-shadow: var(--neu-raised-soft); }
 .st-shelved.is-small .st-inside { box-shadow: var(--neu-inset-soft); }
 .st-shelved.is-small .st-lid { height: 8px; }
+.st-shelved.is-small .st-jar { --inside-h: calc(var(--jar-h) - 2 * var(--space-1)); }
 
 /* Hero: the headline on the ground, the jar beside it. */
 .st-hero {
@@ -201,7 +206,7 @@ html { overscroll-behavior-y: none; }
   animation-delay: calc(.2s + var(--i, 0) * 2.5ms);
 }
 .st-days > span > * { flex: var(--n) 1 0; }
-.st-days .st-coins { --stripe: max(var(--coin), 4px); }
+.st-days .st-coins { --stripe: var(--coin); }
 .st-days > .is-quiet { height: 2px; background: var(--surface-1); animation: none; }
 /* "Agents" heads the harness items in the day key: a word, no swatch. */
 .st-legend-group { color: var(--overlay-2); }
