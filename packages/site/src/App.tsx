@@ -95,14 +95,14 @@ function Frame({ report, children }: { report?: Report; children: ReactNode }) {
         </a>
         {when && (
           <div className="cn-row cn-gap-12">
-            <span className="cn-meta cn-text-subtext-0 topbar-meta">
+            <span className="cn-meta cn-text-subtext-0 cn-text-right">
               Taken {when.generated} · link expires {when.expires}
             </span>
             <CopyLink url={window.location.href} />
           </div>
         )}
       </header>
-      <main className="page-main page-enter cn-stack cn-gap-28">{children}</main>
+      <main className="page-main page-enter cn-stack cn-gap-32">{children}</main>
     </div>
   );
 }
@@ -149,34 +149,34 @@ function Hero({ report }: { report: Report }) {
   const where = used.length === 1 ? ` All of it at ${HARNESS_LABEL[used[0]!.harness]}.` : "";
 
   return (
-    <header className="hero cn-grid-2 cn-gap-28">
+    <header className="hero cn-grid-2 cn-gap-32">
       {/* The number sits on the page ground: a box around a single figure
           reads as a widget, not a headline. */}
       <section className="hero-main">
-        <p className="eyebrow">Swears per 100 prompts</p>
-        <p className="hero-number cn-text-text cn-m-0">
+        <p className="cn-label cn-m-0">Swears per 100 prompts</p>
+        <p className="hero-number cn-text-text cn-mt-8 cn-mb-0">
           {t.swears_per_100_prompts.toFixed(1)}
         </p>
         <p className="cn-lede cn-mt-12 cn-mb-0">{line + where}</p>
       </section>
 
       {/* Signature flourish via `panel is-tilted`; the stack is the package's. */}
-      <section className="panel is-tilted cn-p-22 cn-stack cn-gap-16 hero-card">
-        <div className="stat-row">
-          <span className="cn-label">Swears</span>
-          <span className="cn-value cn-text-text">{num.format(t.swears)}</span>
+      <section className="panel is-tilted cn-p-24 cn-stack cn-gap-16 hero-card">
+        <div className="stat is-inline">
+          <span>Swears</span>
+          <strong className="cn-value cn-text-text">{num.format(t.swears)}</strong>
         </div>
-        <div className="stat-row">
-          <span className="cn-label">Prompts</span>
-          <span className="cn-value cn-text-text">{num.format(t.prompts)}</span>
+        <div className="stat is-inline">
+          <span>Prompts</span>
+          <strong className="cn-value cn-text-text">{num.format(t.prompts)}</strong>
         </div>
-        <div className="stat-row">
-          <span className="cn-label">Salty prompts</span>
-          <span className="cn-value cn-text-text">{salty.toFixed(1)}%</span>
+        <div className="stat is-inline">
+          <span>Salty prompts</span>
+          <strong className="cn-value cn-text-text">{salty.toFixed(1)}%</strong>
         </div>
-        <div className="stat-row">
-          <span className="cn-label">Sessions</span>
-          <span className="cn-value cn-text-text">{num.format(t.sessions)}</span>
+        <div className="stat is-inline">
+          <span>Sessions</span>
+          <strong className="cn-value cn-text-text">{num.format(t.sessions)}</strong>
         </div>
       </section>
     </header>
@@ -201,7 +201,7 @@ function ByHarness({ report }: { report: Report }) {
     <section className="panel">
       <div className="panel-body">
         <Heading title="Which agent gets it worst" note={note} />
-        <div className={`${rows.length >= 3 ? "cn-grid-3" : "cn-grid-2"} cn-gap-16 cn-mt-22`}>
+        <div className={`${rows.length >= 3 ? "cn-grid-3" : "cn-grid-2"} cn-gap-16 cn-mt-24`}>
           {rows.map((h) => (
             <article
               key={h.harness}
@@ -213,17 +213,14 @@ function ByHarness({ report }: { report: Report }) {
               </h3>
               <div className="cn-value-lg">{h.rate.toFixed(1)}</div>
               <span className="progress-track cn-block cn-mt-12">
-                <span
-                  className="bar-fill"
-                  style={{ width: `${(h.rate / max) * 100}%` }}
-                />
+                <span style={{ width: `${(h.rate / max) * 100}%` }} />
               </span>
-              <div className="stat-row cn-mt-12">
-                <span className="cn-label">Prompts</span>
+              <div className="stat is-inline cn-mt-12">
+                <span>Prompts</span>
                 <b>{num.format(h.prompts)}</b>
               </div>
-              <div className="stat-row cn-mt-8">
-                <span className="cn-label">Swears</span>
+              <div className="stat is-inline cn-mt-8">
+                <span>Swears</span>
                 <b>{num.format(h.swears)}</b>
               </div>
             </article>
@@ -276,41 +273,36 @@ function OtherSide({ report }: { report: Report }) {
 
         {/* Four-up counter strip. A recessed readout carved from the panel,
             not a raised card: the well, at the soft depth. */}
-        <div className="well cn-inset-soft cn-p-16 cn-grid-4 cn-mt-22 metric-grid">
-          <div className="stat-row">
-            <span className="cn-label">Replies</span>
-            <span className="cn-value cn-text-text">{num.format(a.messages)}</span>
+        <div className="well cn-inset-soft cn-p-16 cn-grid-4 cn-mt-24 metric-grid">
+          <div className="stat cn-p-0">
+            <span>Replies</span>
+            <strong className="cn-text-text">{num.format(a.messages)}</strong>
           </div>
-          <div className="stat-row">
-            <span className="cn-label">Swears</span>
-            <span className="cn-value cn-text-text">{num.format(a.swears)}</span>
+          <div className="stat cn-p-0">
+            <span>Swears</span>
+            <strong className="cn-text-text">{num.format(a.swears)}</strong>
           </div>
-          <div className="stat-row">
-            <span className="cn-label">Per 100</span>
-            <span className="cn-value cn-text-text">
-              {a.swears_per_100_messages.toFixed(2)}
-            </span>
+          <div className="stat cn-p-0">
+            <span>Per 100</span>
+            <strong className="cn-text-text">{a.swears_per_100_messages.toFixed(2)}</strong>
           </div>
-          <div className="stat-row">
-            <span className="cn-label">Replies w/ swear</span>
-            <span className="cn-value cn-text-text">
-              {num.format(a.messages_with_swear)}
-            </span>
+          <div className="stat cn-p-0">
+            <span>Replies w/ swear</span>
+            <strong className="cn-text-text">{num.format(a.messages_with_swear)}</strong>
           </div>
         </div>
 
         {/* Per harness as a strip of rows, not a second deck of cards: the
             cards above already carry the per-harness comparison that matters. */}
         {harnesses.length > 1 && (
-          <div className="stat-strip cn-mt-16">
+          <div className="cn-divide cn-mt-16">
             {harnesses.map((h) => (
-              <div key={h.harness} className="stat-row">
-                <span className="cn-row">
-                  <span
-                    className="legend-dot"
-                    style={{ background: HARNESS_COLOR[h.harness] }}
-                  />
-                  <span className="cn-name">{HARNESS_LABEL[h.harness]}</span>
+              <div key={h.harness} className="stat is-inline">
+                <span
+                  className="legend-item cn-name"
+                  style={{ ["--tone" as string]: HARNESS_COLOR[h.harness] }}
+                >
+                  {HARNESS_LABEL[h.harness]}
                 </span>
                 <span className="cn-meta">
                   {num.format(h.swears)} in {num.format(h.messages)} replies
@@ -328,7 +320,7 @@ function OtherSide({ report }: { report: Report }) {
             {words.map((w) => (
               <span
                 key={w.word}
-                className="chip-tone word-tier"
+                className="tag word-tier"
                 style={{ ["--tier-color" as string]: TIER_COLOR[w.tier] }}
               >
                 {w.word} · {num.format(w.count)}
@@ -354,13 +346,13 @@ function OverTime({ report }: { report: Report }) {
           title="Over time"
           note={`${num.format(days.length)} active days, ${dates[0]} to ${dates[dates.length - 1]} · your swears against the agent's, same scale`}
         />
-        <div className="cn-mt-22">
+        <div className="cn-mt-24">
           <Timeline daily={days} agentDaily={report.agent_daily} />
         </div>
 
         {/* Days were cut in the publisher's time zone — "your" days, in this
             page's voice, even when a visitor elsewhere is reading. */}
-        <h3 className="cn-name cn-mt-28 cn-mb-4">Day by day</h3>
+        <h3 className="cn-name cn-mt-32 cn-mb-4">Day by day</h3>
         <p className="cn-meta cn-mt-0 cn-mb-12">
           shaded by swear volume, weighted by severity · your local days
           {excluded > 0 &&
@@ -406,9 +398,10 @@ function Where({ report }: { report: Report }) {
         <Heading title="Where it happens" note={note} />
       </div>
       {/* The table fills the panel edge to edge; the recipe rounds its last
-          row into the panel corners. */}
+          row into the panel corners. Its cells carry no data-label, so on a
+          phone it stays a table and scrolls sideways if it has to. */}
       <div className="table-scroll">
-        <table className="table-neu projects">
+        <table className="data-table projects">
           <caption className="cn-sr-only">Swear counts per project, sortable</caption>
           <thead>
             <tr>
@@ -416,11 +409,11 @@ function Where({ report }: { report: Report }) {
                 <th
                   key={key}
                   className={key === "name" ? "cn-text-left" : "cn-text-right"}
-                  aria-sort={sort === key ? "descending" : "none"}
+                  // Names sort A to Z; the counts sort largest first.
+                  aria-sort={sort !== key ? "none" : key === "name" ? "ascending" : "descending"}
                 >
-                  <button onClick={() => setSort(key)}>
+                  <button type="button" onClick={() => setSort(key)}>
                     {label}
-                    {sort === key ? " ↓" : ""}
                   </button>
                 </th>
               ))}
@@ -429,12 +422,12 @@ function Where({ report }: { report: Report }) {
           <tbody>
             {rows.map((p) => (
               <tr key={p.name}>
-                <td className="cell-name cn-text-left" data-label="Project">
+                <td className="cell-name cn-text-left">
                   <strong>{p.name}</strong>
                 </td>
-                <td className="cn-text-right" data-label="Prompts">{num.format(p.prompts)}</td>
-                <td className="cn-text-right" data-label="Swears">{num.format(p.swears)}</td>
-                <td className="cn-text-right" data-label="Per 100">{p.rate.toFixed(1)}</td>
+                <td className="cn-text-right">{num.format(p.prompts)}</td>
+                <td className="cn-text-right">{num.format(p.swears)}</td>
+                <td className="cn-text-right">{p.rate.toFixed(1)}</td>
               </tr>
             ))}
           </tbody>
@@ -471,7 +464,8 @@ function Methodology({ report }: { report: Report }) {
         </li>
         <li>
           Matching is word-bounded with an allowlist, and folds{" "}
-          <code>f*ck</code> / <code>sh1t</code> onto their canonical spelling.
+          <code className="cn-code-inline">f*ck</code> /{" "}
+          <code className="cn-code-inline">sh1t</code> onto their canonical spelling.
         </li>
         {c.notes.map((n) => (
           <li key={n}>{n}</li>

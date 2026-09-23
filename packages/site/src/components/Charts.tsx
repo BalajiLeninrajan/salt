@@ -144,22 +144,23 @@ export function Timeline({
           </text>
         </svg>
       </div>
-      <div className="cn-cluster cn-gap-16 cn-mt-12">
-        <span className="cn-microlabel cn-row">
-          <span className="legend-dot" style={{ background: "var(--surface-2)" }} />
-          prompts / day · peak {num.format(maxPrompts)}
-        </span>
-        <span className="cn-microlabel cn-row">
-          <span className="legend-dot" style={{ background: "var(--mauve)" }} />
-          your swears / day · peak {num.format(Math.max(...userSwears, 0))}
-        </span>
+      <ul className="legend cn-mt-12">
+        <li className="legend-item" style={{ ["--tone" as string]: "var(--surface-2)" }}>
+          Prompts per day, peak {num.format(maxPrompts)}
+        </li>
+        <li className="legend-item" style={{ ["--tone" as string]: "var(--mauve)" }}>
+          Your swears per day, peak {num.format(Math.max(...userSwears, 0))}
+        </li>
         {agentSeries.map((s) => (
-          <span key={s.harness} className="cn-microlabel cn-row">
-            <span className="legend-dot" style={{ background: AGENT_LINE_COLOR[s.harness] }} />
-            {HARNESS_LABEL[s.harness]} back · {num.format(s.total)}
-          </span>
+          <li
+            key={s.harness}
+            className="legend-item"
+            style={{ ["--tone" as string]: AGENT_LINE_COLOR[s.harness] }}
+          >
+            {HARNESS_LABEL[s.harness]} back, {num.format(s.total)}
+          </li>
         ))}
-      </div>
+      </ul>
     </>
   );
 }
@@ -328,11 +329,16 @@ export function Calendar({ daily }: { daily: DayStat[] }) {
         )}
       </svg>
       <div className="cn-cluster cn-center cn-gap-4 cn-mt-12">
-        <span className="cn-microlabel">quieter</span>
+        <span className="cn-meta">Quieter</span>
         {LEVELS.map((fill) => (
-          <span key={fill} className="legend-swatch" style={{ background: fill }} />
+          <span
+            key={fill}
+            className="legend-item"
+            style={{ ["--tone" as string]: fill }}
+            aria-hidden="true"
+          />
         ))}
-        <span className="cn-microlabel">louder</span>
+        <span className="cn-meta">Louder</span>
       </div>
     </div>
   );

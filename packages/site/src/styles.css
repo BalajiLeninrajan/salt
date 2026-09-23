@@ -73,35 +73,26 @@ html { overscroll-behavior-y: none; }
 /* Composes cn-stack; the rows sit in the middle of the tilted card. */
 .hero-card { align-content: center; }
 
-/* The counter strip's rows stack label over value instead of the recipe's
-   baseline pair. */
-.metric-grid .stat-row {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-
 /* ── harness cards — accent-card keyed by the harness color ────────────── */
 
+/* The plate and the bar take the harness color; the progress fill reads
+   --accent by default. */
 .harness-card { --accent: var(--entity-color); }
 
 /* cn-name, a step up: the card's title, not a row's. */
 .harness-name { font-size: 15px; }
 
-/* One flat color per harness. */
-.harness-card .progress-track { --progress-fill: var(--entity-color); }
-
 /* ── word rows — ranked-row on a fixed column grid ─────────────────────── */
 
 /* The rows are direct children of the panel, so their inline padding meets
-   the panel body's 22px rather than the recipe's 14px. */
+   the panel body's padding rather than the recipe's. */
 .word-row {
   display: grid;
   grid-template-columns: 24px 1fr 120px 56px;
-  padding-inline: 22px;
+  padding-inline: var(--body-pad);
 }
 
-/* Composes `chip-tone`, keyed by the word's tier. */
+/* Composes `tag`, keyed by the word's tier. */
 .word-tier { --tone: var(--tier-color); }
 
 /* ── charts — SVGs inside package wells ────────────────────────────────── */
@@ -118,50 +109,13 @@ html { overscroll-behavior-y: none; }
   margin: 0 auto;
 }
 
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-/* The calendar's ramp key: quieter → louder, in the cells' own shape. */
-.legend-swatch {
-  width: 11px;
-  height: 11px;
-  border-radius: 4px;
-}
-
-/* ── projects table — sort buttons on top of `table-neu` ───────────────── */
-
-.projects th button {
-  all: unset;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-  letter-spacing: inherit;
-}
-.projects th button:hover { color: var(--subtext-1); }
-/* `all: unset` strips the global ring, so it is restored by hand. */
-.projects th button:focus-visible {
-  outline: 2px solid var(--mauve);
-  outline-offset: 3px;
-}
-
 /* ── methodology — fine print on the page ground ───────────────────────── */
 
 .methodology {
   border-top: 1px solid var(--surface-0);
-  padding-top: 22px;
+  padding-top: var(--space-5);
 }
 .methodology-list { padding-left: 18px; }
-/* Inline machine literals — the one mono voice in the footer. */
-.methodology code {
-  font: 500 12px/1 var(--mono);
-  color: var(--mauve);
-  background: color-mix(in srgb, var(--mauve) 8%, transparent);
-  padding: 1px 5px;
-  border-radius: 4px;
-}
 
 /* ── empty / loading states ────────────────────────────────────────────── */
 
@@ -180,15 +134,14 @@ html { overscroll-behavior-y: none; }
 }
 
 @media (max-width: 760px) {
-  /* The dates are decoration next to the button at phone width. */
-  .topbar-meta { display: none; }
   .word-row { grid-template-columns: 20px 1fr 70px 44px; gap: 10px; }
-  /* table-neu stacks into cards here; a right-aligned number floats in its
-     grid cell, so the numbers go back to reading flush left. */
-  .projects td { text-align: left; }
 }
 
 @media (max-width: 520px) {
+  /* Four columns fit a phone once the cells step down to the small inline
+     gap, so the table stays whole instead of scrolling its last column off. */
+  .projects { --cell-pad: var(--space-3) var(--space-2); }
+
   /* Four short counters read fine two abreast on a phone; a single column
      of them was four rows for four numbers. */
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

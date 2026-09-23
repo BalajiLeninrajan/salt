@@ -28,17 +28,17 @@ export function WordList({ words }: { words: WordStat[] }) {
           <span className="cn-row">
             <span className="cn-name">{w.word}</span>
             <span
-              className="chip-tone word-tier"
+              className="tag word-tier"
               style={{ ["--tier-color" as string]: TIER_COLOR[w.tier] }}
             >
               {w.tier}
             </span>
           </span>
-          <span className="progress-track cn-block">
-            <span
-              className="bar-fill"
-              style={{ width: `${(w.count / max) * 100}%`, background: TIER_COLOR[w.tier] }}
-            />
+          <span
+            className="progress-track cn-block"
+            style={{ ["--progress-fill" as string]: TIER_COLOR[w.tier] }}
+          >
+            <span style={{ width: `${(w.count / max) * 100}%` }} />
           </span>
           <b>{num.format(w.count)}</b>
           <span className="cn-sr-only">
