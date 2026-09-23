@@ -159,7 +159,6 @@ function EmptyState() {
       <main className="page-main is-narrow page-enter st-gone">
         <div className="st-shelved" aria-hidden="true">
           <Jar capacity={1} />
-          <div className="st-shelf" />
         </div>
         <h1 className="cn-display is-sm cn-m-0">This jar was emptied.</h1>
         <p className="cn-lede cn-m-0">
@@ -332,7 +331,6 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
             Your jar holds {num.format(capacity)} coins.
           </p>
         </div>
-        <div className="st-shelf" aria-hidden="true" />
       </div>
     </header>
   );
@@ -433,7 +431,6 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
             stack={harnesses.map((h) => ({ key: h.harness, n: h.swears, tone: TONE[h.harness] }))}
             label={`The agents' jar: ${coins(a.swears)} in a jar that holds ${num.format(small)}`}
           />
-          <div className="st-shelf" aria-hidden="true" />
         </div>
         <div className="cn-stack cn-gap-16">
         <p className="cn-copy cn-m-0">

@@ -73,10 +73,11 @@ html { overscroll-behavior-y: none; }
   z-index: 1;
   width: 72%;
   height: 12px;
-  margin-bottom: var(--space-1);
-  background: var(--base);
+  margin-bottom: -2px;
+  background: var(--surface-0);
   border-radius: var(--cn-radius-control);
-  box-shadow: var(--neu-raised-soft);
+  /* A hard, dark cast onto the jar under it, so the lid reads as its own piece. */
+  box-shadow: 0 7px 9px -1px var(--crust), 0 2px 3px var(--crust), var(--neu-raised-soft);
 }
 .st-glass {
   width: 100%;
@@ -114,7 +115,7 @@ html { overscroll-behavior-y: none; }
 .st-fill.is-sliver > * { min-height: 1px; }
 @keyframes st-pour { from { transform: scaleY(0); } }
 
-/* The shelf every jar and day stack stands on. */
+/* The shelf the day stacks stand on. */
 .st-shelf {
   height: 10px;
   background: var(--base);
@@ -122,7 +123,6 @@ html { overscroll-behavior-y: none; }
   box-shadow: var(--neu-raised-soft);
 }
 .st-shelved { display: grid; justify-items: center; }
-.st-shelved > .st-shelf { width: min(100%, calc(var(--jar-w) + 56px)); }
 /* The agents' jar: a third of the size, so a few coins fill a visible share. */
 .st-shelved.is-small { --jar-w: 56px; --jar-h: 80px; }
 .st-shelved.is-small .st-glass { padding: var(--space-1); box-shadow: var(--neu-raised-soft); }
@@ -142,7 +142,6 @@ html { overscroll-behavior-y: none; }
   gap: 0 var(--space-5);
   align-items: end;
 }
-.st-stand > .st-shelf { grid-column: 1 / -1; }
 .st-key { padding-bottom: var(--space-5); }
 .st-stats { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-6); }
 
@@ -226,7 +225,6 @@ html { overscroll-behavior-y: none; }
   .st-split > aside { width: min(100%, 420px); }
   .st-agents { grid-template-columns: auto minmax(0, 1fr); align-items: end; }
   .st-agents > :first-child { grid-column: 1 / -1; }
-  .st-agents > .st-shelved > .st-shelf { width: calc(var(--jar-w) + 16px); }
 }
 @media (max-width: 760px) {
   .st-hero { grid-template-columns: minmax(0, 1fr); }
