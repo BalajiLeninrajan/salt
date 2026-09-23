@@ -223,7 +223,7 @@ function Jar({
       aria-hidden={label ? undefined : true}
     >
       <div className="st-lid" />
-      <div className="st-glass well cn-bg-well">
+      <div className="st-glass">
         <div className="st-inside">
         {fill > 0 && (
           <div

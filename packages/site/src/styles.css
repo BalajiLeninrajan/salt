@@ -53,8 +53,8 @@ html { overscroll-behavior-y: none; }
 
 .st-report,
 .st-gone {
-  --jar-w: 176px;
-  --jar-h: 272px;
+  --jar-w: 128px;
+  --jar-h: 188px;
 }
 
 /* One coin: a plate in its owner's color over a darker rim, so a stack
@@ -66,14 +66,15 @@ html { overscroll-behavior-y: none; }
 }
 
 .st-jar { display: grid; justify-items: center; width: var(--jar-w); }
+/* Neumorphic jar: the lid and the jar body are raised out of the page's own
+   ground, and the inside of the jar is carved into the body. */
 .st-lid {
   position: relative;
   z-index: 1;
-  width: 78%;
-  height: 14px;
-  margin-bottom: -3px;
-  background: var(--surface-0);
-  border: 1px solid var(--edge);
+  width: 72%;
+  height: 12px;
+  margin-bottom: var(--space-1);
+  background: var(--base);
   border-radius: var(--cn-radius-control);
   box-shadow: var(--neu-raised-soft);
 }
@@ -81,7 +82,9 @@ html { overscroll-behavior-y: none; }
   width: 100%;
   height: var(--jar-h);
   padding: var(--space-2);
+  background: var(--base);
   border-radius: 22% 22% 34% 34% / 9% 9% 16% 16%;
+  box-shadow: var(--neu-raised);
 }
 /* The inside of the glass, its curve inset by the padding. It clips the
    coins, so a sliver follows the rounded base instead of running past it. */
@@ -92,6 +95,8 @@ html { overscroll-behavior-y: none; }
   justify-content: flex-end;
   overflow: clip;
   border-radius: 20% 20% 32% 32% / 7% 7% 14% 14%;
+  background: color-mix(in srgb, var(--crust) 30%, var(--base));
+  box-shadow: var(--neu-inset);
 }
 .st-fill {
   display: flex;
@@ -112,16 +117,16 @@ html { overscroll-behavior-y: none; }
 /* The shelf every jar and day stack stands on. */
 .st-shelf {
   height: 10px;
-  background: var(--surface-0);
-  border: 1px solid var(--edge);
+  background: var(--base);
   border-radius: var(--cn-radius-chip);
   box-shadow: var(--neu-raised-soft);
 }
 .st-shelved { display: grid; justify-items: center; }
 .st-shelved > .st-shelf { width: min(100%, calc(var(--jar-w) + 56px)); }
 /* The agents' jar: a third of the size, so a few coins fill a visible share. */
-.st-shelved.is-small { --jar-w: 72px; --jar-h: 104px; }
-.st-shelved.is-small .st-glass { padding: var(--space-1); }
+.st-shelved.is-small { --jar-w: 56px; --jar-h: 80px; }
+.st-shelved.is-small .st-glass { padding: var(--space-1); box-shadow: var(--neu-raised-soft); }
+.st-shelved.is-small .st-inside { box-shadow: var(--neu-inset-soft); }
 .st-shelved.is-small .st-lid { height: 8px; }
 
 /* Hero: the headline on the ground, the jar and its key on the shelf. */
@@ -214,7 +219,7 @@ html { overscroll-behavior-y: none; }
   text-align: center;
 }
 .st-gone > p { max-width: 46ch; }
-.st-gone > .st-shelved { margin-bottom: var(--space-2); --jar-w: 120px; --jar-h: 150px; }
+.st-gone > .st-shelved { margin-bottom: var(--space-2); --jar-w: 104px; --jar-h: 148px; }
 
 @media (max-width: 900px) {
   .st-split { grid-template-columns: minmax(0, 1fr); }
@@ -230,7 +235,7 @@ html { overscroll-behavior-y: none; }
   .st-gone { min-height: 0; align-content: start; }
 }
 @media (max-width: 520px) {
-  .st-report { --jar-w: 132px; --jar-h: 208px; }
+  .st-report { --jar-w: 108px; --jar-h: 160px; }
   .st-stand { column-gap: var(--space-4); }
   .st-word {
     grid-template-columns: 18px minmax(0, 8ch) minmax(0, 1fr) 36px 34px;
