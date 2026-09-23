@@ -59,7 +59,7 @@ const dayDate = new Intl.DateTimeFormat(undefined, {
 });
 const dayOf = (date: string) => dayDate.format(new Date(`${date}T00:00:00Z`));
 
-const coins = (n: number) => `${num.format(n)} ${n === 1 ? "coin" : "coins"}`;
+const swears = (n: number) => `${num.format(n)} ${n === 1 ? "swear" : "swears"}`;
 
 /** Custom properties inline, typed once. */
 const vars = (v: Record<string, string | number>) => v as CSSProperties;
@@ -265,8 +265,8 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
     t.swears === 0 || every === null
       ? `Not a single swear in ${num.format(t.prompts)} prompts.`
       : every === 1
-        ? `Nearly every prompt cost you a coin. ${rate}`
-        : `One prompt in ${num.format(every)} cost you a coin. ${rate}`;
+        ? `Nearly every prompt had a swear in it. ${rate}`
+        : `One prompt in ${num.format(every)} had a swear in it. ${rate}`;
 
   return (
     <header className="st-hero">
@@ -278,7 +278,7 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
             </>
           ) : (
             <>
-              You dropped <em>{coins(t.swears)}</em> in the swear jar.
+              You swore <em>{t.swears === 1 ? "once" : `${num.format(t.swears)} times`}</em> at your agents.
             </>
           )}
         </h1>
@@ -307,12 +307,12 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
         <Jar
           stack={stack}
           capacity={capacity}
-          label={`${coins(t.swears)} in a jar that holds ${num.format(capacity)}`}
+          label={`${swears(t.swears)} in a jar that holds ${num.format(capacity)}`}
         />
         <div className="cn-stack cn-gap-12 st-key">
           <div className="cn-row cn-between cn-baseline cn-gap-12">
             <h2 className="cn-name cn-m-0">Who you swore at</h2>
-            <span className="cn-label cn-nowrap">coins · rate</span>
+            <span className="cn-label cn-nowrap">swears · rate</span>
           </div>
           <div className="cn-divide">
             {[...used].reverse().map((h) => (
@@ -328,7 +328,7 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
           <p className="cn-meta cn-m-0">
             {worst && worst.swears > 0 &&
               `${HARNESS_LABEL[worst.harness]} takes the most, at ${worst.rate.toFixed(1)} per 100 prompts. `}
-            Your jar holds {num.format(capacity)} coins.
+            Your jar holds {num.format(capacity)}.
           </p>
         </div>
       </div>
@@ -373,7 +373,7 @@ function Contents({ report }: { report: Report }) {
           key={w.word}
           className="ranked-row st-word"
           tabIndex={0}
-          data-tip={`${coins(w.count)}, ${w.tier}`}
+          data-tip={`${swears(w.count)}, ${w.tier}`}
         >
           <span className="cn-meta">{String(i + 1).padStart(2, "0")}</span>
           <strong className="cn-truncate">{w.word}</strong>
@@ -396,7 +396,7 @@ function Contents({ report }: { report: Report }) {
 
 /**
  * The agents' jar: a small jar with its own capacity, because agents almost
- * never swear and one coin should still be visible. The caption says how
+ * never swear and one swear should still be visible. The caption says how
  * much smaller it is than yours. It is the page's one tilted panel, because
  * it is the aside.
  */
@@ -411,10 +411,7 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
     { swears: report.totals.swears, per100: report.totals.swears_per_100_prompts },
     { swears: a.swears, per100: a.swears_per_100_messages, messages: a.messages },
   );
-  const said =
-    words.length > 0
-      ? ` It said ${words.map((w) => `${w.word} ${num.format(w.count)}`).join(", ")}.`
-      : "";
+  const most = Math.max(...words.map((w) => w.count), 1);
 
   return (
     <aside className="panel is-tilted">
@@ -422,21 +419,36 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
         <div>
           <h2 className="cn-title cn-m-0">Does the agent swear back?</h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">
-            A much smaller jar. It holds {num.format(small)} coins, yours holds {num.format(capacity)}.
+            A much smaller jar. It holds {num.format(small)}, yours holds {num.format(capacity)}.
           </p>
         </div>
         <div className="st-shelved is-small">
           <Jar
             capacity={small}
             stack={harnesses.map((h) => ({ key: h.harness, n: h.swears, tone: TONE[h.harness] }))}
-            label={`The agents' jar: ${coins(a.swears)} in a jar that holds ${num.format(small)}`}
+            label={`The agents' jar: ${swears(a.swears)} in a jar that holds ${num.format(small)}`}
           />
         </div>
         <div className="cn-stack cn-gap-16">
         <p className="cn-copy cn-m-0">
-          {coins(a.swears)} in {num.format(a.messages)} replies. {verdict}
-          {said}
+          {swears(a.swears)} in {num.format(a.messages)} replies. {verdict}
         </p>
+        {words.length > 0 && (
+          <div className="st-said" aria-label="What it said">
+            {words.map((w) => (
+              <div key={w.word} className="st-said-row">
+                <strong className="cn-truncate">{w.word}</strong>
+                <span
+                  className="progress-track cn-block"
+                  style={vars({ "--progress-fill": TIER_COLOR[w.tier] })}
+                >
+                  <span style={{ width: `${(w.count / most) * 100}%` }} />
+                </span>
+                <b>{num.format(w.count)}</b>
+              </div>
+            ))}
+          </div>
+        )}
         {harnesses.length > 1 && (
           <dl className="kv">
             {harnesses.map((h) => (
@@ -481,17 +493,17 @@ function Deposits({ report }: { report: Report }) {
       <div className="cn-row cn-between cn-wrap cn-gap-16">
         <div>
           <h2 className="cn-title cn-m-0" id="st-deposits">
-            When the coins went in
+            When you swore
           </h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">
-            One coin per swear, one stack per day, {num.format(active)} active days.
+            One stripe per swear, one stack per day, {num.format(active)} active days.
             {peak.total > 0 &&
-              ` The tallest stack is ${coins(peak.total)}, yours and the agents', on ${dayOf(peak.date)}.`}
+              ` The tallest stack is ${swears(peak.total)}, yours and the agents', on ${dayOf(peak.date)}.`}
             {excluded > 0 &&
               ` ${num.format(excluded)} Cursor prompts are dated by session, since Cursor keeps no per-message time.`}
           </p>
         </div>
-        <ul className="legend" aria-label="Whose coins">
+        <ul className="legend" aria-label="Whose swears">
           <li className="legend-item" style={vars({ "--tone": "var(--mauve)" })}>
             You
           </li>
@@ -609,7 +621,7 @@ function Where({ report }: { report: Report }) {
   const head: [SortKey, string][] = [
     ["name", "Project"],
     ["prompts", "Prompts"],
-    ["swears", "Coins"],
+    ["swears", "Swears"],
     ["rate", "Per 100"],
   ];
 
