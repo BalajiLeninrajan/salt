@@ -85,11 +85,13 @@ html { overscroll-behavior-y: none; }
 /* ── word rows — ranked-row on a fixed column grid ─────────────────────── */
 
 /* The rows are direct children of the panel, so their inline padding meets
-   the panel body's padding rather than the recipe's. */
+   the panel body's padding rather than the recipe's. This is the default
+   --body-pad value; the token itself turns into two values under compact
+   density, which padding-inline would read as start and end. */
 .word-row {
   display: grid;
   grid-template-columns: 24px 1fr 120px 56px;
-  padding-inline: var(--body-pad);
+  padding-inline: var(--space-5);
 }
 
 /* Composes `tag`, keyed by the word's tier. */

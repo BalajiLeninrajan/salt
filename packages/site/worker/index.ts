@@ -258,7 +258,7 @@ async function reportPage(id: string, env: Env, url: URL): Promise<Response> {
  * A dead link should explain itself rather than 404 into the marketing page.
  *
  * Styled with the same catppuccin-neu copy the marketing page links
- * (styles/index.css, synced into public/ by the prebuild hook), plus the
+ * (styles/index.css, synced into public/styles/ by the sync-css hook), plus the
  * marketing page's own thin layer for the shell/panel spacing.
  */
 function expiredPage(url: URL): Response {

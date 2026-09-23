@@ -26,7 +26,7 @@ const REPORT_ID =
 
 const dateFmt = new Intl.DateTimeFormat(undefined, {
   year: "numeric",
-  month: "long",
+  month: "short",
   day: "numeric",
 });
 
@@ -95,8 +95,9 @@ function Frame({ report, children }: { report?: Report; children: ReactNode }) {
         </a>
         {when && (
           <div className="cn-row cn-gap-12">
-            <span className="cn-meta cn-text-subtext-0 cn-text-right">
-              Taken {when.generated} · link expires {when.expires}
+            <span className="cn-stack cn-gap-4 cn-meta cn-text-subtext-0 cn-text-right">
+              <span className="cn-nowrap">Taken {when.generated}</span>
+              <span className="cn-nowrap">Expires {when.expires}</span>
             </span>
             <CopyLink url={window.location.href} />
           </div>
