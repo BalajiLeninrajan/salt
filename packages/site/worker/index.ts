@@ -257,9 +257,9 @@ async function reportPage(id: string, env: Env, url: URL): Promise<Response> {
 /**
  * A dead link should explain itself rather than 404 into the marketing page.
  *
- * Styled with the same vendored catppuccin-neu files the marketing page links
- * (tokens/utilities/recipes, synced into public/ by the prebuild hook), plus
- * the marketing page's own thin layer for the shell/panel spacing.
+ * Styled with the same catppuccin-neu copy the marketing page links
+ * (styles/index.css, synced into public/ by the prebuild hook), plus the
+ * marketing page's own thin layer for the shell/panel spacing.
  */
 function expiredPage(url: URL): Response {
   const html = `<!doctype html><html lang="en"><meta charset="utf-8"/>
@@ -268,15 +268,12 @@ function expiredPage(url: URL): Response {
 <link rel="icon" href="/favicon.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&display=swap"/>
-<link rel="stylesheet" href="/tokens.css"/>
-<link rel="stylesheet" href="/utilities.css"/>
-<link rel="stylesheet" href="/recipes.css"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"/>
+<link rel="stylesheet" href="/styles/index.css"/>
 <link rel="stylesheet" href="/styles.css"/>
 <div class="app-shell shell page-enter" style="--page-width: 760px"><main class="page-main page">
-  <section class="panel cn-raised-soft cn-p-28">
-    <p class="cn-eyebrow">Expired link</p>
-    <h1 class="cn-display-sm">This report is gone.</h1>
+  <section class="panel cn-raised-soft cn-p-32">
+    <h1 class="cn-display is-sm cn-mb-16">This report is gone.</h1>
     <p class="lede">Published reports expire after 30 days. If it was yours, run
       <code class="cn-code">salt</code> again to publish a fresh one.</p>
     <p><a class="btn-text" href="${url.origin}/">What is salt?</a></p>

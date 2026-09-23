@@ -6,10 +6,7 @@ dist/
 .wrangler/
 
 # generated from the catppuccin-neu package by sync-css; the predev/prebuild/pretest hooks regenerate them
-packages/site/public/tokens.css
-packages/site/public/utilities.css
-packages/site/public/recipes.css
-packages/site/public/index.css
+packages/site/public/styles/
 
 # assets staged for the site's Worker tests
 packages/site/test/.assets/

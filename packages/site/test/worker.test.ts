@@ -133,7 +133,7 @@ describe("GET /r/:id", () => {
     expect(res.status).toBe(404);
     const html = await res.text();
     expect(html).toContain("This report is gone.");
-    expect(html).toContain('href="/tokens.css"');
+    expect(html).toContain('href="/styles/index.css"');
     expect(html).toContain('href="/styles.css"');
   });
 });
@@ -145,7 +145,7 @@ describe("everything else", () => {
     expect(res.headers.get("content-type")).toContain("text/html");
     expect(await res.text()).toContain("salt");
 
-    const css = await SELF.fetch("https://example.com/tokens.css");
+    const css = await SELF.fetch("https://example.com/styles/index.css");
     expect(css.status).toBe(200);
     expect(css.headers.get("content-type")).toContain("text/css");
   });
