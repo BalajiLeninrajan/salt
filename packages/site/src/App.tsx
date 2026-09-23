@@ -310,24 +310,23 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
           label={`${swears(t.swears)} in a jar that holds ${num.format(capacity)}`}
         />
         <div className="cn-stack cn-gap-12 st-key">
-          <div className="cn-row cn-between cn-baseline cn-gap-12">
-            <h2 className="cn-name cn-m-0">Who you swore at</h2>
-            <span className="cn-label cn-nowrap">swears · rate</span>
-          </div>
-          <div className="cn-divide">
-            {[...used].reverse().map((h) => (
-              <div key={h.harness} className="stat is-inline">
-                <span className="legend-item cn-name" style={vars({ "--tone": TONE[h.harness] })}>
-                  {HARNESS_LABEL[h.harness]}
-                </span>
-                <span className="cn-meta cn-auto-l">{num.format(h.swears)}</span>
-                <b className="cn-value">{h.rate.toFixed(1)}</b>
-              </div>
-            ))}
-          </div>
+          {used.length > 1 ? (
+            <ul className="legend cn-stack cn-gap-8" aria-label="Who you swore at">
+              {[...used].reverse().map((h) => (
+                <li key={h.harness} className="legend-item" style={vars({ "--tone": TONE[h.harness] })}>
+                  <span>
+                    <strong className="cn-name">{HARNESS_LABEL[h.harness]}</strong>{" "}
+                    <span className="cn-meta">
+                      {swears(h.swears)}, {h.rate.toFixed(1)} per 100 prompts
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
           <p className="cn-meta cn-m-0">
-            {worst && worst.swears > 0 &&
-              `${HARNESS_LABEL[worst.harness]} takes the most, at ${worst.rate.toFixed(1)} per 100 prompts. `}
+            {used.length === 1 && `All of it in ${HARNESS_LABEL[used[0]!.harness]}. `}
+            {worst && worst.swears > 0 && `${HARNESS_LABEL[worst.harness]} takes the most. `}
             Your jar holds {num.format(capacity)}.
           </p>
         </div>
