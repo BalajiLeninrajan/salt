@@ -20,14 +20,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
       rel="stylesheet"
     />
-    <!-- catppuccin-neu, vendored into public/ by the sync-css prebuild hook.
-         The three files work as plain links in this order. -->
-    <link rel="stylesheet" href="/tokens.css" />
-    <link rel="stylesheet" href="/utilities.css" />
-    <link rel="stylesheet" href="/recipes.css" />
+    <!-- catppuccin-neu, copied into public/styles/ by the sync-css hook and
+         ignored in git. index.css puts the three files in their layers. -->
+    <link rel="stylesheet" href="/styles/index.css" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -54,8 +52,8 @@
 
     <div class="app-shell shell page-enter" style="--page-width: 760px">
       <main class="page-main page">
-        <section class="panel cn-raised-soft cn-p-28">
-          <div class="mast cn-mb-28">
+        <section class="panel cn-raised-soft cn-p-32">
+          <div class="mast cn-mb-32">
             <!-- Same mark as the dashboard: "salt" in Inter, with the `a`
                  replaced by a drawn arch holding a lowercase `i`. Only the arch
                  is drawn; s/l/t are real text. The numbers below are ARCH from
@@ -103,13 +101,13 @@
               ><span id="cmd">npx salt-ai</span
               ><span class="caret" aria-hidden="true"></span
             ></code>
-            <!-- The recipe's copy control: a .btn-icon, with the label in a
+            <!-- The recipe's copy control: a .btn.is-icon, with the label in a
                  data-tip bubble rather than a title= (which would draw the OS
                  tooltip). Both glyphs ship in the markup; copy.js toggles
                  is-copied on the .command and the recipe swaps which one
                  shows, so the success state costs no request. -->
             <button
-              class="btn-icon command-copy"
+              class="btn is-icon command-copy"
               id="copy"
               type="button"
               data-command="npx salt-ai"

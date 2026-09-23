@@ -1,11 +1,11 @@
 {
   "name": "@salt/site",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "salt's marketing page, the report dashboard, and the Worker that hosts published reports.",
   "scripts": {
-    "sync-css": "catppuccin-neu-sync public",
+    "sync-css": "catppuccin-neu-sync public/styles",
     "predev": "pnpm sync-css",
     "dev": "vite dev",
     "prebuild": "pnpm sync-css",
@@ -16,7 +16,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "catppuccin-neu": "github:BalajiLeninrajan/catppuccin-neu#v0.3.0",
+    "catppuccin-neu": "github:BalajiLeninrajan/catppuccin-neu#v0.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
