@@ -11,13 +11,11 @@ import { AGENT_LINE_COLOR, HARNESS_LABEL, REPORT_TTL_DAYS, TIER_COLOR } from "@s
 import { CopyCommand, CopyLink } from "./components/CopyLink";
 import { Logo } from "./components/Logo";
 import {
-  agentVerdict,
   depositDays,
   fillPercent,
   HARNESSES,
   jarCapacity,
   monthStarts,
-  oneIn,
   sharePercent,
   type Harness,
 } from "./jar";
@@ -216,7 +214,8 @@ function Jar({
   const shown = stack.filter((c) => c.n > 0).reverse();
   return (
     <figure
-      className="st-jar cn-m-0"
+      className={`st-jar cn-m-0${capacity > 48 ? " is-solid" : ""}`}
+      style={vars({ "--cap": capacity })}
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
@@ -226,9 +225,7 @@ function Jar({
         <div className="st-inside">
         {fill > 0 && (
           <div
-            // A sliver has no room for gaps between plates; they would read
-            // as more coins than there are.
-            className={`st-fill${fill < 6 ? " is-sliver" : ""}`}
+            className="st-fill"
             style={vars({ "--fill": `${fill}%` })}
           >
             {shown.map((c) => (
@@ -249,24 +246,19 @@ function Jar({
 function Hero({ report, capacity }: { report: Report; capacity: number }) {
   const t = report.totals;
   const salty = t.prompts ? (100 * t.prompts_with_swear) / t.prompts : 0;
-  const every = oneIn(t.prompts, t.prompts_with_swear);
   const taken = new Date(report.generated_at);
   const expires = new Date(taken.getTime() + REPORT_TTL_DAYS * 86_400_000);
-  const rate = `That is ${t.swears_per_100_prompts.toFixed(1)} swears for every 100 prompts you typed.`;
 
   // Largest at the bottom of the jar; the key reads top down, like the jar.
   const used = report.by_harness
     .filter((h) => h.prompts > 0)
     .sort((a, b) => b.swears - a.swears);
   const stack = used.map((h) => ({ key: h.harness, n: h.swears, tone: TONE[h.harness] }));
-  const worst = used.length > 1 ? used.reduce((a, b) => (b.rate > a.rate ? b : a)) : null;
 
   const lede =
-    t.swears === 0 || every === null
-      ? `Not a single swear in ${num.format(t.prompts)} prompts.`
-      : every === 1
-        ? `Nearly every prompt had a swear in it. ${rate}`
-        : `One prompt in ${num.format(every)} had a swear in it. ${rate}`;
+    t.swears === 0
+      ? `No swears in ${num.format(t.prompts)} prompts.`
+      : `${t.swears_per_100_prompts.toFixed(1)} swears per 100 prompts.`;
 
   return (
     <header className="st-hero">
@@ -309,27 +301,6 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
           capacity={capacity}
           label={`${swears(t.swears)} in a jar that holds ${num.format(capacity)}`}
         />
-        <div className="cn-stack cn-gap-12 st-key">
-          {used.length > 1 ? (
-            <ul className="legend cn-stack cn-gap-8" aria-label="Who you swore at">
-              {[...used].reverse().map((h) => (
-                <li key={h.harness} className="legend-item" style={vars({ "--tone": TONE[h.harness] })}>
-                  <span>
-                    <strong className="cn-name">{HARNESS_LABEL[h.harness]}</strong>{" "}
-                    <span className="cn-meta">
-                      {swears(h.swears)}, {h.rate.toFixed(1)} per 100 prompts
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          <p className="cn-meta cn-m-0">
-            {used.length === 1 && `All of it in ${HARNESS_LABEL[used[0]!.harness]}. `}
-            {worst && worst.swears > 0 && `${HARNESS_LABEL[worst.harness]} takes the most. `}
-            Your jar holds {num.format(capacity)}.
-          </p>
-        </div>
       </div>
     </header>
   );
@@ -351,7 +322,7 @@ function Contents({ report }: { report: Report }) {
           <h2 className="cn-title cn-m-0">What is in the jar</h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">
             {top
-              ? `${num.format(report.top_words.length)} distinct words. "${top.word}" alone is ${sharePercent(top.share)} of the jar.`
+              ? `${num.format(report.top_words.length)} words`
               : "Nothing yet."}
           </p>
         </div>
@@ -406,10 +377,6 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
     .filter((h) => h.messages > 0)
     .sort((x, y) => y.swears - x.swears);
   const words = report.agent_top_words.slice(0, 3);
-  const verdict = agentVerdict(
-    { swears: report.totals.swears, per100: report.totals.swears_per_100_prompts },
-    { swears: a.swears, per100: a.swears_per_100_messages, messages: a.messages },
-  );
   const most = Math.max(...words.map((w) => w.count), 1);
 
   return (
@@ -418,7 +385,7 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
         <div>
           <h2 className="cn-title cn-m-0">Does the agent swear back?</h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">
-            A much smaller jar. It holds {num.format(small)}, yours holds {num.format(capacity)}.
+            Holds {num.format(small)}. Yours holds {num.format(capacity)}.
           </p>
         </div>
         <div className="st-shelved is-small">
@@ -430,7 +397,7 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
         </div>
         <div className="cn-stack cn-gap-16">
         <p className="cn-copy cn-m-0">
-          {swears(a.swears)} in {num.format(a.messages)} replies. {verdict}
+          {swears(a.swears)} in {num.format(a.messages)} replies.
         </p>
         {words.length > 0 && (
           <div className="st-said" aria-label="What it said">
@@ -483,7 +450,6 @@ function Deposits({ report }: { report: Report }) {
   const peak = days.reduce((a, b) => (b.total > a.total ? b : a));
   const months = monthStarts(days);
   const agents = HARNESSES.filter((h) => days.some((d) => d.agents[h] > 0));
-  const excluded = report.coverage.session_precision_prompts;
   // Gaps between stacks close up as the range grows, so a year still fits.
   const gap = days.length > 300 ? 0 : days.length > 150 ? 1 : 2;
 
@@ -495,11 +461,7 @@ function Deposits({ report }: { report: Report }) {
             When you swore
           </h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">
-            One stripe per swear, one stack per day, {num.format(active)} active days.
-            {peak.total > 0 &&
-              ` The tallest stack is ${swears(peak.total)}, yours and the agents', on ${dayOf(peak.date)}.`}
-            {excluded > 0 &&
-              ` ${num.format(excluded)} Cursor prompts are dated by session, since Cursor keeps no per-message time.`}
+            {num.format(active)} days. Busiest: {dayOf(peak.date)}, {swears(peak.total)}.
           </p>
         </div>
         <ul className="legend" aria-label="Whose swears">
@@ -519,7 +481,7 @@ function Deposits({ report }: { report: Report }) {
 
       <div className="well cn-bg-well st-deposits">
         <div
-          className="st-days"
+          className={`st-days${peak.total > 28 ? " is-solid" : ""}`}
           aria-hidden="true"
           style={vars({ "--max": Math.max(peak.total, 1), "--gap": `${gap}px` })}
         >
