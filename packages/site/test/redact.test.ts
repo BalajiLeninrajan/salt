@@ -41,6 +41,30 @@ describe("redactEvent", () => {
     expect(Object.keys(out.properties.$heatmap_data)).toEqual([`${ORIGIN}/r/:id`]);
   });
 
+  it("reaches the URLs nested inside web vitals metrics", () => {
+    const event = {
+      uuid: "u",
+      event: "$web_vitals",
+      properties: {
+        $current_url: `${ORIGIN}/r/0123456789`,
+        $web_vitals_LCP_value: 1200,
+        $web_vitals_LCP_event: {
+          name: "LCP",
+          value: 1200,
+          $current_url: `${ORIGIN}/r/0123456789`,
+          navigationURL: `${ORIGIN}/r/0123456789`,
+          attribution: { url: `${ORIGIN}/r/0123456789`, target: "main" },
+        },
+      },
+    } as CaptureResult;
+
+    const out = redactEvent(event, ORIGIN)!;
+    expect(JSON.stringify(out)).not.toContain("0123456789");
+    expect(out.properties.$web_vitals_LCP_event.navigationURL).toBe(`${ORIGIN}/r/:id`);
+    expect(out.properties.$web_vitals_LCP_event.attribution).toEqual({ url: `${ORIGIN}/r/:id`, target: "main" });
+    expect(out.properties.$web_vitals_LCP_value).toBe(1200);
+  });
+
   it("passes a dropped event through", () => {
     expect(redactEvent(null, ORIGIN)).toBeNull();
   });

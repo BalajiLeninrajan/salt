@@ -30,10 +30,19 @@ export function redactUrl(value: string, origin: string): string {
   return relative ? url.pathname + url.search + url.hash : url.href;
 }
 
-function redactProps(props: Properties, origin: string): void {
-  for (const [key, value] of Object.entries(props)) {
-    if (typeof value === "string") props[key] = redactUrl(value, origin);
+// Walks nested objects and arrays too: $web_vitals puts the page URL inside
+// each metric ($web_vitals_LCP_event.$current_url, .navigationURL, ...).
+function redactValue(value: unknown, origin: string): unknown {
+  if (typeof value === "string") return redactUrl(value, origin);
+  if (Array.isArray(value)) return value.map((item) => redactValue(item, origin));
+  if (value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype) {
+    redactProps(value as Properties, origin);
   }
+  return value;
+}
+
+function redactProps(props: Properties, origin: string): void {
+  for (const [key, value] of Object.entries(props)) props[key] = redactValue(value, origin);
 }
 
 /** A `before_send` hook, given the page's origin. */
