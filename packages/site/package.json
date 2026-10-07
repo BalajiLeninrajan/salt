@@ -16,7 +16,9 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
+    "@posthog/react": "^1.11.3",
     "catppuccin-neu": "github:BalajiLeninrajan/catppuccin-neu#v0.4.0",
+    "posthog-js": "^1.436.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
