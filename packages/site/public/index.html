@@ -38,26 +38,6 @@
         api_host: "https://us.i.posthog.com",
         defaults: "2026-05-30",
         cookieless_mode: "always",
-        before_send: function (event) {
-          if (!event) return event;
-          [event.properties, event.$set, event.$set_once].forEach(function (props) {
-            for (var key in props) {
-              var value = props[key];
-              if (typeof value !== "string") continue;
-              var relative = value.charAt(0) === "/";
-              if (!relative && value.indexOf("http") !== 0) continue;
-              try {
-                var url = new URL(value, location.origin);
-              } catch (e) {
-                continue;
-              }
-              if (url.origin !== location.origin || !/^\/r\/[^/]+/.test(url.pathname)) continue;
-              url.pathname = url.pathname.replace(/^\/r\/[^/]+/, "/r/:id");
-              props[key] = relative ? url.pathname + url.search + url.hash : url.href;
-            }
-          });
-          return event;
-        },
       });
     </script>
   </head>
