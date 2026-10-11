@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { usePostHog } from "@posthog/react";
 
 type State = "idle" | "copied" | "failed";
 
 /**
  * Puts text on the clipboard and holds the result for 1800ms, then reverts.
- * Only which state shows changes; nothing animates the swap.
+ * Only which state shows changes; nothing animates the swap. `onCopied` runs
+ * only when the write succeeded.
  */
-function useCopy(text: string) {
+function useCopy(text: string, onCopied: () => void) {
   const [state, setState] = useState<State>("idle");
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -20,7 +22,10 @@ function useCopy(text: string) {
 
   function copy() {
     navigator.clipboard.writeText(text).then(
-      () => flash("copied"),
+      () => {
+        flash("copied");
+        onCopied();
+      },
       () => flash("failed"),
     );
   }
@@ -73,7 +78,8 @@ const LINK_LABEL: Record<State, string> = {
 
 /** The report's one action: put its own URL on the clipboard. */
 export function CopyLink({ url }: { url: string }) {
-  const [state, copy] = useCopy(url);
+  const posthog = usePostHog();
+  const [state, copy] = useCopy(url, () => posthog.capture("copy_link", { page: "report" }));
   return (
     <button className="btn btn-primary is-sm" onClick={copy} aria-live="polite">
       {state === "copied" ? <DoneGlyph /> : <CopyGlyph />}
@@ -85,9 +91,13 @@ export function CopyLink({ url }: { url: string }) {
 /**
  * The package's .command recipe: both glyphs are in the markup, and
  * .is-copied on the row decides which one shows and turns the button green.
+ * Only the expired screen draws one; the landing page has its own in copy.js.
  */
 export function CopyCommand({ command }: { command: string }) {
-  const [state, copy] = useCopy(command);
+  const posthog = usePostHog();
+  const [state, copy] = useCopy(command, () =>
+    posthog.capture("copy_command", { page: "expired" }),
+  );
   const tip = state === "copied" ? "Copied" : state === "failed" ? "Copy failed" : "Copy";
   return (
     <div className={`command${state === "copied" ? " is-copied" : ""}`}>

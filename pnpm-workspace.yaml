@@ -10,3 +10,6 @@ allowBuilds:
   # uses; sharp 0.33 ships prebuilt binaries anyway, so its script can stay off.
   sharp: false
   workerd: true
+  # posthog-js depends on core-js, whose postinstall only prints a funding
+  # banner.
+  core-js: false

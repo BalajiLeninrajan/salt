@@ -39,6 +39,8 @@
         row.classList.add("is-copied");
         btn.setAttribute("data-tip", "Copied");
         btn.setAttribute("aria-label", "Copied");
+        // The PostHog snippet in index.html defines this.
+        if (window.posthog) window.posthog.capture("copy_command", { page: "home" });
       },
       function () {
         // Selecting the text is the honest fallback: the user copies it. The
