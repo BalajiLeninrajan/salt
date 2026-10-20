@@ -349,7 +349,7 @@ function Contents({ report }: { report: Report }) {
           <strong className="cn-truncate">{w.word}</strong>
           <span
             className="progress-track cn-block"
-            style={vars({ "--progress-fill": TIER_COLOR[w.tier] })}
+            style={vars({ "--accent": TIER_COLOR[w.tier] })}
           >
             <span style={{ width: `${(w.count / max) * 100}%` }} />
           </span>
@@ -406,7 +406,7 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
                 <strong className="cn-truncate">{w.word}</strong>
                 <span
                   className="progress-track cn-block"
-                  style={vars({ "--progress-fill": TIER_COLOR[w.tier] })}
+                  style={vars({ "--accent": TIER_COLOR[w.tier] })}
                 >
                   <span style={{ width: `${(w.count / most) * 100}%` }} />
                 </span>
