@@ -1,6 +1,6 @@
 {
   "name": "salt",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
   "description": "salt workspace root: the CLI, the site Worker, the report dashboard, and the schema they share.",
