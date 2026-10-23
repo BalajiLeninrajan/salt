@@ -34,8 +34,8 @@ declare global {
 /**
  * The report is a swear jar: every swear dropped one coin in. Each section
  * reads one part of the jar (how full it is and who filled it, what is in
- * it, the agents' much smaller jar, the day each coin went in, where the
- * jar sat), so the page is built around that one object.
+ * it, the agents' much smaller jar, the day each coin went in, the project
+ * it came from), so the page is built around that one object.
  *
  * The page addresses the person who ran and published the report as "you",
  * even though anyone with the link can view it. Data-handling details live in
@@ -630,7 +630,7 @@ function Where({ report }: { report: Report }) {
   return (
     <section className="panel">
       <div className="panel-body">
-        <h2 className="cn-title cn-m-0">Where the jar sat</h2>
+        <h2 className="cn-title cn-m-0">Where you swore</h2>
         <p className="cn-meta cn-mt-4 cn-mb-0">{note}</p>
       </div>
       {/* The table fills the panel edge to edge and ends at its last row; the
