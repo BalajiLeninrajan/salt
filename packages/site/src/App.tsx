@@ -350,7 +350,7 @@ function Contents({ report }: { report: Report }) {
           <h2 className="cn-title cn-m-0">What is in the jar</h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">
             {top
-              ? `${num.format(report.top_words.length)} words`
+              ? `${num.format(report.top_words.length)} ${report.top_words.length === 1 ? "word" : "words"}`
               : "Nothing yet."}
           </p>
         </div>
