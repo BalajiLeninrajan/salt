@@ -33,6 +33,49 @@ export function fillPercent(coins: number, capacity: number): number {
   return Math.min(100, (coins / capacity) * 100);
 }
 
+/** One coin in a jar's pile, in a box 100 wide. */
+export interface PileCoin {
+  x: number;
+  y: number;
+  r: number;
+  /** Where the coin sits in the pile, 0 at the bottom up to 1 at the top. */
+  at: number;
+}
+
+/**
+ * Coins as flat discs, packed in rows up to `fill` percent of a box 100 wide
+ * and `height` tall. Every row runs past both walls and alternate rows shift
+ * half a coin, so each coin sits in the gap of the row under it; the glass
+ * clips the ends, which is what makes the heap read as inside it. The row
+ * the fill line crosses keeps its middle coins, as many as its share under
+ * the line. Bottom rows come first, so `at` runs bottom to top.
+ */
+export function coinPile(fill: number, r: number, height: number): PileCoin[] {
+  if (fill <= 0) return [];
+  const top = height * (1 - Math.min(fill, 100) / 100);
+  const step = r * 2.2;
+  const rowStep = step * 0.866;
+  // Enough coins either side of the middle to cross both walls.
+  const reach = Math.ceil((50 + r) / step);
+
+  const coins: Omit<PileCoin, "at">[] = [];
+  for (let k = 0; ; k++) {
+    const y = height - r - k * rowStep;
+    // How much of this row's band lies under the fill line.
+    const under = Math.min(1, (y + r - top) / (2 * r));
+    if (k > 0 && (under <= 0 || y - r < 2)) break;
+    const shift = k % 2 ? step / 2 : 0;
+    // A full row spans the jar; the floor row always keeps its middle coin.
+    const half = under >= 1 ? Infinity : Math.max(k === 0 ? 0 : -1, under * (50 + r));
+    for (let i = -reach; i <= reach; i++) {
+      const x = 50 + shift + i * step;
+      if (Math.abs(x - 50) <= half + 0.01) coins.push({ x, y, r });
+    }
+    if (under < 1) break;
+  }
+  return coins.map((c, i) => ({ ...c, at: coins.length > 1 ? i / coins.length : 0 }));
+}
+
 /**
  * A share of the jar as a whole percent. A word that is in the jar at all
  * never reads as "0%", because it isn't.

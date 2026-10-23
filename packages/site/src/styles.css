@@ -42,14 +42,12 @@ html { overscroll-behavior-y: none; }
 
 /* ── the swear jar (st-) ───────────────────────────────────────────────────
    Every swear is one coin. The jar is a carved well for the glass under a
-   raised lid, filled with coin-striped plates in their owner's color, and
-   everything stands on a raised shelf. Every jar on the page shares one
-   size, set here, and one capacity, set by the page, so a jar's fill is a
-   literal count and two jars compare honestly. The day stacks reuse the same
-   coins on a shelf inside a well.
+   raised lid, holding a heap of coins in their owner's color. The
+   day stacks are the same coins as flat blocks, standing on a shelf inside
+   a well.
 
-   Motion: each jar fills once and each day's stack rises once, on arrival,
-   from the shelf (st-pour, transform only). Nothing loops. */
+   Motion: each jar's coins drop in once and each day's stack rises once, on
+   arrival (transform only). Nothing loops. */
 
 /* main grows to fill the viewport; keep the sections packed at the top
    instead of letting the grid spread the extra height between rows. */
@@ -61,17 +59,28 @@ html { overscroll-behavior-y: none; }
   --jar-h: 188px;
 }
 
-/* One coin: a plate in its owner's color over a darker rim, so a stack
-   reads as coins, not a bar. */
+/* A day's stack: flat coins in the jar coins' face colour, each with a
+   thin gap above it so the well shows between them. */
 .st-coins {
-  background: repeating-linear-gradient(to top,
-    color-mix(in srgb, var(--accent) 34%, var(--crust)) 0 1px,
-    color-mix(in srgb, var(--accent) 90%, var(--base)) 1px var(--stripe, 8px));
+  background: linear-gradient(to top,
+    color-mix(in srgb, var(--accent) 88%, var(--base)) 0 calc(100% - 1.5px),
+    transparent 0);
+  /* One tile per coin; "round" fits a whole number of them, so a stack
+     whose height lands between pixels never shows a sliver of an extra coin. */
+  background-size: 100% var(--stripe, 8px);
+  background-repeat: repeat round;
 }
 
-.st-jar { display: grid; justify-items: center; width: var(--jar-w); }
-/* Neumorphic jar: the lid and the jar body are raised out of the page's own
-   ground, and the inside of the jar is carved into the body. */
+.st-jar {
+  display: grid;
+  justify-items: center;
+  width: var(--jar-w);
+  /* The glass's rim: mauve, mixed down so it outlines the jar without
+     outshining the page. */
+  --rim: color-mix(in srgb, var(--mauve) 40%, var(--surface-1));
+}
+/* The jar: a lid over the glass, both raised out of the page and edged in
+   a mauve rim, with the inside carved into the glass. */
 .st-lid {
   position: relative;
   z-index: 1;
@@ -79,48 +88,93 @@ html { overscroll-behavior-y: none; }
   height: 12px;
   margin-bottom: -2px;
   background: var(--surface-0);
+  border: 1px solid var(--rim);
   border-radius: var(--cn-radius-control);
-  /* A hard, dark cast onto the jar under it, so the lid reads as its own piece. */
+  /* A dark cast onto the jar under it, so the lid reads as its own piece. */
   box-shadow: 0 7px 9px -1px var(--crust), 0 2px 3px var(--crust), var(--neu-raised-soft);
 }
 .st-glass {
+  position: relative;
   width: 100%;
   height: var(--jar-h);
   padding: var(--space-2);
   background: var(--base);
+  border: 1.5px solid var(--rim);
   border-radius: 22% 22% 34% 34% / 9% 9% 16% 16%;
   box-shadow: var(--neu-raised);
 }
 /* The inside of the glass, its curve inset by the padding. It clips the
    coins, so a sliver follows the rounded base instead of running past it. */
 .st-inside {
+  position: relative;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
   overflow: clip;
   border-radius: 20% 20% 32% 32% / 7% 7% 14% 14%;
   background: color-mix(in srgb, var(--crust) 30%, var(--base));
+}
+/* The glass over the coins: its carved shadow, and a pale streak of
+   reflection down the left side, so the heap reads as behind glass. */
+.st-inside::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to right,
+    transparent 11%,
+    color-mix(in srgb, var(--text) 16%, transparent) 14% 20%,
+    transparent 23%);
   box-shadow: var(--neu-inset);
+  pointer-events: none;
 }
-.st-fill {
-  display: flex;
-  flex-direction: column;
-  height: var(--fill);
-  min-height: 3px;
-  overflow: clip;
-  border-radius: var(--cn-radius-chip) var(--cn-radius-chip) 0 0;
-  transform-origin: bottom;
-  animation: st-pour .9s var(--ease-out) .18s backwards;
+.st-inside svg { display: block; width: 100%; height: 100%; }
+/* The paper label stuck on the front of the glass, over the coins. The
+   shadow sits on the wrapper as a drop-shadow, so it follows the torn
+   outline the clip-path cuts into the paper. */
+.st-label {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  translate: -50% 0;
+  rotate: -3deg;
+  filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--crust) 70%, transparent));
 }
-.st-fill > * { flex: var(--n) 1 0; }
-/* One stripe per coin: the inside of the jar divided by its capacity. A jar
-   too big for that to read draws its plates solid. */
-.st-jar { --inside-h: calc(var(--jar-h) - 2 * var(--space-2)); }
-.st-fill .st-coins { --stripe: calc(var(--inside-h) / var(--cap, 1)); }
-.st-jar.is-solid .st-coins, .st-days.is-solid .st-coins {
-  background: color-mix(in srgb, var(--accent) 90%, var(--base));
+.st-label > span {
+  display: block;
+  padding: var(--space-1) 10px;
+  white-space: nowrap;
+  color: var(--crust);
+  background: var(--rosewater);
+  /* Ripped ends left and right, a slight wander along the top and bottom. */
+  clip-path: polygon(
+    3% 0, 30% 2%, 62% 0, 97% 3%,
+    100% 16%, 96% 31%, 99% 47%, 95% 63%, 100% 80%, 97% 100%,
+    68% 97%, 35% 100%, 2% 97%,
+    0 84%, 4% 68%, 0 52%, 3% 36%, 0 19%);
 }
+/* The coin slot cut into the lid. */
+.st-lid::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  width: 34%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--crust);
+  box-shadow: var(--neu-inset-soft);
+}
+/* One coin in the heap: a flat disc with a struck rim. */
+.st-coin-face { fill: color-mix(in srgb, var(--accent) 88%, var(--base)); }
+.st-coin-rim {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 50%, var(--crust));
+  stroke-width: 1;
+}
+/* The coins drop in bottom first, a few milliseconds apart. */
+.st-coin { animation: st-drop .45s var(--ease-out) backwards; animation-delay: calc(.18s + var(--i, 0) * 6ms); }
+@keyframes st-drop { from { transform: translateY(-40px); opacity: 0; } }
+/* A heavy day's coins are too thin to gap, so its stack is one flat bar. */
+.st-days.is-solid .st-coins { background: color-mix(in srgb, var(--accent) 88%, var(--base)); }
 @keyframes st-pour { from { transform: scaleY(0); } }
 
 /* The shelf the day stacks stand on. */
@@ -133,10 +187,10 @@ html { overscroll-behavior-y: none; }
 .st-shelved { display: grid; justify-items: center; }
 /* The agents' jar: a third of the size, so a few coins fill a visible share. */
 .st-shelved.is-small { --jar-w: 56px; --jar-h: 80px; }
-.st-shelved.is-small .st-glass { padding: var(--space-1); box-shadow: var(--neu-raised-soft); }
-.st-shelved.is-small .st-inside { box-shadow: var(--neu-inset-soft); }
+.st-shelved.is-small .st-glass { padding: var(--space-1); border-width: 1px; box-shadow: var(--neu-raised-soft); }
+.st-shelved.is-small .st-inside::after { box-shadow: var(--neu-inset-soft); }
 .st-shelved.is-small .st-lid { height: 8px; }
-.st-shelved.is-small .st-jar { --inside-h: calc(var(--jar-h) - 2 * var(--space-1)); }
+.st-shelved.is-small .st-lid::after { height: 2px; }
 
 /* Hero: the headline on the ground, the jar beside it. */
 .st-hero {
@@ -145,8 +199,8 @@ html { overscroll-behavior-y: none; }
   gap: var(--space-6);
   align-items: end;
 }
-/* The jar stands alone in its column; its stripes carry the harness colours. */
-.st-stand { display: grid; justify-items: center; align-items: end; }
+/* The jar stands alone in its column; its coins carry the harness colours. */
+.st-stand { display: grid; justify-items: center; align-content: end; gap: var(--space-4); }
 .st-stats { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-6); }
 
 /* The aside: its heading, the jar, then what the jar says. Once the aside
@@ -258,5 +312,5 @@ html { overscroll-behavior-y: none; }
 
 /* Reduced motion: every jar is already full and every stack already stands. */
 @media (prefers-reduced-motion: reduce) {
-  .st-fill, .st-days > span { animation: none; transform: none; }
+  .st-coin, .st-days > span { animation: none; transform: none; }
 }
