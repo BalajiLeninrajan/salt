@@ -6,21 +6,21 @@
 
 How much do you swear at your coding agents?
 
-`salt` reads the session logs that Claude Code, Codex, and Cursor already keep
-on your machine, counts the profanity in the prompts you typed, and publishes
-the counts to a link you can open and share. A sodium panel for your terminal.
+`salt` reads the session logs that Claude Code, Codex, and Cursor keep on your
+machine, counts the swear words in the prompts you typed, and uploads the
+counts as a report you can open in a browser and share.
 
 ```console
 npx salt-ai
 bunx salt-ai
 ```
 
-Nothing lands on your PATH or in your project. The runner caches the download,
-and that is the only trace it leaves.
+Neither command installs anything on your PATH or in your project. The package
+stays in the runner's cache.
 
-The scan is local; the report is not. Publishing is the default and the only
-way to see the dashboard. The tool prints what it is about to upload before it
-does, and `--json` keeps everything on your machine.
+The scan runs locally. By default salt then uploads the report, since the
+dashboard only exists on the hosted site. It prints what it is about to upload
+before sending it. Pass `--json` to skip the upload.
 
 ## Options
 
@@ -42,35 +42,31 @@ prompts. Project names are cut down to the repository's directory name, so no
 absolute paths leave your machine, and your home directory is never counted as
 a project.
 
-For a fully offline run, `--json` scans, prints the report to stdout, and exits
-without making a single network request. Same numbers the dashboard would show,
-minus the dashboard.
+`--json` prints the same report to stdout and makes no network requests.
 
 ## Accuracy
 
-Counting profanity in developer prompts is mostly a filtering problem. Two
-things ruin the count if you let them.
+Most of the work is deciding which text to ignore.
 
 **Only what you typed counts.** Every harness routes machine-generated text
 through the same channel as real prompts, so salt drops tool results, system
 reminders, slash-command envelopes, sub-agent delegations, approval-assessment
 transcripts, and automation heartbeats. Harnesses also rewrite a session's
-entire history into a new file on every fork and resume. One prompt appeared
-405 times in the corpus this was built against. Replayed prompts collapse to
-their first occurrence.
+entire history into a new file on every fork and resume. In the logs salt was
+built against, one prompt showed up 405 times. salt counts each replayed prompt
+once.
 
 **Code never counts.** salt strips fenced blocks, inline backticks, and file
 paths before matching, so `assert`, `class`, `pass`, and `analysis` cannot
 register as swears. Matching is word-bounded against an allowlist on top of
-that, and `f*ck` folds onto its canonical spelling, so censoring yourself
-changes nothing.
+that, and `f*ck` counts the same as the uncensored spelling.
 
-The report's methodology section lists what was actually read, including what
-could not be. No grain of salt required.
+The report's methodology section lists which files salt read and which it
+couldn't.
 
 ## Custom lexicon
 
-Season to taste. Create `~/.config/salt/lexicon.toml`:
+To change the word list, create `~/.config/salt/lexicon.toml`:
 
 ```toml
 remove = ["hell"]          # stop counting these
