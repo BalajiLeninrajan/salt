@@ -11,6 +11,8 @@ import { AGENT_LINE_COLOR, HARNESS_LABEL, REPORT_TTL_DAYS, TIER_COLOR } from "@s
 import { CopyCommand, CopyLink } from "./components/CopyLink";
 import { Logo } from "./components/Logo";
 import {
+  agentVerdict,
+  coinPile,
   depositDays,
   fillPercent,
   HARNESSES,
@@ -118,7 +120,7 @@ function ReportPage({ report }: { report: Report }) {
         <Hero report={report} capacity={capacity} />
         <div className={showAgents ? "st-split" : undefined}>
           <Contents report={report} />
-          {showAgents && <AgentJar report={report} capacity={capacity} />}
+          {showAgents && <AgentJar report={report} />}
         </div>
         <Deposits report={report} />
         <Where report={report} />
@@ -195,27 +197,43 @@ interface Coins {
   tone: string;
 }
 
+/** The jar's inside as the pile sees it: 100 wide, about as tall as the glass. */
+const PILE_H = 154;
+
 /**
  * A jar: a raised lid on a carved glass, filled from the bottom to its share
- * of `capacity` with coin-striped plates. `stack` runs bottom first, and each
- * plate's share of the fill is its share of the coins.
+ * of `capacity` with a heap of coins. `stack` runs bottom first, and each
+ * owner's share of the heap is their share of the coins. A small jar draws
+ * bigger coins, so they still read as coins at its size.
  */
 function Jar({
   stack = [],
   capacity,
   label,
+  small = false,
 }: {
   stack?: Coins[];
   capacity: number;
   label?: string;
+  small?: boolean;
 }) {
   const total = stack.reduce((s, c) => s + c.n, 0);
-  const fill = fillPercent(total, capacity);
-  const shown = stack.filter((c) => c.n > 0).reverse();
+  const pile = useMemo(
+    () => coinPile(fillPercent(total, capacity), small ? 12 : 7.5, PILE_H),
+    [total, capacity, small],
+  );
+  // Each coin takes the tone of whoever owns that height of the heap.
+  const toneAt = (at: number) => {
+    let below = 0;
+    for (const c of stack) {
+      below += c.n / total;
+      if (at < below) return c.tone;
+    }
+    return stack[stack.length - 1]!.tone;
+  };
   return (
     <figure
-      className={`st-jar cn-m-0${capacity > 48 ? " is-solid" : ""}`}
-      style={vars({ "--cap": capacity })}
+      className="st-jar cn-m-0"
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
@@ -223,21 +241,23 @@ function Jar({
       <div className="st-lid" />
       <div className="st-glass">
         <div className="st-inside">
-        {fill > 0 && (
-          <div
-            className="st-fill"
-            style={vars({ "--fill": `${fill}%` })}
-          >
-            {shown.map((c) => (
-              <span
-                key={c.key}
-                className="st-coins"
-                style={vars({ "--n": c.n, "--accent": c.tone })}
-              />
-            ))}
-          </div>
-        )}
+          {pile.length > 0 && (
+            <svg viewBox={`0 0 100 ${PILE_H}`} preserveAspectRatio="xMidYMax slice">
+              {pile.map((c, i) => (
+                <g key={i} className="st-coin" style={vars({ "--accent": toneAt(c.at), "--i": i })}>
+                  <circle className="st-coin-face" cx={c.x} cy={c.y} r={c.r} />
+                  <circle className="st-coin-rim" cx={c.x} cy={c.y} r={c.r * 0.68} />
+                </g>
+              ))}
+            </svg>
+          )}
         </div>
+        {/* Too small to read on the agents' jar, which keeps the slot alone. */}
+        {!small && (
+          <span className="st-label">
+            <span className="cn-microlabel">Swear jar</span>
+          </span>
+        )}
       </div>
     </figure>
   );
@@ -299,8 +319,16 @@ function Hero({ report, capacity }: { report: Report; capacity: number }) {
         <Jar
           stack={stack}
           capacity={capacity}
-          label={`${swears(t.swears)} in a jar that holds ${num.format(capacity)}`}
+          label={`Swear jar holding ${swears(t.swears)}`}
         />
+        {/* Every harness, used or not, so the key reads the same on every report. */}
+        <ul className="legend" aria-label="Harnesses">
+          {HARNESSES.map((h) => (
+            <li key={h} className="legend-item" style={vars({ "--tone": TONE[h] })}>
+              {HARNESS_LABEL[h]}
+            </li>
+          ))}
+        </ul>
       </div>
     </header>
   );
@@ -366,11 +394,11 @@ function Contents({ report }: { report: Report }) {
 
 /**
  * The agents' jar: a small jar with its own capacity, because agents almost
- * never swear and one swear should still be visible. The caption says how
- * much smaller it is than yours. It is the page's one tilted panel, because
+ * never swear and one swear should still be visible. The caption compares
+ * its rate with yours, per message. It is the page's one tilted panel, because
  * it is the aside.
  */
-function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
+function AgentJar({ report }: { report: Report }) {
   const a = report.agent;
   const small = jarCapacity(a.swears);
   const harnesses = report.agent_by_harness
@@ -385,20 +413,27 @@ function AgentJar({ report, capacity }: { report: Report; capacity: number }) {
         <div>
           <h2 className="cn-title cn-m-0">Does the agent swear back?</h2>
           <p className="cn-meta cn-mt-4 cn-mb-0">
-            Holds {num.format(small)}. Yours holds {num.format(capacity)}.
+            {agentVerdict(
+              { swears: report.totals.swears, per100: report.totals.swears_per_100_prompts },
+              { swears: a.swears, per100: a.swears_per_100_messages, messages: a.messages },
+            )}
           </p>
         </div>
         <div className="st-shelved is-small">
           <Jar
+            small
             capacity={small}
             stack={harnesses.map((h) => ({ key: h.harness, n: h.swears, tone: TONE[h.harness] }))}
-            label={`The agents' jar: ${swears(a.swears)} in a jar that holds ${num.format(small)}`}
+            label={`The agents' swear jar, holding ${swears(a.swears)}`}
           />
         </div>
         <div className="cn-stack cn-gap-16">
-        <p className="cn-copy cn-m-0">
-          {swears(a.swears)} in {num.format(a.messages)} replies.
-        </p>
+        {/* With no swears the caption already says "not once in N replies". */}
+        {a.swears > 0 && (
+          <p className="cn-copy cn-m-0">
+            {swears(a.swears)} in {num.format(a.messages)} replies.
+          </p>
+        )}
         {words.length > 0 && (
           <div className="st-said" aria-label="What it said">
             {words.map((w) => (

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AgentDayStat, DayStat } from "@salt/core";
 import {
   agentVerdict,
+  coinPile,
   depositDays,
   fillPercent,
   jarCapacity,
@@ -35,6 +36,35 @@ describe("fillPercent", () => {
     expect(fillPercent(900, 800)).toBe(100);
     expect(fillPercent(0, 800)).toBe(0);
     expect(fillPercent(5, 0)).toBe(0);
+  });
+});
+
+describe("coinPile", () => {
+  it("draws nothing for an empty jar and a coin for a nearly empty one", () => {
+    expect(coinPile(0, 7.5, 154)).toEqual([]);
+    expect(coinPile(1, 7.5, 154).length).toBeGreaterThan(0);
+  });
+
+  it("stacks higher as the jar fills, with the pile stopping near the fill line", () => {
+    const half = coinPile(50, 7.5, 154);
+    const full = coinPile(100, 7.5, 154);
+    expect(full.length).toBeGreaterThan(half.length);
+    // The row the fill line crosses can stand up to one coin above it.
+    expect(Math.min(...half.map((c) => c.y - c.r))).toBeGreaterThan(154 * 0.5 - 15);
+  });
+
+  it("runs full rows past both walls, for the glass to clip", () => {
+    const full = coinPile(100, 7.5, 154);
+    const floor = full.filter((c) => c.y === full[0]!.y);
+    expect(Math.min(...floor.map((c) => c.x - c.r))).toBeLessThan(0);
+    expect(Math.max(...floor.map((c) => c.x + c.r))).toBeGreaterThan(100);
+  });
+
+  it("orders coins bottom first and draws the same pile every time", () => {
+    const pile = coinPile(80, 7.5, 154);
+    expect(pile[0]!.at).toBe(0);
+    expect(pile.every((c, i) => i === 0 || c.at > pile[i - 1]!.at)).toBe(true);
+    expect(coinPile(80, 7.5, 154)).toEqual(pile);
   });
 });
 
