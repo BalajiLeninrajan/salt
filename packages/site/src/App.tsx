@@ -599,8 +599,6 @@ function Deposits({ report }: { report: Report }) {
 
 type SortKey = keyof Pick<ProjectStat, "name" | "prompts" | "swears" | "rate">;
 
-const SHOWN = 15;
-
 function Where({ report }: { report: Report }) {
   const [sort, setSort] = useState<SortKey>("swears");
 
@@ -609,7 +607,7 @@ function Where({ report }: { report: Report }) {
     copy.sort((a, b) =>
       sort === "name" ? a.name.localeCompare(b.name) : b[sort] - a[sort],
     );
-    return copy.slice(0, SHOWN);
+    return copy;
   }, [report.projects, sort]);
 
   if (report.projects.length === 0) return null;
@@ -622,52 +620,53 @@ function Where({ report }: { report: Report }) {
   ];
 
   const total = report.projects.length;
-  const note =
-    total > SHOWN
-      ? `Top ${SHOWN} of ${num.format(total)} projects.`
-      : `${num.format(total)} ${total === 1 ? "project" : "projects"}.`;
+  const note = `${num.format(total)} ${total === 1 ? "project" : "projects"}.`;
 
   return (
-    <section className="panel">
-      <div className="panel-body">
-        <h2 className="cn-title cn-m-0">Where you swore</h2>
+    <section className="cn-stack cn-gap-16" aria-labelledby="st-projects">
+      <div>
+        <h2 className="cn-title cn-m-0" id="st-projects">
+          Where you swore
+        </h2>
         <p className="cn-meta cn-mt-4 cn-mb-0">{note}</p>
       </div>
-      {/* The table fills the panel edge to edge and ends at its last row; the
-          recipe rounds that row into the panel corners. Its cells carry no
-          data-label, so on a phone it stays a table. */}
-      <div className="table-scroll">
-        <table className="data-table st-projects">
-          <caption className="cn-sr-only">Swears per project, sortable</caption>
-          <thead>
-            <tr>
-              {head.map(([key, label]) => (
-                <th
-                  key={key}
-                  className={key === "name" ? "cn-text-left" : "cn-text-right"}
-                  // Names sort A to Z; the counts sort largest first.
-                  aria-sort={sort !== key ? "none" : key === "name" ? "ascending" : "descending"}
-                >
-                  <button type="button" onClick={() => setSort(key)}>
-                    {label}
-                  </button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((p) => (
-              <tr key={p.name}>
-                <td className="cell-name cn-text-left">
-                  <strong>{p.name}</strong>
-                </td>
-                <td className="cn-text-right">{num.format(p.prompts)}</td>
-                <td className="cn-text-right">{num.format(p.swears)}</td>
-                <td className="cn-text-right">{p.rate.toFixed(1)}</td>
+      {/* The table sits in a well like the chart above and scrolls under a
+          sticky header. Its cells carry no data-label, so on a phone it stays
+          a table. */}
+      <div className="well scroll-well st-projects-well">
+        <div className="table-scroll">
+          <table className="data-table is-sticky-head st-projects">
+            <caption className="cn-sr-only">Swears per project, sortable</caption>
+            <thead>
+              <tr>
+                {head.map(([key, label]) => (
+                  <th
+                    key={key}
+                    className={key === "name" ? "cn-text-left" : "cn-text-right"}
+                    // Names sort A to Z; the counts sort largest first.
+                    aria-sort={sort !== key ? "none" : key === "name" ? "ascending" : "descending"}
+                  >
+                    <button type="button" onClick={() => setSort(key)}>
+                      {label}
+                    </button>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((p) => (
+                <tr key={p.name}>
+                  <td className="cell-name cn-text-left">
+                    <strong>{p.name}</strong>
+                  </td>
+                  <td className="cn-text-right">{num.format(p.prompts)}</td>
+                  <td className="cn-text-right">{num.format(p.swears)}</td>
+                  <td className="cn-text-right">{p.rate.toFixed(1)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );

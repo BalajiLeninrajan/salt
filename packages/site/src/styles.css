@@ -268,6 +268,18 @@ html { overscroll-behavior-y: none; }
 .st-months { position: relative; height: 16px; margin-top: var(--space-2); }
 .st-months span { position: absolute; top: 0; }
 
+/* Projects: every project, in a well that scrolls. The well has no fill of
+   its own, so the sticky header takes the page's base to hide the rows passing
+   under it; the scroller clips the rows to the well's corners and doesn't
+   bounce past its ends. */
+.st-projects-well > .table-scroll {
+  max-height: 30rem;
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+  border-radius: inherit;
+}
+.st-projects-well th { background: var(--base); }
+
 /* Projects: four columns fit a phone once the cells step down. */
 @media (max-width: 520px) {
   .st-projects { --cell-pad: var(--space-3) var(--space-2); }
