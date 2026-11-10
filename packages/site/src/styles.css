@@ -8,11 +8,9 @@
 
 /* Real Inter for s/l/t, a drawn arch for the `a`. The arch SVG is exactly
    one x-height tall and sits on the baseline, so it lines up with the text
-   without any nudging. Sized by the font-size of whatever holds it. Inter
-   is named here because the arch is measured against it; the package's
-   sans is IBM Plex Sans, whose x-height and stems differ. */
+   without any nudging. Sized by the font-size of whatever holds it. */
 .logo {
-  font-family: "Inter", var(--sans);
+  font-family: var(--sans);
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--text);

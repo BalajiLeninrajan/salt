@@ -276,7 +276,7 @@ async function expiredPage(url: URL, env: Env): Promise<Response> {
 <title>Report not found, salt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"/>
 <link rel="stylesheet" href="/styles/index.css"/>
 <main class="page-main is-narrow">
   <h1 class="cn-display is-sm">This jar was emptied.</h1>

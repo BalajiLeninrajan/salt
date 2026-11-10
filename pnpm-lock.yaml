@@ -22,8 +22,8 @@ importers:
         specifier: ^1.11.3
         version: 1.11.3(@types/react@19.2.18)(posthog-js@1.436.1(@types/react@19.2.18)(react@19.2.8))(react@19.2.8)
       catppuccin-neu:
-        specifier: github:BalajiLeninrajan/catppuccin-neu#v1.0.0
-        version: https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/207d95258cf31e14f010c7229f8e6942755ff4aa
+        specifier: github:BalajiLeninrajan/catppuccin-neu#v2.0.0
+        version: https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/bfd7455d13b3e2e529e94a02dada86e9d9c0907c
       posthog-js:
         specifier: ^1.436.1
         version: 1.436.1(@types/react@19.2.18)(react@19.2.8)
@@ -1169,9 +1169,9 @@ packages:
   caniuse-lite@1.0.30001809:
     resolution: {integrity: sha512-xxWVywk6a6Arlk+hymeycyn/VgqEfLDxupvhH/xiY5SJ/18kmi9o6MiO320DCUzypORHLtvh0I4i04tUhCNHNQ==}
 
-  catppuccin-neu@https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/207d95258cf31e14f010c7229f8e6942755ff4aa:
-    resolution: {gitHosted: true, integrity: sha512-clBmrVtK0Rw2KffrhQYE2A2X7enL4BOT3XGbGV6L+gMtQqvqTncCrMbNkx6r6Xy0xsPDXaTwCdcI4RwP4D1zbg==, tarball: https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/207d95258cf31e14f010c7229f8e6942755ff4aa}
-    version: 1.0.0
+  catppuccin-neu@https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/bfd7455d13b3e2e529e94a02dada86e9d9c0907c:
+    resolution: {gitHosted: true, integrity: sha512-zJL9+q+HE7qs+XMKhWdGByv6Nmpow2DIJE20PLC4uksl9gBNSzOjQ5tPF5ol6ygHpoGtSlqPblZ9AQD81eamwg==, tarball: https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/bfd7455d13b3e2e529e94a02dada86e9d9c0907c}
+    version: 2.0.0
     engines: {node: '>=18'}
     hasBin: true
 
@@ -2467,7 +2467,7 @@ snapshots:
 
   caniuse-lite@1.0.30001809: {}
 
-  catppuccin-neu@https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/207d95258cf31e14f010c7229f8e6942755ff4aa: {}
+  catppuccin-neu@https://codeload.github.com/BalajiLeninrajan/catppuccin-neu/tar.gz/bfd7455d13b3e2e529e94a02dada86e9d9c0907c: {}
 
   chai@5.3.3:
     dependencies:

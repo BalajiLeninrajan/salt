@@ -84,11 +84,9 @@ body { position: relative; overflow-x: hidden; }
 
 /* The wordmark: real Inter for s/l/t, a drawn arch for the `a`. The arch SVG is
    exactly one x-height tall and sits on the baseline, so it lines up with the
-   text without nudging. Kept in step with src/components/Logo.tsx. Inter is
-   named here because the arch is measured against it; the package's sans is
-   IBM Plex Sans. */
+   text without nudging. Kept in step with src/components/Logo.tsx. */
 .logo {
-  font-family: "Inter", var(--sans);
+  font-family: var(--sans);
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1;
