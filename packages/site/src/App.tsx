@@ -514,7 +514,7 @@ function Deposits({ report }: { report: Report }) {
         </ul>
       </div>
 
-      <div className="well cn-bg-well st-deposits">
+      <div className="well st-deposits">
         <div
           className={`st-days${peak.total > 28 ? " is-solid" : ""}`}
           aria-hidden="true"

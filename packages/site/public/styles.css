@@ -59,7 +59,7 @@ body { position: relative; overflow-x: hidden; }
 
 /* --- page frame --- */
 
-/* Composes .app-shell. The package's ground is opaque --base; here it has to
+/* Composes .app-shell. The package's ground is opaque; here it has to
    be transparent, or it would hide the drift. The wash is this page's own
    shape: a wide ellipse off the top-left, not the package's bloom. */
 .shell {
@@ -84,9 +84,11 @@ body { position: relative; overflow-x: hidden; }
 
 /* The wordmark: real Inter for s/l/t, a drawn arch for the `a`. The arch SVG is
    exactly one x-height tall and sits on the baseline, so it lines up with the
-   text without nudging. Kept in step with src/components/Logo.tsx. */
+   text without nudging. Kept in step with src/components/Logo.tsx. Inter is
+   named here because the arch is measured against it; the package's sans is
+   IBM Plex Sans. */
 .logo {
-  font-family: var(--sans);
+  font-family: "Inter", var(--sans);
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1;

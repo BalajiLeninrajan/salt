@@ -8,9 +8,11 @@
 
 /* Real Inter for s/l/t, a drawn arch for the `a`. The arch SVG is exactly
    one x-height tall and sits on the baseline, so it lines up with the text
-   without any nudging. Sized by the font-size of whatever holds it. */
+   without any nudging. Sized by the font-size of whatever holds it. Inter
+   is named here because the arch is measured against it; the package's
+   sans is IBM Plex Sans, whose x-height and stems differ. */
 .logo {
-  font-family: var(--sans);
+  font-family: "Inter", var(--sans);
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--text);
@@ -33,8 +35,8 @@
 html { overscroll-behavior-y: none; }
 
 /* The recipe fades the bar's rule and cast in over the first 60px of scroll.
-   On a mantle fill the bar is its own band, so it keeps its bottom rule at
-   rest and the edge is there before anyone scrolls. */
+   This bar is opaque mantle on the mantle page, so it keeps its bottom rule
+   at rest and the edge is there before anyone scrolls. */
 .topbar {
   animation: none;
   border-bottom-color: var(--surface-0);
@@ -268,17 +270,17 @@ html { overscroll-behavior-y: none; }
 .st-months { position: relative; height: 16px; margin-top: var(--space-2); }
 .st-months span { position: absolute; top: 0; }
 
-/* Projects: every project, in a well that scrolls. The well has no fill of
-   its own, so the sticky header takes the page's base to hide the rows passing
-   under it; the scroller clips the rows to the well's corners and doesn't
-   bounce past its ends. */
+/* Projects: every project, in a well that scrolls. The recipe's header
+   band is translucent, so the sticky header takes the well's own fill to
+   hide the rows passing under it; the scroller clips the rows to the well's
+   corners and doesn't bounce past its ends. */
 .st-projects-well > .table-scroll {
   max-height: 30rem;
   overflow-y: auto;
   overscroll-behavior-y: none;
   border-radius: inherit;
 }
-.st-projects-well th { background: var(--base); }
+.st-projects-well th { background: var(--cn-surface-sunken); }
 
 /* Projects: four columns fit a phone once the cells step down. */
 @media (max-width: 520px) {
