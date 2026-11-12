@@ -59,7 +59,7 @@ body { position: relative; overflow-x: hidden; }
 
 /* --- page frame --- */
 
-/* Composes .app-shell. The package's ground is opaque --base; here it has to
+/* Composes .app-shell. The package's ground is opaque; here it has to
    be transparent, or it would hide the drift. The wash is this page's own
    shape: a wide ellipse off the top-left, not the package's bloom. */
 .shell {
